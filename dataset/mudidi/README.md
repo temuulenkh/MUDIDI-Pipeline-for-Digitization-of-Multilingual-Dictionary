@@ -161,14 +161,3 @@ See `LICENSE` for details.
 ```
 
 See `CITATION.bib` for the full bibliography.
-
-## Rebuilding this release
-
-From the MUDIDI repository root (requires local `assets/dictionaries/samples/`):
-
-```bash
-uv run python scripts/package_hf_dataset.py --overwrite
-uv run python scripts/validate_hf_dataset.py
-```
-
-Replace `ORG` in URLs with your Hugging Face organization or username before publishing.
