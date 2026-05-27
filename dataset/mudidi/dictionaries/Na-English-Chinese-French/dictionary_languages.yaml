@@ -1,0 +1,13 @@
+layout: inline_trilingual
+source:
+  language: Na
+  code: na
+targets:
+- language: English
+  code: en
+- language: Chinese
+  code: zh
+- language: French
+  code: fr
+writing_system: IPA+latin-based+Han
+metadata_archive: NaEnglishChineseDictionary_v1_2

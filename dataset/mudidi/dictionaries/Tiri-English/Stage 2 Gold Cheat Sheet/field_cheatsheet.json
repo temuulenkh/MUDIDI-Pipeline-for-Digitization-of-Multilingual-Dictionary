@@ -1,0 +1,51 @@
+{
+  "dictionary_name": "Tiri Dictionary",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "Lexeme / headword (vernacular)"
+    },
+    {
+      "marker": "hm",
+      "description": "Homonym number (separates identical headwords)"
+    },
+    {
+      "marker": "se",
+      "description": "Subentry (indented derived forms or phrases)"
+    },
+    {
+      "marker": "ge",
+      "description": "English gloss / short translation"
+    },
+    {
+      "marker": "cf",
+      "description": "Cross-reference to another entry"
+    },
+    {
+      "marker": "sy",
+      "description": "Synonym cross-reference"
+    },
+    {
+      "marker": "an",
+      "description": "Antonym cross-reference"
+    },
+    {
+      "marker": "nt",
+      "description": "General compiler note (used for etymology/borrowing notes)"
+    }
+  ],
+  "rules": [
+    "Homonyms: Formatted as separate entries with a number (e.g., 'dae 1.', 'dae 2.'); requires separate \\lx blocks with \\hm 1, 2, etc.",
+    "Subentries: Placed under a main entry (often introduced by 'in:' or indentation), using \\se followed by \\ge.",
+    "Cross-references: Printed in parentheses at the end of the gloss block (e.g., '(cf. baeho)'), tracked via \\cf.",
+    "Compiler Notes: Parenthetical comments on separate lines like '(presumably borrowed)' are captured in \\nt.",
+    "Local French Names: Printed in quotation marks after the English gloss; typically captured within \\ge or a secondary \\ge field."
+  ],
+  "abbreviations": {
+    "[M]": "Mea dialect pronunciation",
+    "cf.": "cross reference",
+    "ant:": "antonym",
+    "syn:": "synonym",
+    "[= ]": "identical in reference"
+  }
+}

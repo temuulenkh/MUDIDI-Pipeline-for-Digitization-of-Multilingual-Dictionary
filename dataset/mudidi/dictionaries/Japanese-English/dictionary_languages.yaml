@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Japanese
+  code: japanese
+targets:
+- language: English
+  code: en
+writing_system: Kana+Kanji
+metadata_archive: japanese-hvd-hy6z87-1779145121

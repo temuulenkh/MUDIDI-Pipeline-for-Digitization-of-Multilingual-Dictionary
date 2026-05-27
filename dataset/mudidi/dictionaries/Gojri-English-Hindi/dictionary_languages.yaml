@@ -1,0 +1,11 @@
+layout: inline_trilingual
+source:
+  language: Gojri
+  code: gojri
+targets:
+- language: English
+  code: en
+- language: Hindi
+  code: hi
+writing_system: Nastaliq(Arabic)
+metadata_archive: '720231409477'

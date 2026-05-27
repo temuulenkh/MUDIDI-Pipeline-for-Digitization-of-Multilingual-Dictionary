@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Telugu
+  code: telugu
+targets:
+- language: English
+  code: en
+writing_system: Telugu
+metadata_archive: telugu-hvd-32044086550928-1779146875

@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Georgian
+  code: georgian
+targets:
+- language: Russian
+  code: ru
+writing_system: Georgian
+metadata_archive: Kankava_Georgian-Russian_dictionary

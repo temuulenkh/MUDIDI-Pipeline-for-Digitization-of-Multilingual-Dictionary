@@ -44,11 +44,14 @@ archive/
 assets/
 models/outputs/
 **.workspace
-*.pdf
 *.zip
 *.tar
 *.tar.gz
 *.tgz
+
+# PDFs elsewhere in the repo (benchmark PDFs under dataset/ are tracked)
+*.pdf
+!dataset/mudidi/**/*.pdf
 
 # OS
 .DS_Store

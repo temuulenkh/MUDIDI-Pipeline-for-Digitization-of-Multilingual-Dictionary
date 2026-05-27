@@ -1,0 +1,66 @@
+{
+  "dictionary_name": "Greek-English Lexicon",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "Lexeme / headword (Greek vernacular)"
+    },
+    {
+      "marker": "ps",
+      "description": "Part of speech (e.g., a., s. f., v. a.)"
+    },
+    {
+      "marker": "ue",
+      "description": "English usage/register label (e.g., vul. for vulgarly)"
+    },
+    {
+      "marker": "ge",
+      "description": "English gloss / translation"
+    },
+    {
+      "marker": "uv",
+      "description": "Vernacular usage/sense discriminator (italicized Greek in parentheses)"
+    },
+    {
+      "marker": "se",
+      "description": "Subentry or bolded phrase within the main entry"
+    },
+    {
+      "marker": "cf",
+      "description": "Cross-reference (indicated by 'see')"
+    }
+  ],
+  "rules": [
+    "Headwords start a new entry with \\lx (bolded in print), followed immediately by grammatical endings and \\ps.",
+    "English usage notes (like 'vul.') should be tagged with \\ue.",
+    "Multiple senses are not explicitly numbered in print but are divided by semicolons, POS changes, or parenthetical Greek discriminators; structure with \\sn 1, \\ge ..., \\sn 2, \\uv ..., \\ge ...",
+    "Parenthetical Greek text that restricts or clarifies a sense (e.g., (ἰσχνὸς)) should be marked with \\uv.",
+    "Bolded phrases and idioms within a block (e.g., τὸ ἀδύνατον) act as subentries; mark with \\se followed by its own \\ge.",
+    "Cross-references using 'see' are marked with \\cf pointing to the target lemma."
+  ],
+  "abbreviations": {
+    "a.": "adjective",
+    "adv.": "adverb",
+    "a. p.": "participle of active voice",
+    "b. s.": "bad sense",
+    "comp.": "comparative",
+    "conj.": "conjunction",
+    "inter.": "interjection",
+    "part.": "particle",
+    "pers.": "of persons",
+    "plu.": "plural",
+    "p. p.": "passive participle",
+    "prep.": "preposition",
+    "pron.": "pronoun",
+    "s. f.": "substantive feminine",
+    "s. m.": "substantive masculine",
+    "s. n.": "substantive neuter",
+    "super.": "superlative",
+    "th.": "of things",
+    "v. a.": "verb active",
+    "v. imp.": "verb impersonal",
+    "v. m.": "verb of the middle voice",
+    "v. n.": "verb neuter",
+    "vul.": "vulgarly"
+  }
+}

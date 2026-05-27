@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Syriac
+  code: syriac
+targets:
+- language: English
+  code: en
+writing_system: Syriac
+metadata_archive: uc2-ark--13960-t9q242k3w-1775999102

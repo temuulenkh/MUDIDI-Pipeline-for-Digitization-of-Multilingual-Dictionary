@@ -1,0 +1,95 @@
+{
+  "dictionary_name": "Iñupiatun-English Dictionary",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "Lexeme / headword (Iñupiatun stem or root)"
+    },
+    {
+      "marker": "hm",
+      "description": "Homonym number (separates entries with identical spelling)"
+    },
+    {
+      "marker": "se",
+      "description": "Subentry (derived words, indented under main stem)"
+    },
+    {
+      "marker": "ps",
+      "description": "Part of speech"
+    },
+    {
+      "marker": "sn",
+      "description": "Sense number (for entries with multiple meanings)"
+    },
+    {
+      "marker": "ge",
+      "description": "English definition"
+    },
+    {
+      "marker": "xv",
+      "description": "Example sentence (vernacular Iñupiatun)"
+    },
+    {
+      "marker": "xe",
+      "description": "Example translation (English)"
+    },
+    {
+      "marker": "sy",
+      "description": "Synonym"
+    },
+    {
+      "marker": "cf",
+      "description": "Cross-reference (indicated by 'See:')"
+    },
+    {
+      "marker": "va",
+      "description": "Variant form"
+    },
+    {
+      "marker": "lt",
+      "description": "Literal meaning"
+    }
+  ],
+  "rules": [
+    "Homonyms: Listed as separate dictionary main entries, tracked with \\hm.",
+    "Multiple Senses: Ordered sequentially with \\sn 1, \\sn 2 within the same record block.",
+    "Subentries: Derived words are placed in \\se and indented under the root word (though the sample page mostly shows flat alphabetization).",
+    "Verb and Enclitic boundaries: Verb stems end with a hyphen (\\lx aaq-); enclitics begin with a hyphen (\\lx -guuq).",
+    "Multiple relations: Multiple terms in \\sy (Syn:) or \\cf (See:) are separated by semicolons (e.g., araummaa! ; arii!)."
+  ],
+  "abbreviations": {
+    "abl": "ablative case",
+    "adj": "adjective",
+    "adv": "adverb",
+    "abs": "absolutive case",
+    "base": "root for certain words",
+    "conj": "conjunction",
+    "dem.adv": "demonstrative adverb",
+    "dem.pron": "demonstrative pronoun",
+    "der.af": "derivational affix",
+    "disc": "discourse",
+    "du/dual": "dual",
+    "encl": "enclitic",
+    "excl": "exclamation",
+    "gram": "grammar",
+    "lit": "literally",
+    "loc": "locative case",
+    "mod": "modalis case",
+    "n": "noun",
+    "pl/plur": "plural",
+    "pos.adv": "related to positional bases",
+    "pos.base": "positional bases",
+    "prefix": "referring to the only prefix, ta-",
+    "pron": "pronoun",
+    "rel": "relative/ergative case",
+    "quest": "question word",
+    "sg/sing": "singular",
+    "sim": "similaris case",
+    "ter": "terminalis case",
+    "vi": "verb intransitive",
+    "via": "vialis case",
+    "voc": "vocative",
+    "vt": "verb transitive",
+    "(C)": "coastal dialect"
+  }
+}

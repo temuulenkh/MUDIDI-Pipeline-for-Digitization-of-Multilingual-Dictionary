@@ -1,0 +1,129 @@
+\lx وِشْطِه
+\ph wéshté
+\ge Able
+\ps a
+\de apt, fit
+\gn الملو
+
+\lx پْسِی شوُنِه
+\ph psee shooney
+\ge Able
+\ps v.n
+\de to be able
+\gn ایده بلمك
+
+\lx آپْسِه
+\ph áhpsey
+\ge Above
+\ps prep
+\gn یوقرده
+
+\lx طْشِیطْلم گِه
+\ph tshitlem ghey
+\ge About
+\ps prep
+\gn صانكه — قرردن
+
+\lx طْصْشِی اِفمه
+\ph t'z'shee-éfmé
+\ge Abridge
+\ps v.a
+\gn قصالتمق
+
+\lx یِه مِپ
+\va تِیه پْشِه واُونِم
+\ph yeeh mep; tipshéh voonem
+\ge Absent
+\ps a
+\gn ناموجود
+
+\lx ارزارار
+\ph árzárár
+\ge Absurd
+\ps a
+\gn دادسز
+
+\lx قابوُلوُ صوغا
+\ph kábooloo tzoġhá
+\ge Accept
+\ps v.a
+\gn قبول اتمك
+
+\lx یِه زِگِه
+\ph yeyzeyghey
+\ge Accommodate
+\ps v.a
+\de one's self to circumstances
+\gn یقشمق
+
+\lx اُوشُوهن
+\ph oohshoohn
+\ge Accomplish
+\ps v.a
+\gn بنورمك
+
+\lx هیسابی شوغا
+\ph heesábee shóġha
+\ge Account
+\ps v.a
+\gn حساب اتمك
+
+\lx یِهسِن
+\ph yéhsén
+\ge Accustom
+\ps v.a
+\gn الشتمق
+
+\lx مویْ اوزِْزه
+\va وَاط وِی غُوآ
+\ph mouy ûz-zey, wát-we ġhooá
+\ge Ache
+\ps s
+\de pain, smart
+\gn اغری — اجی
+
+\lx سوات شِیدا
+\ph soátsheedá
+\ge Acquaintance
+\ps s
+\gn اشنالق
+
+\lx بوُطْطِه
+\ph boottéy
+\ge Across
+\ps ad
+\de athwart
+\gn اكری
+
+\lx ناه شه
+\ph náhshey
+\ge Across
+\ps ad
+\de obliquely
+\gn ارقوری
+
+\lx طشِیطله اُوقُودشُوق
+\ph tshítley ookoodshook
+\ge Address
+\ps s
+\de a direction
+\gn عنوان — مكتوب اوستی
+
+\lx اُوغابُزِینِیشط
+\ph ooġhábzee-neesht
+\ge Adorn
+\ps v.a
+\de to clean
+\gn تمیزلمك
+
+\lx فایدَا صوغا
+\ph fáïdá tsoġhá
+\ge Advantage
+\ps s
+\gn فایدا
+
+\lx داشِی یِزْواوخ
+\ph dáhshee yez-wókh
+\ge Advise
+\ps v.a
+\gn نصیحت ویرمك

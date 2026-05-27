@@ -1,0 +1,71 @@
+{
+  "dictionary_name": "Efik-English Dictionary",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "Lexeme / headword in Efik."
+    },
+    {
+      "marker": "hm",
+      "description": "Homonym number (represented by Roman numerals like II., III.)."
+    },
+    {
+      "marker": "va",
+      "description": "Variant form (e.g., alternate spellings or dialects like DUM'-E)."
+    },
+    {
+      "marker": "ps",
+      "description": "Part of speech label."
+    },
+    {
+      "marker": "sn",
+      "description": "Sense number (Arabic numerals 1, 2, 3...)."
+    },
+    {
+      "marker": "ge",
+      "description": "English gloss / short translation."
+    },
+    {
+      "marker": "ue",
+      "description": "English usage note (e.g., context, 'Trop.', 'Spoken of rain', or literal constraints)."
+    },
+    {
+      "marker": "xv",
+      "description": "Vernacular example sentence (Efik)."
+    },
+    {
+      "marker": "xe",
+      "description": "English translation of the vernacular example."
+    },
+    {
+      "marker": "cf",
+      "description": "Cross-reference to another lexeme (e.g., 'See Däbä', derivations, or root references)."
+    },
+    {
+      "marker": "sy",
+      "description": "Synonym cross-reference."
+    }
+  ],
+  "rules": [
+    "Homographs are differentiated using Roman numerals immediately following the headword, mapping to \\hm.",
+    "Numbered senses use Arabic numerals (1, 2, 3...) mapped to \\sn, preceding the usage note or gloss.",
+    "Variant forms (\\va) follow the main headword and may have their own part of speech.",
+    "Derivations (Der.) and 'See' pointers are treated as cross-references (\\cf), often specifying the target's part of speech.",
+    "Examples are grouped in bundles: an italicized vernacular sentence (\\xv) followed by its italicized English translation (\\xe).",
+    "Usage notes (\\ue) often clarify the context or subject of the verb (e.g., 'With inua.', 'Trop.') and appear before the gloss or among examples."
+  ],
+  "abbreviations": {
+    "v.": "verb",
+    "v. tr.": "transitive verb",
+    "v. intr.": "intransitive verb",
+    "ref.": "reflexive",
+    "n.": "noun",
+    "adv.": "adverb",
+    "a.": "adjective",
+    "Trop.": "Tropological / figuratively",
+    "Syn.": "Synonym",
+    "Der.": "Derivative",
+    "Ib.": "Ibibio (dialect/region)",
+    "Ef.": "Efik (dialect/region)"
+  }
+}

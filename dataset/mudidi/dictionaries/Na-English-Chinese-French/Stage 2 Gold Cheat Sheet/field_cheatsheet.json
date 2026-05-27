@@ -1,0 +1,90 @@
+{
+  "dictionary_name": "Yongning Na Dictionary",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "headword / lexeme (surface-phonological form)"
+    },
+    {
+      "marker": "hm",
+      "description": "homonym number (printed as subscript digit)"
+    },
+    {
+      "marker": "ph",
+      "description": "underlying phonological transcription (between slashes)"
+    },
+    {
+      "marker": "lc",
+      "description": "orthographic representation (romanized script)"
+    },
+    {
+      "marker": "ps",
+      "description": "part of speech label"
+    },
+    {
+      "marker": "np",
+      "description": "phonology/tone note. Copy the full printed label into the value, e.g. \\np Tone: LM (do not emit LM alone)."
+    },
+    
+    {
+      "marker": "sn",
+      "description": "sense number (printed as circled digits ①, ②)"
+    },
+    {
+      "marker": "de",
+      "description": "English definition / translation"
+    },
+    {
+      "marker": "dn",
+      "description": "Chinese (national) definition / translation"
+    },
+    {
+      "marker": "dr",
+      "description": "French (regional) definition / translation"
+    },
+    {
+      "marker": "xv",
+      "description": "vernacular example phrase/sentence (preceded by ¶)"
+    },
+    {
+      "marker": "xe",
+      "description": "English example translation"
+    },
+    {
+      "marker": "xn",
+      "description": "Chinese (national) example translation"
+    },
+    {
+      "marker": "xr",
+      "description": "French (regional) example translation"
+    },
+    {
+      "marker": "xg",
+      "description": "interlinear gloss line (morpheme-aligned abbreviations)"
+    },
+    {
+      "marker": "nt",
+      "description": "classifier note (▪ in print). Copy the full printed phrase into the value, e.g. \\nt Commonly used classifier: mi˩ (do not emit mi˩ alone)."
+    },
+    
+    {
+      "marker": "cf",
+      "description": "cross-reference (printed after 'See:'). Keep the target lemma only (no 'See:' prefix)."
+    }
+  ],
+  "rules": [
+    "Entry boundaries: \\lx initiates the record. Homographs are distinguished by a subsequent \\hm.",
+    "Grammar header: emit \\ps and \\np on separate lines (do not merge POS and tone onto one line).",
+    "Multiple senses: Introduced by \\sn (1, 2) prior to the definition bundles.",
+    "Trilingual definitions: Translations follow the sequence \\de (English), \\dn (Chinese), \\dr (French).",
+    "Examples: Bundles start with \\xv (marked by ¶ in print), followed by free translations (\\xe, \\xn, \\xr) or interlinear grammatical glosses (\\xg).",
+    "Note-field values: for \\np and \\nt, preserve the dictionary's printed English label text verbatim from the transcription (e.g. Tone: LM; Commonly used classifier: mi˩). The marker selects the field role; the label is part of the value, not a separate marker."
+  ],
+  "abbreviations": {
+    "ACCOMP": "accomplished",
+    "DUR": "durative",
+    "PFV": "perfective",
+    "RED": "reduplicated",
+    "POSTP": "postposition"
+  }
+}

@@ -1,0 +1,30 @@
+[58]
+<b>कुड़ती</b>(kurhti)nf:Shirt;bodice;blouse.अँगिया,चोली, कमीज
+<b>कुड़तो</b>(kurhto)nm:Loose outer garment;long robe. लम्बी कमीज़,कुरता
+<b>कुड़नू</b>(kurhNu)v:Grieve;feel sad;mourn.शोक मनाना,उदास होना,विलाप करना
+<b>कुड़म</b>(kurham)nm:Father of son-in-law/daughter in law.समधी
+<b>कुड़माई</b>(kurhmaai)nf:Betrothal;engagement. सगाई,वाग्दान,मँगनी
+<b>कुड़यामू</b>(kurhiyaamu)adj.Feminine;pertaining to womenस्त्रियोचित
+<b>कुड़ान</b>(kurhaan)nm: A tribal recipe of cheese. पनीर
+<b>कुड़ी</b>(kurhi)nf:Girl;daughter;female child. लड़की,बेटी,,बालिका,पुत्री
+<b>कुतब</b>(qutab) A.1.nm:North pole. क़ुतुब,उत्तरी ध्रुव
+2.Hermit;saint;recluse;eremite. तपस्वी,मुनि,संत
+<b>कुतरनू</b>(kutarnu) v:Cut;gnaw;pare.कुतरना,दांत से नोचना
+<b>कुती</b>(kuti)nf:Bitch;female dog. कुतिया
+adj.Quarrelsome female झगड़ालू महिला
+<b>कुतेयम</b>(kuteyam)nm:Petulance;bad temper.चिडचिडा ,धेर्यशून्य
+<b>कुतो</b>(kuto)nm:Dog;hound;mongrel.कुत्ता,भेड़िए की जाति का एक पशु
+adj.Low and mean person. नीच अधर्मी मनुष्य,लोभी और तुच्छ व्यक्ति
+<b>कुंद</b>(kund)P.adj.Blunt;dull;sluggish.कुंद,मंद बुद्धि का,आलसी,निष्क्रिये,कुंठित
+<b>कुद</b>(kud)v:(you) Jump/leap/hop! तुम नाचो, कूदो !
+<b>कुदणू</b>(kudnu)v:To jump/dance/pounce/rejoice. कूदना,उछलना,नाचना,
+<b>कुदरत</b>(qudrat)n:Nature;supreme power;God प्रकृति,निसर्ग,ईश्वरीय शक्ति
+<b>कुदरती</b>(qudrati)adj.Natural;spontaneous.प्राकृतिक,स्वभाविक,जन्मजात
+<b>कुदाड़ो</b>(kudaarho)nm:Jump;dance;jubiliation. कूद,छलांग, आनंदोत्सव
+<b>कुनाळी</b>(kuNaali)nf:An earthen bowl.मिट्टी का बना गोल पात्र
+<b>कुनाळो</b>(kuNaalo)nm: kneading trough. Large basin. बड़ा पात्र,थाला
+<b>कुनी</b>(kuNi)nf:Small earthen cooking pot. मिट्टी की छोटी पतीली
+<b>कुनेन</b>(kuNain)nf:E.Quinine;cinchona alkaloid used in malaria.
+कुनैन,एक कुनैन नामक औषधि जो मलेरिया ज्वर की दवा है
+<b>कुप्पो</b>(kuppo)nm:1.Water-containe;bladder.कुप्पा,चमड़े का थैला, जलपात्र
+2.Hornet's nest, Honey comb. भिडों का छत्ता, मधुमक्खी का छत्ता

@@ -191,6 +191,8 @@ Stage 2 metrics: [`docs/stage_2_evaluation_metrics.md`](docs/stage_2_evaluation_
 
 The benchmark covers **30 public-domain bilingual dictionaries** sourced from HathiTrust and spanning Latin, Cyrillic, Greek, Devanagari, Bengali, Gujarati, Gurmukhi, Kannada, Telugu, Hebrew, Syriac, Arabic-based, Khmer, Han + IPA, Kana + Kanji, and Cuneiform scripts. **Stage 1** is evaluated on **3 i.i.d. content pages per dictionary** (90 pages total). **Stage 2** focuses on **10 dictionaries × 1 page** chosen to be representative of formats, descriptive traditions, and target languages (English, Russian, French, Chinese, Turkish).
 
+The curated gold release lives at [`dataset/mudidi/`](dataset/mudidi/) (source pages, Stage 1/2 gold, manifests). See [`dataset/mudidi/README.md`](dataset/mudidi/README.md) for layout and loading instructions.
+
 Per-language sample folders follow:
 
 ```

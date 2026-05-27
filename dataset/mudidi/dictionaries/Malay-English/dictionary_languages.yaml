@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Malay
+  code: malay
+targets:
+- language: English
+  code: en
+writing_system: Jawi(Arabic-based), latin-based with diacritics
+metadata_archive: mdp-39015057116959-1775972487

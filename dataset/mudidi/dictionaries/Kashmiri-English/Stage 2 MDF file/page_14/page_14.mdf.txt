@@ -1,0 +1,212 @@
+\lx akIhA:Th
+\ps a
+\va اکہٕ ہأٹھ
+\ge sixty one
+
+\lx aki d>h
+\ps ad
+\va اکہِ دۄہ
+\ge one day
+
+\lx aki laTi
+\ps ad
+\va اکہِ لٹہِ
+\ge once
+
+\lx akTar
+\pd m
+\va اکٹَر
+\ge actor
+
+\lx aktu:bar
+\pd m
+\va اکتوٗبر
+\ge October
+
+\lx akli monD
+\ps a
+\va عقلہِ مونڈ
+\ge foolish
+
+\lx aksar
+\ps ad
+\va اکثر
+\ge often, generally
+
+\lx akh
+\ps a
+\va اکھ
+\ge one
+
+\lx akha:DI
+\pd m
+\va اکھاڈٕ
+\ge field (wrestling field), arena
+
+\lx akhtuy
+\ps par
+\va اکھتُے
+\ge also
+
+\lx akh dama:h
+\ps ad
+\va اکھ دَماہ
+\ge for a while
+
+\lx akhba:r
+\pd m
+\va اخبار
+\ge newspaper/newspapers
+
+\lx akh'ur/achur
+\pd m
+\va اکھیوُر / اچھُر
+\ge letter of an alphabet
+
+\lx agast
+\pd m
+\va اَگست
+\ge August
+
+\lx achidA:r
+\pd f.s
+\va اچھِ دأر
+\ge a doll
+\pl Achida:ri
+
+\lx achipo:sh
+\ps n
+\va اچھ پوش
+\ge a flower
+
+\lx atsun
+\ps v
+\va اژُن
+\ge to enter
+
+\lx atshlratsh
+\pd f.s
+\va اژٕ رژھ
+\ge dancing girl/prostitute, nymph
+\pl atshlratshl
+
+\lx ajanT
+\pd m
+\va اَجَنٹ
+\ge agent
+
+\lx ajal
+\pd m
+\va اَجل
+\ge death
+
+\lx ajA:yibgar
+\ps m
+\va عجأیب گر
+\ge museum
+
+\lx az
+\ps ad
+\va اَز
+\ge today
+
+\lx azarvun
+\ps m
+\va اَزروُن
+\ge jealousy
+
+\lx aza:n
+\ps a
+\va اَزان
+\ge ignorant, unqualified
+
+\lx aza:b
+\pd m
+\va عَذاب
+\ge discomfort, torture
+
+\lx aza:r
+\pd m
+\va اَزار
+\ge labour pain
+
+\lx azkal
+\ps ad
+\va اَزکَل
+\ge nowadays, these days
+
+\lx azmat
+\pd f
+\va عز متھ
+\ge grandeur, magnificance
+
+\lx azta:m
+\ps ad
+\va اَزتام
+\ge upto now, till now
+
+\lx az paga:h
+\ps ad
+\va اَز پَگاہ
+\ge today or tomorrow
+
+\lx aTI
+\ps n
+\va اٹہٕ
+\ge rope for the load on back
+
+\lx aTlba:r
+\pd m
+\va اٹہٕ بور
+\ge load on shoulders/back
+
+\lx aTIhor
+\pd m
+\va اٹہِ ہۆر
+\ge an ear ornament worn by Kashmiri Hindu women
+
+\lx aTal
+\ps a
+\va اَٹَل
+\ge final, inevitable
+
+\lx aTh
+\pd f
+\va اَٹھ
+\ge an ear ornament worn by Kashmiri Hindu women
+
+\lx aTho:vuh
+\ps a
+\va اَٹھووُہ
+\ge twenty eight
+
+\lx aDI
+\pd m
+\va اڑٕ
+\ge centre, a (vehicle) stand
+
+\lx aDIkajar
+\ps n
+\va اڑٕ کَجَر
+\ge stuttering
+
+\lx aDIkAj kath
+\pd f.s
+\va اڑٕ کٔج کَتھ
+\ge stuttering talk
+\pl aDIkaji kathi
+
+\lx aDIkol
+\ps a
+\pd m.s
+\va اڑٕکۆل
+\ge one who stutters
+\pl aDIkAl'
+\se aDIkAj
+\pd f.s
+\pl aDIkaji
+
+\lx aDun
+\ps v
+\va اَڑُن
+\ge to be adament

@@ -1,0 +1,53 @@
+{
+  "dictionary_name": "Чукотско-русский словарь",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "headword / lexeme (vernacular Chukchi lemma)"
+    },
+    {
+      "marker": "hm",
+      "description": "homonym number (distinguishes identical headwords, printed as Roman numerals I, II)"
+    },
+    {
+      "marker": "va",
+      "description": "variant form (phonetic variant listed after a comma alongside the headword)"
+    },
+    {
+      "marker": "se",
+      "description": "subentry (derived form or phrase bolded within the main entry)"
+    },
+    {
+      "marker": "sn",
+      "description": "sense number (Arabic numerals marking multiple meanings)"
+    },
+    {
+      "marker": "gn",
+      "description": "Russian gloss / translation"
+    },
+    {
+      "marker": "un",
+      "description": "usage note or restriction (parenthetical Russian context in italics)"
+    },
+    {
+      "marker": "pl",
+      "description": "plural form (vernacular plural printed in brackets with мн.)"
+    }
+  ],
+  "rules": [
+    "Homonyms: Separate \\lx blocks with the same lemma, each receiving a \\hm number (1, 2 printing as I, II).",
+    "Numbered senses: One \\lx, followed by \\sn 1, \\gn ..., \\sn 2, \\gn ...",
+    "Sub-entries: Run-on \\se sub-lemma followed by \\gn ... inside the same record block, separated from the main entry by a semicolon.",
+    "Multiple glosses: Close Russian synonyms are separated by commas; distant meanings are separated by semicolons (if not split into numbered senses).",
+    "Usage notes: Parenthetical italicized Russian text providing semantic context or object restrictions goes into \\un."
+  ],
+  "abbreviations": {
+    "др.": "другие",
+    "ед.": "единственное число",
+    "и т. д.": "и так далее",
+    "-л.": "-либо",
+    "мн.": "множественное число",
+    "перен.": "переносное (значение)",
+    "устар.": "устаревшее (слово, значение)"
+  }
+}

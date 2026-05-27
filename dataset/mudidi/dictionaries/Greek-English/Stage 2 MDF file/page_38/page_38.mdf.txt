@@ -1,0 +1,304 @@
+\lx ᾿Αδραστος
+\cf ᾿Αναπόδραστος
+
+\lx ᾿Αδράχνω
+\ps v. a
+\ue vul
+\ge to seize, to catch
+
+\lx ᾿Αδρεπτος, ον
+\ps a
+\ge unplucked, ungathered, not cropped
+
+\lx ῾Αδρὸς, ὰ, ὸν
+\ps a
+\ge magnificent, great, abundant, rich, robust, big, large
+
+\lx ῾Αδρότης, ητος
+\ps s. f
+\ge abundance, exuberance, largeness, bigness
+
+\lx ῾Αδρῶς
+\ps adv
+\ge abundantly, magnificently, with profusion, richly, handsomely
+
+\lx ᾿Αδυναμία, ας
+\ps s. f
+\ge weakness, feebleness, debility, languidness, inability
+
+\lx ᾿Αδυνάμωτος, ον
+\ps a
+\ge not strengthened, not fortified
+
+\lx ᾿Αδυνάστευτος, ον
+\ps a
+\ge not oppressed
+
+\lx ᾿Αδύνατα
+\ps adv
+\ue vul
+\ge weakly, feebly, impossibly
+
+\lx ᾿Αδυνατίζω
+\sn 1
+\ps v. a
+\ge to weaken, to enfeeble
+\sn 2
+\ps v. n
+\ge to become weak, feeble
+\sn 3
+\uv γίνομαι ἰσχνὸς
+\ge to grow thin or lean
+
+\lx ᾿Αδυνάτισμα, ατος
+\ps s. n
+\ge weakness, debility
+
+\lx ᾿Αδύνατος, ον
+\ps a
+\sn 1
+\ge weak, feeble, infirm
+\sn 2
+\ge cast-down
+\sn 3
+\uv ἰσχνὸς
+\ge thin, poor
+\sn 4
+\uv ἀκατόρθωτος
+\ge impossible, impracticable
+\se τὸ ἀδύνατον
+\ps s. n
+\ge impossibility
+\se εἶναι ὅλως ἀδύνατον
+\ge to be utterly or quite impossible
+\se κάμνειν τὰ ἀδύνατα δυνατά
+\ge to do a seeming impossibility
+\se καθιστᾷν ἀδύνατον
+\ge to render impossible
+\se τοῦτο μὸὶ εἶναι ἀδύνατον
+\ge that is out of my power
+\se ἀποβαίνει ὅλως ἀδύνατον
+\ge it becomes altogether impossible
+
+\lx ᾿Αδυνατῶ, έω
+\ps v. n
+\sn 1
+\ge not to be able
+\sn 2
+\ge to find something impossible
+\sn 3
+\ge to become or get weak, to become enfeebled
+\sn 4
+\ge to become lean, to grow thin
+
+\lx ᾿Αδυνάτως
+\ps adv
+\ge weakly, impossibly
+
+\lx ᾿Αδυσώπητος, ον
+\ps a
+\ge inexorable, unmoved, unrelenting
+
+\lx ᾿Αδυσωπήτως
+\ps adv
+\ge inexorably
+
+\lx ῎Αδυτον, ου
+\ps s. n
+\ge a shrine, a sanctuary
+
+\lx ῎Αδυτος, ον
+\ps a
+\ge impenetrable, secret, concealed
+
+\lx ῎Αδω
+\ps ν. n
+\sn 1
+\ge to sing, praise, celebrate
+\sn 2
+\se ᾄδεται ὅτι
+\ge it is said, it is rumoured
+
+\lx ᾿Αδώρητος, ον
+\ps a
+\sn 1
+\ge ungifted, not gratified
+\sn 2
+\uv μὴ δωρηθεὶς
+\ge not given
+
+\lx ᾿Αδωροδόκητος, ον
+\ps a
+\ge not bribed, incorruptible, honest, sincere, unbought
+
+\lx ῎Αδωρος, ον
+\ps a
+\sn 1
+\ge ungifted, unrewarded, destitute of gifts
+\sn 2
+\se ἄδωρον δῶρον
+\ge a present not worth accepting or ruinous, a perfidious present
+
+\lx ᾿Αεὶ
+\ps adv
+\ge always, ever, continually
+
+\lx ᾿Αειδουλεία, ας
+\ps s. f
+\ge perpetual servitude
+
+\lx ᾿Αείδουλος, ον
+\ps a
+\ge perpetually servile
+
+\lx ᾿Αειθαλής, ές
+\ps a
+\ge evergreen, ever flourishing, never withering, ever prosperous
+
+\lx ᾿Αεικινησία, ας
+\ps s. f
+\ge perpetual motion, restlessness
+
+\lx ᾿Αεικίνητος, ον
+\ps a
+\ge perpetually moving, restless, fidgety
+
+\lx ᾿Αεικινήτως
+\ps adv
+\ge with perpetual motion
+
+\lx ᾿Αειλαμπὴς, ές
+\ps a
+\ge ever shining
+
+\lx ᾿Αείμνηστος, ον
+\ps a
+\ge memorable, worthy of being ever remembered
+
+\lx ᾿Αειμνήστως
+\ps adv
+\ge memorably
+
+\lx ᾿Αειπάρθενος, ον
+\ps a
+\ge Ever-Virgin (Mary)
+
+\lx ᾿Αείποτε
+\ps adv
+\ge always, ever
+
+\lx ᾿Αειφρούρητος, ον
+\ps a
+\ge ever-defended
+
+\lx ᾿Αειφυγία, ας
+\ps s. f
+\ge perpetual banishment
+
+\lx ᾿Αενναος, ον
+\ps a
+\sn 1
+\ge continual, perennial
+\sn 2
+\uv ἀείρροος
+\ge ever-flowing, never-failing
+
+\lx ᾿Αεννάως
+\ps adv
+\ge perpetually, continually
+
+\lx ᾿Αεράκι, ίου
+\ps s. n
+\ue vul
+\ge zephyr, light wind, breeze
+
+\lx ᾿Αεραντλία, ας
+\ps s. f
+\ge air-pump
+
+\lx ᾿Αέρας, α
+\ps s. m
+\ue vul
+\ge wind
+\se εἰς τὸν ἀέρα, or ματαίως
+\ge foolishly, in vain
+\se πρᾶγμα τοῦ ἀέρος
+\ge a trifle, vanity, folly
+
+\lx ᾿Αεργία, ας
+\ps s. f
+\ge idleness, indolence, inactivity, sloth
+
+\lx 'Αεργος, ον
+\ps a
+\ge idle, without work, disengaged
+
+\lx ᾿Αερίζω
+\ps v. a
+\ge to air, to ventilate
+
+\lx ᾿Αερικὸς, ὴ, ὸν
+\ps a
+\ge airy, ventilated
+
+\lx ᾿Αέριον, ίου
+\ps s. n
+\ge gas
+
+\lx ᾿Αέριος, ία, ιον
+\ps a
+\sn 1
+\ge airy
+\sn 2
+\uv ἐναέριος
+\ge aerial
+
+\lx ᾿Αεριόφως, ωτος
+\ps s. n
+\ge gas, gas-light
+
+\lx ᾿Αέρισμα, ατος
+\ps s. n
+\ge an airing, ventilation
+
+\lx ᾿Αεριστῆρι, ίου
+\ps s. m
+\ge a fan, a ventilator
+
+\lx ᾿Αεριώδης, ες
+\ps a
+\ge gaseous
+
+\lx ᾿Αεροβάτης, ου
+\ps s. m
+\sn 1
+\ge one who traverses the air, an aeronaut
+\sn 2
+\ge a visionary
+
+\lx ᾿Αεροβατικὸς, ὴ, ὸν
+\sn 1
+\ge traversing the air
+\sn 2
+\se μηχανὴ ἀεροβατική
+\ge air balloon
+
+\lx ᾿Αεροβατῶ, έω
+\ps v. n
+\ge to travel through the air, to form vain speculations, to build castles in the air
+
+\lx ᾿Αερογραφία, ας
+\ps s. f
+\ge aerography
+
+\lx ᾿Αεροδρομῶ, έω
+\ps v. n
+\ge to go through the air
+
+\lx ᾿Αεροειδὴς, ἐς
+\ps a
+\ge aerial, light
+
+\lx ᾿Αερόλιθος, ου
+\ps s. m
+\ge an aerolite

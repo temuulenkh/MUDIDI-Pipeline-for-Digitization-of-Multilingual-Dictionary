@@ -1,0 +1,55 @@
+Root - shk-flex
+file:///C:/Users/Bakhita%20Otto/AppData/Local/Temp/DictionaryPreview/sh...
+<b>adälø</b> <i>cf:</i> <b>adällï</b> . (<i>N</i>)(<i>Sglt5</i> ) gourd, jug used to carry water or milk (sem. domains: 6.7.3 -
+Carrying tool, 1.3.2.2 - Pour, 4.2.3.5 - Musical instrument, 8.2.5.1 - Big container, volume.)
+<b>aded</b> (<i>N</i>) root of papyrus plant (sem. domains: 1.5.5 - Parts of a plant.)
+<b>ádeder</b> (<i>N</i>) insect, small grasshopper? (sem. domains: 1.5.7 - Plant diseases.)
+<b>àdëg</b> (<i>N</i>) scab (sem. domains: 2.2.5 - Bleed, blood.)
+<b>adegø</b> (<i>N</i>) grass eaten by cows (sem. domains: 5.2.3.1.1 - Food from seeds.)
+<b>adëgø</b> (<i>N</i>)(<i>SgltC</i> ) burned part of food (sem. domains: 5.2.1 - Food preparation, 8.3 -
+Quality.)
+<b>adelgarø</b> (<i>Adj</i> ) paralyzed (sem. domains: 2.4.2 - Weak.)
+<b>ádëlpär ádëëlpäär</b> (<i>N</i>) spinach (sem. domains: 6.2.1.3 - Growing vegetables, 1.5.3 - Grass,
+herb, vine.)
+<b>adengø</b> (<i>N</i>)(<i>SgltC</i> ) Guinea millet (sem. domains: 6.3.1.1 - Cattle, 1.5.3 - Grass, herb, vine.)
+<b>adenyangø</b> (<i>N</i>) hunger first thing in the morning (sem. domains: 5.2.2.5 - Hungry, thirsty.)
+<b>adergwøg</b> (comp. of <b>aderø</b>, <b>gwøg₁</b> (comp. of <b>wïje tädø ki gwøg</b>), see under <b>aderø</b>)
+<b>aderø</b> <i>cf:</i> <b>aderr</b> . (<i>N</i>)(<i>Sglt3</i> ) 1) lifting tool, lever (sem. domains: 6.7.4 - Lifting tool.) 2)
+ass, donkey (sem. domains: 6.3.1 - Domesticated animal, 1.6.1.1.3 - Hoofed animals, 6.3.1.7
+- Beast of burden.)
+<b>adergwøg</b> (<i>comp.</i>) <i>N</i> energetic person (sem. domains: 2.4.3 - Energetic.)
+<b>aderr</b> <i>cf:</i> <b>aderø</b> . (<i>N</i>)(<i>Sglt3</i> ) levers, donkeys
+<b>adhädh</b> (<i>N</i>)(<i>Sg2</i> ) bottle (sem. domains: 2.3.1.9 - Something used to see, 2.3.1.7 - Reflect,
+mirror, 6.7.7 - Container.)
+<b>adhädhhï</b> (unspec. comp. form) <i>N</i> bottles (sem. domains: 2.3.1.9 - Something used to see,
+2.3.1.7 - Reflect, mirror, 6.7.7 - Container.)
+<b>adhädhhï</b> (unspec. comp. form of <b>adhädh</b>)
+<b>ádhäg</b> <i>cf:</i> <b>ádhägø</b> . (<i>N</i>)(<i>Sglt2</i> ) kind of yam (sem. domains: 5.2.3.1.5 - Food from roots.)
+<b>ádhägø</b> <i>cf:</i> <b>ádhäg</b> . (<i>N</i>)(<i>Sglt2</i> ) kind of yam; root plant eaten by children (sem. domains:
+6.2.1.3 - Growing vegetables.)
+<b>adhälli</b> (<i>N</i>) difficult; complicated (sem. domains: 7.5.8 - Simple, complicated.)
+<b>adhaw</b> (<i>Arabic</i>) (<i>N</i>) pistol, revolver
+<b>adhëg</b> <i>cf:</i> <b>adhëgg</b> . (<i>N</i>)(<i>Sg1</i> ) grey-backed fiscal shrike; necklace of sky-blue beads about
+one cm in diameter lanius excubitoroides (sem. domains: 8.3.3.3.4 - Colors of the spectrum,
+1.6.1.2 - Bird, 5.4.1 - Jewelry.)
+<b>adhëgg</b> <i>cf:</i> <b>adhëg</b> . (<i>N</i>)(<i>Sg1</i> ) Grey-backed Fiscal Shrikes; necklaces with sky-blue beads
+lanius excubitoroides (sem. domains: 1.6.1.2 - Bird, 5.4.1 - Jewelry.)
+<b>adheng</b> (<i>N</i>) generous person (sem. domains: 4.3.4.4 - Altruistic, selfless.)
+<b>adhïdheg</b> (<i>N</i>) armor made of metal (sem. domains: 4.4.4.5 - Protect.)
+<b>adhïm ádhim</b> (ARB) (<i>N</i>) mattock; digging hoe (sem. domains: 6.6.6 - Working with land,
+6.2.8 - Agricultural tool, 6.7.1.2 - Digging tool.)
+<b>adhødhø</b> (<i>N</i>)(<i>SgltC</i> ) wild red fruit found in forest (sem. domains: 6.2.1.4.1 - Growing
+grapes, 5.2.3.1.2 - Food from fruit.)
+<b>adhøkwer</b> (<i>N</i>) African Spoonbill Platalea alba (sem. domains: 1.6.1.2 - Bird.)
+<b>adhøkyel</b> (<i>N</i>) chief's house when visiting Pacoda (sem. domains: 4.6.3 - Government
+organization, 4.6.1 - Ruler, 4.5.6.1 - High status, 4.5.2 - Have authority.)
+<b>adhudh</b> <i>cf:</i> <b>adhudhh</b> . (<i>N</i>)(<i>Sg1</i> ) beeswax (sem. domains: 1.6.5 - Animal home, 1.2.3.2 -
+Oil, 6.4.4 - Beekeeping, 1.6.1.7 - Insect.)
+<b>adhudhh</b> <i>cf:</i> <b>adhudh</b> . (<i>N</i>)(<i>Sg1</i> ) beeswax (plural) (sem. domains: 1.6.5 - Animal home,
+5.2.3.2 - Food from animals, 1.2.3.2 - Oil, 6.4.4 - Beekeeping, 1.6.1.7 - Insect.)
+<b>adhuki</b> (<i>N</i>) carved gourd (sem. domains: 2.6.5.1 - Man, 5.6 - Cleaning, 5.1 - Household
+equipment.)
+<b>adhuryëb</b> (comp. of <b>dhur</b>, <b>yëb</b>, see under <b>dhur</b>)
+<b>adhwäng</b> (<i>Adj</i> ) generous; benevolent; kind; good samaritan (sem. domains: 2.6.5.1 - Man,
+7 of 256
+20/06/2023, 10:03

@@ -1,0 +1,14 @@
+MUDIDI Dataset — Licensing
+
+Source dictionary page images (PDFs under each dictionary's "Dictionary pages" and
+"Introduction" folders) are derived from public-domain materials digitized via
+HathiTrust. Consult the original volume for any residual usage constraints.
+
+Human annotations (Stage 1 gold TSV/flat transcripts, Stage 2 gold MDF records,
+field cheat sheets, and alphabet lists) are released under:
+
+  Creative Commons Attribution 4.0 International (CC BY 4.0)
+  https://creativecommons.org/licenses/by/4.0/
+
+Software used to produce this release (the MUDIDI pipeline in this repository)
+is provided separately under the repository license.

@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Bengalese
+  code: bengalese
+targets:
+- language: English
+  code: en
+writing_system: Bengali
+metadata_archive: bengalese-hvd-32044100017367-1773457630

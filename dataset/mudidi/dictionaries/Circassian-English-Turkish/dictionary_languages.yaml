@@ -1,0 +1,12 @@
+layout: column_trilingual
+source:
+  language: Circassian
+  code: circassian
+  column_id: center
+targets:
+- language: English
+  code: en
+  column_id: left
+- language: Turkish
+  code: tr
+  column_id: right

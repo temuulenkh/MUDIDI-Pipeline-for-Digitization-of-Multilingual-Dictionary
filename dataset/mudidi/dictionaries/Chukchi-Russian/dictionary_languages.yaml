@@ -1,0 +1,8 @@
+layout: bilingual
+source:
+  language: Chukchi
+  code: chukchi
+targets:
+- language: Russian
+  code: ru
+metadata_archive: Chukchi-Russian (Inenlikei, 2008)

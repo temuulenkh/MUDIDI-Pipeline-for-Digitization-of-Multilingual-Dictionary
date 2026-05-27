@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Chepang
+  code: chepang
+targets:
+- language: English
+  code: en
+writing_system: IPA+latin-based
+metadata_archive: PL-502

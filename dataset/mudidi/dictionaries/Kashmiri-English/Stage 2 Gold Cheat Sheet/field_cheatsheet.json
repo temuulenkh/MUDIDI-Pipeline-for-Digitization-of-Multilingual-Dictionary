@@ -1,0 +1,54 @@
+{
+  "dictionary_name": "Kashmiri-English Dictionary",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "Lexeme / headword (Kashmiri Roman transliteration)."
+    },
+    {
+      "marker": "ps",
+      "description": "Part of speech (word class in parentheses such as 'a', 'ad', 'v', 'par', 'n')."
+    },
+     {
+      "marker": "pd",
+      "description": "Paaradigm (grammatical category in parentheses such as 'm.', 'f.', 'f.s.', 'm.s.')."
+    },
+    
+    {
+      "marker": "va",
+      "description": "Arabic-based spelling."
+    },
+    {
+      "marker": "ge",
+      "description": "English gloss / translation."
+    },
+    {
+      "marker": "pl",
+      "description": "Plural form (often marked with 'p')."
+    }
+  ],
+  "rules": [
+    "Entry boundary: Each new lexical entry begins with \\lx.",
+    "Homographs: Use separate \\lx blocks with the same lemma, appending \\hm 1, \\hm 2 to distinguish them if necessary.",
+    "Senses: If a word has multiple distinct meanings, sequence them using \\sn 1, \\sn 2, each followed by its own \\ge gloss.",
+    "Subentries: For derived forms (e.g. female singular and plural) listed under a main entry, use \\se followed by \\pd and \\pl within the parent \\lx block.",
+    "Gloss lines: Use \\ge for the English equivalent; separate multiple English synonyms with commas or semicolons within the same \\ge field.",
+    "Orthography: The Perso-Arabic script is printed alongside the Roman \\lx, which can be stored as a variant form (e.g., \\va), while standard MDF formatting relies on \\lx."
+  ],
+  "abbreviations": {
+    "a": "Adjective",
+    "ad": "Adverb",
+    "conj": "Conjunction",
+    "pr.": "Pronoun",
+    "f": "Feminine",
+    "i": "Interjection",
+    "m": "Masculine",
+    "n": "Noun",
+    "p": "Plural",
+    "pp.": "Postposition",
+    "s": "Singular",
+    "v": "Verb",
+    "vi": "Intransitive verb",
+    "vc": "causal verb"
+  }
+}

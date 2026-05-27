@@ -1,0 +1,30 @@
+[14]
+<b>अळोप</b>(alop)adj.E.Elopement;hidden;missing. भूमिगत, गुम
+<b>अवज्जौ</b>(awajho)adj.Odd;inconvenient. असुविधाजनक
+<b>अवाको</b>(awaako)nm:Rumour;unverified report. प्रवाद,लोकवाद
+<b>अवाज</b>(awaaj)nf:Sound;voice;cry;speech. Loj, आवाज
+<b>अवाड़ो</b>(awaarho)nm:Spark;flicker;glint. चिंगारी
+<b>अवाड़ी</b>(awaarhi)nf:Yawning due to tiredness.उबासी,जँभाई
+<b>अवाणा</b>(awaana)A sub caste of Gujjars. गुर्जरों की एक उपजाति, अवाना
+<b>अवाम</b>(awam)n:People;public;folks;society. जनता, समाज
+<b>अवारा</b>(awaara)P.adj.Vagrant;vagabond;wanderer;loafer. आवारा
+<b>अवाँसी</b>(awansi)nf:Yawning;gape. उबासी, जंभाई
+<b>अशक़ात</b>(ashkaat)A.nf:Deliverence,salvation. ज़मानत, छुटकारा,मुक्ति
+<b>अशनाक</b>(ashNaak). P rudent;sensitive;delicate.सुकुमार,संवेदनशील
+<b>अशमाण</b>(ashmaan)n:Sky;heaven;vault;highest limit. आकाश
+<b>अशरफ</b>(ashraf)adj.Most superior;the best. उत्तम,उच्च, मुख्य
+<b>अशराफ</b>(ashraaf)A.adj.Gentle;genteel.लालित,शिशट
+<b>असतंजो</b>(astanjo)Cleansing;purification.माँझना, शोधना,पखारना
+<b>असतर</b>(astar)P.1.Inner lining of a garment. कोट की भीतरी परत
+<b>अस्तीफ़ो</b> (asteefo)Resignation letter. त्यागपत्र
+<b>असपताळ</b>(asptaal)n:Hospital;health centre;clinic. चिकित्सालय
+<b>असमतर</b>(asmatar) Like us.cf qsmqr Like you. हम जैसा
+<b>असमाण</b>(asmaan)nm:Sky;heaven;vault. आकाश,नभ,स्वर्ग
+<b>असमाणूं</b>(asmaanu)From sky or heavens;from above. आकाश से
+<b>असमाणी</b>(asmaani)adj.Skyblue;azure. नीला, नभोनील
+<b>असर</b>(asar)nm.Effect;influence;impression;reaction. प्रभाव
+<b>असल</b>(asaL)A.n.Origion;root;reality;pure;true. सत्य,यथार्थ, मूल
+<b>असलियत</b>(asliyat)nf:Reality;truth;fact.सत्यता,यथार्थ
+<b>असली</b>(asLi)A.adj.Origional;real;genuine;true. मूलपत्र, वासतव
+<b>असलूं</b>(asLu~)adv.Origionally;basically. अधिकाँश, मूल रूप से
+<b>असान</b>(asaaN)adj.Easy;simple;facile. सरल, सुगम, सहज

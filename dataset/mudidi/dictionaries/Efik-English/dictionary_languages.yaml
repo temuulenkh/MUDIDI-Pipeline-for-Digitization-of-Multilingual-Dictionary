@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Efik
+  code: efik
+targets:
+- language: English
+  code: en
+writing_system: latin-based + diacritics
+metadata_archive: hvd-32044086555885-1775970848

@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Evenki
+  code: evenki
+targets:
+- language: Russian
+  code: ru
+writing_system: cyrillic-based
+metadata_archive: evenki_dict

@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Greek
+  code: greek
+targets:
+- language: English
+  code: en
+writing_system: Greek
+metadata_archive: greek-uc1-b5200021-1779172985

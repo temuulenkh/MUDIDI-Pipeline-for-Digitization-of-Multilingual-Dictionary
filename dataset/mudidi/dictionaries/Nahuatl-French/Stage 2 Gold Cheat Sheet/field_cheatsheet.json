@@ -1,0 +1,92 @@
+{
+  "dictionary_name": "Dictionnaire de la langue Nahuatl",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "headword / lexeme (Nahuatl)"
+    },
+    {
+      "marker": "va",
+      "description": "variant form (introduced by 'ou')"
+    },
+    {
+      "marker": "pd",
+      "description": "paradigm / past perfect form (introduced by 'p.')"
+    },
+    {
+      "marker": "ps",
+      "description": "part of speech label"
+    },
+    {
+      "marker": "pl",
+      "description": "plural form"
+    },
+    {
+      "marker": "dn",
+      "description": "French definition / translation"
+    },
+    {
+      "marker": "gn",
+      "description": "French gloss"
+    },
+    {
+      "marker": "xv",
+      "description": "Nahuatl example phrase or collocation"
+    },
+    {
+      "marker": "xn",
+      "description": "French translation of example"
+    },
+    {
+      "marker": "un",
+      "description": "Usage note"
+    },
+     {
+      "marker": "if",
+      "description": "verb class (introduced by 'nite ', 'nitla')"
+    },
+    {
+      "marker": "sn",
+      "description": "word sense (introduced by 'nite ', 'nitla')"
+    },
+        
+    {
+      "marker": "lt",
+      "description": "literal meaning (introduced by 'litt.')"
+    },
+    {
+      "marker": "cf",
+      "description": "cross-reference (introduced by 'Voy.')"
+    },
+    {
+      "marker": "mr",
+      "description": "morphological roots (introduced by 'R.' or 'RR.')"
+    },
+    {
+      "marker": "so",
+      "description": "source reference (e.g., Clav., Bét., Hern.)"
+    }
+  ],
+  "rules": [
+    "New entries start with \\lx in bold capitals.",
+    "Part of speech \\ps follows the lexeme or inflected forms.",
+    "Multiple examples in a single entry are formatted as \\xv followed by \\xn, separated by semicolons.",
+    "Morphological roots \\mr appear at the very end of the entry, introduced by 'R.' or 'RR.'",
+    "Cross-references \\cf replace the definition for pointer entries, introduced by 'Voy.'"
+  ],
+  "abbreviations": {
+    "s.": "substantif",
+    "adj.": "adjectif",
+    "v.": "verbe",
+    "p.": "parfait / passé",
+    "s. v.": "substantif verbal",
+    "adj. v.": "adjectif verbal",
+    "v. n.": "verbe neutre",
+    "R.": "racine",
+    "RR.": "racines",
+    "Voy.": "voyez",
+    "litt.": "littéralement",
+    "Plur.": "pluriel",
+    "postp.": "postposition"
+  }
+}

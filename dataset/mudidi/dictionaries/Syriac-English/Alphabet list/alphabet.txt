@@ -1,0 +1,45 @@
+--- BASE CONSONANTS ---
+ܐ
+ܒ
+ܓ
+ܕ
+ܗ
+ܘ
+ܙ
+ܚ
+ܛ
+ܝ
+ܟ
+ܠ
+ܡ
+ܢ
+ܣ
+ܥ
+ܦ
+ܨ
+ܩ
+ܪ
+ܫ
+ܬ
+
+--- MODIFIED CONSONANTS ---
+ܓ̰
+ܕ݂
+ܛ̰
+ܟ̰
+ܦ̮
+ܨ̰
+ܫ̰
+ܙ̃
+
+--- VOWEL DIACRITICS ---
+◌ܲ
+◌ܵ
+◌ܸ
+◌ܹ
+ܘܿ
+ܘܼ
+ܝܼ
+
+--- OTHER SYMBOLS ---
+◌̈

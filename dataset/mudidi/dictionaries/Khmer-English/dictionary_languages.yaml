@@ -1,0 +1,8 @@
+layout: bilingual
+source:
+  language: Khmer
+  code: khmer
+targets:
+- language: English
+  code: en
+metadata_archive: Fsi-ContemporaryCambodianGlossary

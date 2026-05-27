@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Punjabi
+  code: punjabi
+targets:
+- language: English
+  code: en
+writing_system: Gurmukhi (Devanagari?)
+metadata_archive: Punjabi-English-Dictionary

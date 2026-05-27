@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Tiri
+  code: tiri
+targets:
+- language: English
+  code: en
+writing_system: IPA+latin-based
+metadata_archive: PL-C12

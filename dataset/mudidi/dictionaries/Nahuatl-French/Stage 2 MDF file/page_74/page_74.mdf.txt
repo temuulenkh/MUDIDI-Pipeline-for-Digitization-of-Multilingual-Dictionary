@@ -1,0 +1,202 @@
+\gn des raisons, des arguments en faveur d'une chose; célébrer en les racontant, en les chantant, les exploits de quelqu'un.
+\mr cen, teca
+
+\lx CENTECOCHTLI
+\va CENTECUCHTLI
+\ps s.
+\gn Une tige de plante; laitue, chou, etc.
+\mr ce, tecochtli
+
+\lx CENTECONETL
+\ps s.
+\gn Un fils, une fille unique.
+\mr centetl, conetl
+
+\lx CENTECPANTLI
+\ps adj. n.
+\gn Vingt (maisons, pierres et toutes choses inanimées);
+\lt une rangée, un groupe.
+\pl centecpantin
+\un (pour les êtres animés), vingt personnes, vingt têtes de bétail, etc.
+\mr ce, tecpana
+
+\lx CENTECPANUIA
+\pd ocentecpanui
+\if nite
+\gn avoir de fréquentes relations avec une femme, la posséder souvent.
+\mr centeca, panuia
+
+\lx CENTECTLAPIXQUE
+\ps s. plur.
+\so (Clav.)
+\gn Commissaires chargés de surveiller et de prévenir les magis-trats.
+\mr centeca, tlapixqui
+
+\lx CENTECUCHTLI
+\cf Centecochtli
+
+\lx CENTECUTLI
+\ps s.
+\gn Un escadron, un peloton de soldats.
+\mr ce, tecutli
+
+\lx CENTELCHIUA
+\pd ocentelchiu
+\sn 1
+\if nite
+\gn mépriser, dédaigner, repousser tout à fait quelqu'un.
+\sn 2
+\if nitla
+\gn rejeter une chose, renier.
+\mr cen, telchiua.
+
+\lx CENTELCHIUALONI
+\ps adj. v.
+\gn Méprisable;
+\xv in tlatlacolli ca centelchiualoni
+\so (Par.)
+\xn le péché est exécrable, doit être détesté.
+\mr centelchiua
+
+\lx CENTEMA
+\pd ocenten
+\if nitla
+\gn amasser, rassembler des choses quelque part.
+\mr cen, tema.
+
+\lx CENTEMILLI
+\ps s.
+\dn Une semaille.
+\mr centetl, milli.
+
+\lx CENTENAMITL
+\ps s.
+\gn Un escadron de soldats.
+\mr ce, tenamitl.
+
+\lx CENTENEUALOCA
+\ps s. v.
+\gn employé en comp. icen-teneualoca, son projet, sa résolution.
+\mr cen, teneua.
+
+\lx CENTENTLI
+\ps s.
+\gn Une parole;
+\xv nic-cuepa in mihyo-tzin, in motlatoltzin ycententli ycencamatl in popoloni
+\so (Olm.)
+\xn je réponds à ton discours par une parole de muet.
+\mr ce, tentli.
+
+\lx CENTEOTL
+\ps s.
+\so (Clav.)
+\dn Déesse de la terre et du maïs, adorée principalement chez les Totonaques. Suivant le degré de maturité du maïs, elle était encore appelée Tsinteotl, Xilonen, Iztacacenteotl et Tlatlauhqui Centeotl, ou bien Tonacayohua, qui nous nourrit; etc. Les Mexicains lui avaient consacré cinq temples et célébraient trois fêtes en son honneur : la première, au commencement du mois huetozoztli; la deuxième, au commencement du mois hueitecuilhuitl; la troisième, à la fin du mois ochpaniztli. C'était aussi la déesse des lapidaires, qui célébraient sa fête vers le milieu du mois teotleco.
+\mr centli, teotl.
+
+\lx CENTEQUILIA
+\pd ocentequili
+\if ticto
+\gn être tous du même avis, avoir la même manière de voir.
+\mr cen, tequilia.
+
+\lx CENTETIA
+\pd ocentetiac, ocentetix, ocentet,
+\ps v. n.
+\gn Être unis, s'entendre, ne faire qu'un;
+\xv centetia in toyollo,
+\xn nous nous aimons, nos cœurs sont unis;
+\xv cen-tetia in intlatol,
+\xn ils sont du même avis;
+\xv amo centetia in totlatol,
+\xn nous ne nous entendons point, notre manière de penser n'est pas la même;
+\xv çan acentetia itlatol,
+\xn il parle faussement;
+\xv çan acentetia tetlatol,
+\xn c'est de la fourberie, de la duplicité de langage;
+\lt la parole des gens n'est pas la même, une, etc.
+\mr centetl.
+
+\lx CENTETILIA
+\pd p. ocentetili
+\if mo
+\gn se réunir, se former en un tout, faire un ensemble, se mettre en boule, en peloton, etc. Nitla — joindre diverses choses et n'en faire qu'une seule.
+\mr centetia.
+
+\lx CENTETITIUH
+\pd ocentetitia
+\ps v. n.
+\gn Aller au ton, avec harmonie, avec ensemble, en parlant du chant.
+\et R. centetia.
+
+\lx CENTETL
+\ps adj. n.
+\gn pour compter des objets ronds, tels que pierre, fruit, œuf, colline, etc. Un, une;
+\xv centetl capullotl,
+\xn un grain (de raisin, etc.);
+\xv centetl ichca-tomitl,
+\xn une toison, laine;
+\xv centetl yachcho, ixinachcho,
+\xn un grain de semence;
+\xv centetl quaquaue,
+\xn une tête de gros bétail;
+\xv centetl quaquaultentzone,
+\xn une tête de menu bétail;
+\xv oc centetl,
+\xn autre, un autre.
+\mr ce, tetl.
+
+\lx CENTETTICA
+\ps adj.
+\gn Entier, entière, qui est un.
+\mr centetia, ca.
+
+\lx CENTETTIUH
+\pd ocentetitia
+\ps v. n.
+\dn Être d'accord, aller au ton, en parlant du chant.
+\mr centetia.
+
+\lx CENTETTIUITZ
+\pd ocentettiuitza
+\ps v. n.
+\dn Aller ensemble, former un tout;
+\xv acalli centettiuitz,
+\xn flotte, réunion de navires.
+\mr centetia, uitz.
+
+\lx CENTEXCALLI
+\ps s.
+\gn Une fournée de pain ou d'autre chose.
+\mr ce, texcalli.
+
+\lx CENTIACHCAUH
+\ps adj.
+\gn Le plus grand, supérieur.
+\mr cen, tiachcauh.
+
+\lx CENTIUITZE
+\ps adj. v.
+\gn Qui sont du même âge, en parlant de deux personnes.
+\mr cen, uitz.
+
+\lx CENTLA
+\so (Clav.).
+\dn Village de Tabasco, près du-quel les soldats de Cortès remportèrent leur pre-mière victoire (25 mars 1519). — Quartier de Tla-telolco (Bét.).
+
+\lx CENTLAANTLI
+\ps s.
+\gn Une grappe (de raisin, de dattes, etc.).
+\mr ce, tlaantli.
+
+\lx CENTLACA
+\ps s. plur.
+\dn Personnes d'une même fa-mille;
+\xv ticentlaca,
+\xn nous sommes tous de la même fa-mille, de la même nation.
+\mr cen, tlacatl.
+
+\lx CENTLAÇA
+\pd ocentlaz
+\if nic
+\gn rejeter, repous-ser quelqu'un ou quelque chose;
+\xv nic-centlaça noyollo

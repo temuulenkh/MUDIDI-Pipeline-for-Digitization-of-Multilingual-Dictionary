@@ -1,0 +1,166 @@
+\lx DÏM'-E
+\ps v
+\va DUM'-E
+\ps v. tr
+\ge To make sonorous, big, as the voice
+\xv Odïme uyu ke itöñ
+\xe He makes his voice big in his throat
+
+\lx DÏM'-E
+\ps v. intr
+\ge To resound, be sonorous, noisy
+\xv Ekömö odïme ke ufök
+\xe The drum makes a big noise in the house
+\xv Uyu odïme ke itöñ
+\xe His voice is sonorous
+\xv Odïme anam utüm
+\xe He works strongly, or, with a bustle
+\cf Der. n., Udïme-ntïbi
+
+\lx DI-ÖK'-HÖ
+\hm 3
+\ps v. tr
+\cf (Diök. I.)
+\ge To irritate, incense
+\xv Ikä orü ödiökhö mi ke ësët
+\xe That word irritates me
+\xv Ödiökhö fi ke ësët ye ami
+\xe It incenses you against me
+\ue Others
+\ge To surfeit
+
+\lx DI-ÖN
+\ps v. tr. & intr
+\ge To climb
+\cf Ib., Ef., Düñ
+
+\lx DÖB'-Ö
+\cf See Däbä
+
+\lx DÖÑ
+\ps v. tr
+\sn 6
+\ue With inua
+\ge To interpose
+\xv Mö ëdöñ inua kësët
+\xe They object to the thing
+\ue Others
+\xe They give a charge concerning it
+\cf Der. n., Udön̄-inua, v. ikä
+
+\lx DÖÑ
+\ps v. tr
+\ue Ib
+\xv Döñ akam
+\xe To pray
+\cf Ef., Böñ
+
+\lx DU-Ä'
+\ps v. intr
+\sn 4
+\ge To come far down, as a garment; to be flowing
+\sn 5
+\ge To fall out, result in, as a divination
+\xv Idiöñ öduä owo ke ëbüd, v., unen
+\xe Idiöñ directs the sacrifice of a goat or fowl
+
+\lx DU-AT'
+\ps v. intr
+\sn 3
+\ge To chatter, perhaps loudly in anger
+\ue Spoken by some of the monkey
+
+\lx DÜB'-O
+\ps v. tr
+\ge To silence, quiet
+\xv Odübo uyüm
+\xe He silences the noise
+\xv Odübo eköñ
+\xe He quiets the strife, warfare
+
+\lx DU-EN'-DU-EN
+\ps adv
+\ge Smooth; shining, e.g., any thing polished
+\xv Etie duen-duen
+\xe It is highly polished
+
+\lx DÜM'-O
+\hm 2
+\ps v. tr
+\sn 2
+\ge To burn
+\xv Mö ëdümo adan, idümoke kande
+\xe They burn oil, not candles
+
+\lx DU-OI'
+\ps v. intr
+\sn 2
+\ge To fall or hang down, as the end of a napkin which should be tied up
+\ue Used by some as Syn. of Kpöm
+
+\lx DU-ÖK'
+\ps v. tr
+\sn 15
+\ge To overwhelm
+\xv Mfat öduök enye
+\xe Mfat quite covers him
+\sn 16
+\ue Trop
+\ge To shed, throw, as a glittering object its lustre
+\xv Mba esie öduök idañ, v., möñ okuk
+\xe Its wing glistens like plating or gilding
+
+\lx DU-ÖK'-HÖ
+\ps v. intr. & ref
+\sn 1
+\ge To fail in accomplishing a purpose or agreement
+\sn 2
+\ge To throw one's-self upon
+\xv Mö ëduökhö ke udia
+\xe They fall ravenously on the food
+
+\lx DU-ÖÑ'-Ö
+\ps v. intr
+\ge To lurch, as a ship
+
+\lx DU-ÖT'
+\ps v. tr
+\ge To make inert, feeble
+\xv Idem öduöt mi
+\xe I feel indisposed
+\sy Mem
+
+\lx DU-ÖT'
+\ps v. intr
+\ge To be heavy
+\ue Spoken of rain
+\xv Edim öduöt, v., edep öduöt
+\xe The rain falls heavily
+
+\lx DÜR'-O
+\ps v. tr
+\ge To rest on
+\xv Odüro ke mben
+\xe It is brimful
+
+\lx DUT
+\hm 2
+\ps v. intr. & tr
+\ge To be stringy, tough, wiry
+\xv Unam odut
+\xe The beef is tough
+\xv Idem odut enye, v., etie enye idut-idut
+\xe His sinews are prominent
+\cf Der. a. & adv., Idut-idut, and udut-udut
+
+\lx DU-TU'
+\ps v. tr
+\ge To pick up, gather; to collect one by one
+\ue Used by some of small, by others of distant things
+\cf Der. n. Ndutu
+
+\lx DU-TUK'-HÄ
+\ps v. intr
+\ge To be afflicted, tormented
+\xv Odutukhä eti-eti
+\xe He is much afflicted

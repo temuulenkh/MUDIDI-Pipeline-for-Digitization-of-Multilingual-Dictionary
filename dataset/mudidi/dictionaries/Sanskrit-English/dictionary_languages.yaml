@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Sanskrit
+  code: sanskrit
+targets:
+- language: English
+  code: en
+writing_system: Devanagari
+metadata_archive: sanskrit-miun-afr4972-0001-001-1773454024

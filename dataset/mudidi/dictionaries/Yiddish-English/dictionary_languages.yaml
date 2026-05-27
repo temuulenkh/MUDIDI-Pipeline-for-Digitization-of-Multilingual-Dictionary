@@ -1,0 +1,8 @@
+layout: bilingual
+source:
+  language: Yiddish
+  code: yiddish
+targets:
+- language: English
+  code: en
+metadata_archive: yiddish-hvd-hnskng-1773449726

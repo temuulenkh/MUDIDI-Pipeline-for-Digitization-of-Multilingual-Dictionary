@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Reel
+  code: reel
+targets:
+- language: English
+  code: en
+writing_system: IPA+latin-based
+metadata_archive: ReelDictionaryOct15

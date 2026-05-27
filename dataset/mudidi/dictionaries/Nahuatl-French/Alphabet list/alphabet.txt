@@ -1,0 +1,22 @@
+
+--- Vowels ---
+a
+e
+i
+o
+u
+y
+ 
+--- Consonants ---
+c
+ç
+h
+l
+m
+n
+p
+q
+t
+x
+z
+ 

@@ -1,0 +1,46 @@
+17 arɔny
+<b>alak</b> [álàk] <i>adj</i> blue <b>alawë</b>
+[alawe̤]
+<b>alaŋ</b> pl. of <b>alaaŋ</b> tree
+<b>alath</b> [alat̪] <i>n</i> 1) cloth 2) thread
+<b>alaath</b> [alaat̪]
+<b>alawë</b> pl. of <b>alak</b> blue
+<b>alaaŋ</b> [alaaŋ] <i>n</i> tree type <b>alaŋ</b>
+[alaŋ]
+<b>alaath</b> pl. of <b>alath</b> cloth, thread
+<b>Alaathbuor</b> <i>adv</i> July
+<b>alualuaal</b> <i>adv</i> dawn
+<b>amaŋ</b> [amaŋ] <i>n</i> wild yam
+<b>amɛ̈ɛ̈ŋ</b> [amɛ̤ɛ̤ŋ]
+<b>amäl</b> pos.sg of <b>amɛ̈ɛ̈l₁</b>
+<b>amëmïɛ̈ɛ̈r</b> <i>adv</i> dusk, twilight,
+after sunset or before sunrise
+<b>amɛ̈l</b> pl. of <b>amɛ̈ɛ̈l₁</b>
+<b>amɛ̈ɛ̈l₁ {amäl}</b> <i>n</i> sheep <b>amɛ̈l</b>
+<b>{amɛ̈ɛ̈l}</b>
+<b>amɛ̈ɛ̈l₂</b> pos.pl of <b>amɛ̈ɛ̈l₁</b>
+<b>amɛ̈ɛ̈ŋ</b> pl. of <b>amaŋ</b> yam
+<b>anyaŋ</b> [aɲaŋ] <i>n</i> chisel tool
+<b>anyïɛ̈ɛ̈ŋ</b> [aɲⁱɛ̤ɛ̤ŋ]
+<b>anyïɛ̈ɛ̈ŋ</b> pl. of <b>anyaŋ</b> chisel
+<b>aŋät</b> [aŋa̤t] <i>n</i> clotting milk <b>aŋɛ̈t</b>
+[aŋɛ̤t]
+<b>aŋeeth</b> pl. of <b>aŋɛth</b> broth
+<b>aŋɛth</b> [aŋɛt̪] <i>n</i> broth <b>aŋeeth</b>
+[aŋɛɛt̪]
+<b>aŋɛ̈t</b> pl. of <b>aŋät</b> clotting milk
+<b>apaal</b> [apaal] <i>n</i> knife <b>apäl</b>
+[apa̤l]
+<b>apäl</b> pl. of <b>apaal</b> knife
+<b>araany</b> [araaɲ] <i>n</i> sorghum cane
+(sweet) <b>arɔny</b> [arɔɲ]
+<b>Aräl</b> [ara̤l] <i>n</i> Dinka Agaar person
+<b>Arääl</b> [ara̤a̤l]
+<b>Arääl</b> pl. of <b>Aräl</b> Dinka Agaar
+<b>ariɛr</b> [ariɛr] {<b>ariɛrë</b>} <i>n</i> noise
+<b>arir</b> [arir] {<b>ariir</b>}
+<b>ariɛrë</b> pos.sg of <b>ariɛr</b> noise
+<b>arir</b> pl. of <b>ariɛr</b> noise
+<b>ariir</b> pos.pl of <b>ariɛr</b> noise
+<b>arɔny</b> pl. of <b>araany</b> sorghum
+cane

@@ -1,0 +1,48 @@
+{
+  "dictionary_name": "English-Circassian-Turkish Dictionary",
+  "markers": [
+    {
+      "marker": "lx",
+      "description": "headword / lexeme (Circassian vernacular in Arabic script)"
+    },
+    {
+      "marker": "ph",
+      "description": "phonetic form (Circassian transliteration in Latin script)"
+    },
+    {
+      "marker": "ge",
+      "description": "English gloss / translation (first column main word)"
+    },
+    {
+      "marker": "ps",
+      "description": "part of speech (English italicized abbreviation)"
+    },
+    {
+      "marker": "de",
+      "description": "English definition / clarification (parenthetical text in first column)"
+    },
+    {
+      "marker": "gn",
+      "description": "Turkish gloss (national language translation in third column)"
+    },
+    {
+      "marker": "va",
+      "description": "variant form (alternate Circassian forms separated by 'or' or dashes)"
+    }
+  ],
+  "rules": [
+    "Entry boundary: Each table row constitutes a new entry starting with \\lx for the Circassian word.",
+    "Form matching: The Arabic script Circassian is placed in \\lx, followed immediately by its Latin transliteration in \\ph.",
+    "English tier: The main English word is tagged as \\ge, followed by \\ps for the part of speech. Any bracketed text (e.g., '(apt, fit)') goes into \\de.",
+    "Turkish tier: The entire Turkish translation column is captured under \\gn.",
+    "Variants: Where the Circassian column provides multiple words separated by 'or' or dashes, record the primary in \\lx and the alternate in \\va."
+  ],
+  "abbreviations": {
+    "a.": "adjective",
+    "v.n.": "verb neuter (intransitive)",
+    "prep.": "preposition",
+    "v.a.": "verb active (transitive)",
+    "s.": "substantive (noun)",
+    "ad.": "adverb"
+  }
+}

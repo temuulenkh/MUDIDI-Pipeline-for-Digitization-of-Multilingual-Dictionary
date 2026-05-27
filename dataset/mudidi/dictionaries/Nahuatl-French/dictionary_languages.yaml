@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Nahuatl
+  code: nahuatl
+targets:
+- language: French
+  code: fr
+writing_system: latin+diacritics
+metadata_archive: nahuatl-chi-39922133-1773461723

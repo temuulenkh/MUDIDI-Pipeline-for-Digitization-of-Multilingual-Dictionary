@@ -20,29 +20,27 @@ SAMPLES_DIR="${SAMPLES_DIR:-assets/dictionaries/samples}"
 EXTRACT_EXTRA_ARGS=("$@")
 
 LANGUAGES=(
-    # Canala-English
-    # Chepang-English
-    # Efik-English
-    # Na-English-Chinese-French
-    # Reel-English
-    # Ritharngu-English
-    # Shilluk-English
-    # Evenki-Russian
-    # Chukchi-Russian
-    # Circassian-English-Turkish
-    # Nahuatl-French
-    # Khmer-English
-    # Malay-English
-    # Kashmiri-English
-    # Greek-English
-    # Telugu-English
-    # "Iñupiatun Eskimo-English"
-    # "Vernacular Syriac-Kurdish_Turkish-English"
-    # "Syriac-English"
-    # "Tiri-English"
-    # Thai-Russian
-
-
+    Canala-English
+    Chepang-English
+    Efik-English
+    Na-English-Chinese-French
+    Reel-English
+    Ritharngu-English
+    Shilluk-English
+    Evenki-Russian
+    Chukchi-Russian
+    Circassian-English-Turkish
+    Nahuatl-French
+    Khmer-English
+    Malay-English
+    Kashmiri-English
+    Greek-English
+    Telugu-English
+    "Iñupiatun Eskimo-English"
+    "Vernacular Syriac-Kurdish_Turkish-English"
+    "Syriac-English"
+    "Tiri-English"
+    Thai-Russian
     Assyrian-English
     Yiddish-English
     Georgian-Russian

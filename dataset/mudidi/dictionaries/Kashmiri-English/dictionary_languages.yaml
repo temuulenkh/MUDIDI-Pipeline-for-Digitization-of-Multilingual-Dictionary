@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Kashmiri
+  code: kashmiri
+targets:
+- language: English
+  code: en
+writing_system: Arabic-based
+metadata_archive: kashmiri-dli.language.2243

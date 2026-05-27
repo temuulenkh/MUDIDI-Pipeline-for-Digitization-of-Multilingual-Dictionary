@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Assyrian
+  code: assyrian
+targets:
+- language: English
+  code: en
+writing_system: Cuneiform
+metadata_archive: hvd-hx7ba6-1775972576

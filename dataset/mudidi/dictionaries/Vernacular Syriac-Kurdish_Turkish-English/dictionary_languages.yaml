@@ -1,0 +1,9 @@
+layout: inline_trilingual
+source:
+  language: Vernacular Syriac
+  code: vernacularsyriac
+targets:
+- language: Kurdish/Turkish
+  code: ku_tr
+- language: English
+  code: en

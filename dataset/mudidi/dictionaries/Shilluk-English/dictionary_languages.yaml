@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Shilluk
+  code: shilluk
+targets:
+- language: English
+  code: en
+writing_system: IPA+latin-based
+metadata_archive: Shilluk-Dictionary-part1.20Jun2023

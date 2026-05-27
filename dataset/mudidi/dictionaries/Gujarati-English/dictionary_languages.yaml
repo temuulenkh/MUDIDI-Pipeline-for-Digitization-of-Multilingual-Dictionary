@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Gujarati
+  code: gujarati
+targets:
+- language: English
+  code: en
+writing_system: Gujarati(?)
+metadata_archive: gujarati-nnc1-0111814829-1773452552

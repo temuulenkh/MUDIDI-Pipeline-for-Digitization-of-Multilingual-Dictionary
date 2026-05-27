@@ -1,0 +1,37 @@
+--- Shilluk Alphabet ---
+a
+ä
+b
+c
+d
+dh
+e
+ɛ
+g
+i
+ï
+j
+k
+l
+m
+n
+nh
+ny
+ŋ
+o
+ɔ
+ø (alternative for ɔ)
+ö
+p
+r
+t
+th
+u
+w
+y
+
+--- Accent Marks (Tones & Vowel Harmony) ---
+` (Grave accent) - Indicates a Low tone (e.g., à, è, ò)
+´ (Acute accent) - Indicates a High tone (e.g., á, é, ó)
+ˆ (Circumflex) - Indicates a Falling tone (e.g., â, ê, ô)
+¨ (Diaeresis) - Indicates a breathy or centralized vowel (ä, ï, ö). Note: While ¨ is an accent mark, standard Shilluk orthography treats ä, ï, and ö as completely separate letters in the alphabet rather than modified base vowels.

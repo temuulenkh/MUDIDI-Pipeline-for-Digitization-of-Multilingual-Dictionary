@@ -1,0 +1,122 @@
+\lx ɑ˩˧
+\ph ɑ˩˥
+\lc oq
+\ps NOUN 
+\np Tone: LM
+\ge Goose
+\gn 鹅
+\gr Oie
+\xv (Phonological elicitation)ɑ˩ dzɯ˥-ze˩ …
+\xe has eaten (a/the) goose
+\xn 吃了鹅
+\xr …a mangé (une) oie
+\xv (Phonological elicitation)ɑ˩ hwæ˧-ze˧ …
+\xe has bought (a/the) goose
+\xn 买了鹅
+\xr …a acheté (une) oie
+\nt Commonly used classifier: mi˩
+
+\lx ɑ˩mi#˥
+\ph ɑ˩mi˥
+\lc omi
+\ps NOUN
+\np Tone: LM+#H
+\ge Female goose
+\gn 母鹅
+\gr Oie (femelle)
+\xv ɑ˩mi˧-ɑ˥pʰv̩˩
+\xe goose and gander
+\xn 公鹅与母鹅
+\xr oie et jars
+\nt Commonly used classifier: mi˩
+
+\lx ɑ˩pʰo˩
+\ph ɑ˩pʰo˩˥
+\lc apo
+\ps ADVERB
+\np Tone: L
+\ge Outside
+\gn 外面
+\gr Dehors, à l’extérieur
+\xv ɑ˩pʰo˩ bi˩˥
+\xe to go outside; to attend to the call of nature
+\xn 出去，解手（委婉语）
+\xr aller dehors ; aller faire ses besoins
+\xv ɑ˩pʰo˩ bi˩-ze˥!
+\xe Let’s go out! / I must answer the call of nature!
+\xn 出去了！ / 出去解手！
+\xr On sort ! / [Je] vais faire mes besoins !
+\xv ɑ˩pʰo˩ bi˩-ʂv̩˥ɖv̩˩!
+\xe [She] wants to go out! (Context: on a sunny day, a family member senses that a toddler wants to go and play outside.)
+\xn （她）想出去！（情景：婴儿看外边，觉得她好像想出去。）
+\xr [Elle] a envie de sortir ! (Contexte : par une journée ensoleillée, un membre de la famille sent qu’un enfant aurait envie d’aller jouer dehors.)
+\xv ə˧dɑ˥ | ə˩pʰo˩ hɯ˩-ze˥!
+\xe Daddy went out! (Context: explanation provided to a little child who has just woken up and looks for her dad.)
+\xn 爸爸出去了！
+\xr Papa est sorti ! (Adressé à une petite fille qui vient de se réveiller de sa sieste et cherche son père.)
+\xv ə˩pʰo˩-bv̩˥ | lo˧ ʝi˧
+\xe to work outside the household: to help other families (in particular for harvesting); to go and look for work in a city
+\xn 在外边工作：去帮别人家的忙（特别是收庄稼的时候），或者到城市里面打工
+\xr travailler à l’extérieur, aider d’autres familles (par exemple pour la récolte) ; aussi : aller chercher du travail à la ville
+
+\lx ɑ˩pʰo˩-hĩ˩
+\ph ɑ˩pʰo˩-hĩ˩˥
+\lc apo-hin
+\ps NOUN
+\np Tone: L
+\ge Outsiders; strangers; other people.
+\gn 外人，别人。当地人称从外地来的人为“外人”。
+\gr Quelqu’un d’autre ; une personne extérieure à la famille.
+
+\lx ɑ˩pʰv̩˧˥
+\ph ɑ˩pʰv̩˧˥
+\lc apu
+\ps VERB
+\np Tone: LM+MH#
+\ge To belch, to burp.
+\gn 打饱嗝儿
+\gr Roter.
+
+\lx ɑ˩pʰv̩#˥
+\ph ɑ˩pʰv̩˥
+\lc opu
+\ps NOUN
+\np Tone: LM +#H
+\ge Gander; male goose.
+\gn 公鹅
+\gr Jars : mâle de l’oie.
+\nt Commonly used classifier: mi˩
+
+\lx ɑ˩ʁo˧
+\ph ɑ˩ʁo˥
+\lc awo
+\ps NOUN
+\np Tone: LM
+\ge Home, central room in the house.
+\gn 家、家里
+\gr Le foyer, la pièce principale ; la maison.
+\xv ɑ˩ʁo˧-hĩ#˥
+\xe members of the family, family members (who live under the same roof), lineage
+\xn 家人（住在一起的家人）
+\xr la maisonnée, les gens de la famille (proche : ceux qui habitent sous le même toit), la lignée
+\xv ɑ˩ʁo˧=ɻæ˩
+\xe the members of the family, the family group (living under the same roof)
+\xn 家人、家族（住在一起的家人）
+\xr la maisonnée, les gens de la famille
+\xv njɤ˧ | ɑ˩ʁo˧
+\xe my home, my house
+\xn 我家
+\xr mon foyer, ma maison
+\xv njɤ˧ | ɑ˩ʁo˧=ɻ̍˩
+\xe my family, my lineage, my kin
+\xn 我的家族
+\xr ma famille, ma lignée
+\xv no˧ | ɑ˩ʁo˧
+\xe your home, your house
+\xn 你家
+\xr ton foyer, ta maison
+\xv ɑ˩ʁo˧ ʝi˧
+\xe to take care of the household, to look after the affairs of the family (in particular: distributing work to the various members, and ensuring that the supplies are not running low)
+\xn 在家里做事情、管家（如：分配工作、做家务事等）
+\xr gérer la maisonnée, s’occuper de la famille (tâche de la personne qui répartit les travaux à accomplir, veille aux approvisionnements…)
+\nt Commonly used classifier: ɭɯ˧

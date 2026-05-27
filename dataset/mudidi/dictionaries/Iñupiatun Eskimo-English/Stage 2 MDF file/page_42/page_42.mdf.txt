@@ -1,0 +1,334 @@
+\lx aniqsaaqtit-
+\ps vt
+\de to resuscitate, to bring to life again
+
+\lx aniqsaluk-
+\ps vi
+\de to pant
+\cf aniġnitchiaq-
+
+\lx aniqsraaqtuq-
+\ps vt
+\de to threaten
+
+\lx anit-
+\ps vt
+\de to expel, to send away, to throw out
+\va anitqataq-
+
+\lx anitmuk-
+\ps vi
+\de to travel outward, to move outward
+
+\lx anitmun
+\ps pos.adv
+\de outward, away from a central point
+\sy siḷatmun
+
+\lx anitqataq-
+\ps vt
+\de to eject (by force)
+\xv Putum anitqataġaa imiqtuaq
+\xe Putu ejected the drunk person
+\va anit-
+
+\lx aniu
+\ps n
+\de snow, hard packed snow
+\sy apun
+
+\lx aniuvak
+\ps n
+\de steep snow bank
+\sy qimuagruk; apitchiq
+
+\lx annaa
+\ps excl
+\de expression of pain, sorrow, disappointment
+\sy araummaa! ; arii
+\va annii
+
+\lx annaatuk
+\ps excl
+\de "Poor thing!"
+
+\lx annagusimaaq-
+\ps vi
+\de to be sluggish, to be slow because body feels heavy or is sick
+\va annagusrimaaq-
+
+\lx annagviksraq
+\ps n
+\de escape, way out
+
+\lx annai-
+\ps vt
+\de to let something escape, to let it get away
+\xv Putum akłaq annaigaa
+\xe Putu let the grizzly get away
+\xv Putu annairuq iqaluŋmik niksianikkaluaqługu
+\xe Putu let the fish escape although he had already hooked it
+
+\lx annak-
+\ps vi
+\de to escape danger
+\xv Atqaqtitkaatŋa igalikun aasriiñ annaktitluŋa
+\xe They let me down through a window and I escaped
+
+\lx annaktiq-
+\ps vi
+\de to escape from danger to safety or security (e.g. child huddling with mother when feeling insecure)
+\sy illuktiq-
+
+\lx annauma-
+\ps vi
+\de to be safe, to be saved
+
+\lx annaumałiq
+\ps n
+\de salvation; security
+\sy anniqsuił̣iq; anniqsuġiaq
+
+\lx annauti-
+\ps vt
+\de to rescue
+\sy anniqsuq-
+
+\lx anniaq
+\ps n
+\de wound, hurt
+\va atniaq
+
+\lx anniġi-
+\ps vt
+\de to treasure, to value very much
+
+\lx anniġñaq-
+\ps vi
+\sn 1
+\de to be sick
+\va atniġñaq-
+\sn 2
+\de to be invaluable, to be priceless
+\sy akisuruaq
+\va anniqñaq
+
+\lx anniġñaun
+\ps n
+\de sickness, disease
+\va atniġñaun
+
+\lx annii
+\ps excl
+\de expression of pain, or disappointment
+\sy araummaa! ; arii
+\va annaa
+
+\lx anniḷuk-
+\ps vi
+\de to have acute pain, to be aching, to have discomfort
+\cf saŋniuq-
+\va atniḷuk-
+
+\lx anniq-
+\ps vi
+\de to hurt
+\va atniq-
+
+\lx anniqñaq-
+\ps vi
+\de to be invaluable, to be priceless
+\xv Qitunġatka anniqñaqtut uvamnun
+\xe My children are invaluable to me
+\sy akisuruaq-
+\va atniġñaq-
+
+\lx anniqsuġiaq
+\ps n
+\de salvation (ongoing process)
+\sy anniqsuił̣iq; annaumałiq
+
+\lx anniqsuił̣iq
+\ps n
+\de salvation (moment of rescuing)
+\sy anniqsuġiaq; annaumałiq
+
+\lx anniqsuq-
+\ps vt
+\sn 1
+\de to assist
+\sn 2
+\de to rescue; rescue, to ~ ; save, to ~
+\sy annauti-
+
+\lx anniqsuqti
+\ps n
+\de rescuer, savior
+\cf patchisaiqsi
+
+\lx anniqsuqti akiqsruutaurauq
+\ps n
+\de Messiah, Christ
+\lt 'the savior who had been promised'
+\sy anniqsuqti
+
+\lx anniqsraq-
+\ps vi
+\de to be selfish, to be unwilling to share, to be stingy
+\sy iġḷiktu-; miġvigi-; siqña-
+
+\lx annisi-
+\ps vt
+\de to take someone or something out, to accompany someone out
+\va annitri-
+
+\lx annitchiq
+\ps n
+\de penalty, fine
+
+\lx anniumman
+\ps n
+\de empathy
+\va atniumman
+
+\lx anniutchiq-
+\ps vi
+\de to experience enduring pain
+\sy kakivruutchiq-
+\va atniutchiq-
+
+\lx anniutkutaq
+\ps n
+\sn 1
+\de protection pad (to prevent injury)
+\va atniutkutaq
+\sn 2
+\de fender (alongside a ship)
+\va atniyaitkutaq
+
+\lx anniuttaq
+\ps n
+\de chronic pain, persistent pain
+\va atniuttaq
+
+\lx anniuyumman
+\ps n
+\de insult
+\va atniuyumman
+
+\lx annivaktaq-
+\ps vi
+\de to have acute pain; to experience colic
+\cf saŋniuq-
+\va atnivaktaq-
+
+\lx annivik
+\ps n
+\de place of birth
+
+\lx anniviḷił̣iaq
+\ps n
+\de birthday
+\cf aniḷġatałiq
+
+\lx anniviḷit-
+\ps vi
+\de to celebrate a birthday, to have a birthday
+
+\lx anniya-
+\ps vi
+\de to be tender to touch, to be sore; to injure easily
+\va atniya-
+
+\lx annut-
+\ue C
+\ps vi
+\de to frown, to pout
+
+\lx anŋik
+\ps n
+\de patch on boot sole
+
+\lx anŋik-
+\ps vt
+\de to patch a boot sole
+
+\lx anŋiqpak
+\ps n
+\de modern style boots
+
+\lx anŋun
+\ue C
+\ps n
+\sn 1
+\de pitch (for caulking boat)
+\sn 2
+\de fuel for stove
+
+\lx anu
+\ps n
+\sn 1
+\de harness
+\sn 2
+\de mitten strings
+\sy agluuttaq
+\sn 3
+\de arm-sling
+\cf aaqsuuttaq
+
+\lx anu-
+\ps vt
+\de to harness, to put harness on
+\cf anuulaq-
+
+\lx anuġaiq-
+\ps vi
+\de to calm down (of wind)
+
+\lx anuġi
+\ps n
+\de wind
+\cf anuqłiq-
+
+\lx anuġiqłuk
+\ps n
+\de strong wind, storm, gale
+\sy aŋniq
+
+\lx anuġisiun
+\ps n
+\sn 1
+\de wind vane
+\sn 2
+\de barometer
+
+\lx anuksraq
+\ps n
+\de harness webbing
+
+\lx anuqłiġuutipkaq-
+\ps vi
+\de to be caught in a storm
+\va aŋniġuutipkaq-
+
+\lx anuqłiq-
+\ps vi
+\de to be windy, to be blowing
+\cf anuġi
+
+\lx anuqsraaġuraaq
+\ps n
+\de light breeze
+\sy aqłanaaq
+\va anuqłaaq
+
+\lx anuqsralaaq
+\ps n
+\de breeze
+\sy aqłanaaq
+\va anuġraaq; anuqsraaġuraaq
+
+\lx anuqsru-
+\ps vi
+\de to endure, to bear great pain or sorrow with fortitude; to be stoic; to be patient
+\sy igḷutuq-; isiqsu-

@@ -1,0 +1,10 @@
+layout: bilingual
+source:
+  language: Iñupiatun Eskimo
+  code: inupiatuneskimo
+targets:
+- language: English
+  code: en
+writing_system: Latin-based (if you could find a dict with the syllable-based script,
+  that would be great)
+metadata_archive: Iñupiatun+Eskimo+Dictionary—NANA

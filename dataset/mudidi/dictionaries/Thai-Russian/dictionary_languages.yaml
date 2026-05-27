@@ -1,0 +1,9 @@
+layout: bilingual
+source:
+  language: Thai
+  code: thai
+targets:
+- language: Russian
+  code: ru
+writing_system: Thai
+metadata_archive: Thai-Russian-Dictionary

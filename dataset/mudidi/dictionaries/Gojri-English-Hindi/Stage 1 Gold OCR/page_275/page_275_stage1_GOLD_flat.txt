@@ -1,0 +1,31 @@
+[257]
+<b>पसार</b>(pasaar)nm:Expansion;varanda;hall.फैलाव,विस्तार,बरामदा
+<b>पसारणू</b>(pasaarnu) v:To extend;stretch;spread. पसारना,फैलाना,विस्तृत करना
+<b>पसारी</b>(pasaari)1.nf:Balcony;gallery;small varanda. आलिन्द,छज्जा,बरामदा
+2.nm:Spice seller;grocer;druggist.पंसारी,किरानेवाला,औषधि विक्रेता
+<b>पस्सी</b>(passee)nf:1.A small stack of straw.भूसे का एक छोटा ढेर
+2.A small landslide/fallen rock. भूस्खलन,हिमस्खलन
+<b>पसीतै</b>(paseetaiy)adj.Aside;aloof;isolated. अलग,एक ओर,परे
+<b>पसीनू</b>(paseeNoo)nm:Sweat;perspiration. पसीना,स्वेदजल
+<b>पस्सो</b>(passo)nm:Stack/mound of paddy. धान का ढेर
+<b>पहड़ी</b>(paihrhi)nf:Step;stair;footstep;phase. पैड़ी,सीढ़ी,अवस्था
+<b>पहड़ो</b>(paihrho)nm:A large step;stair;stage.सीढ़ी,एक बड़ा कदम
+<b>पहमूं</b>(paihmu~)nm:Notion;idea;view;thought. धारणा,विचार,दृष्टि
+<b>पहर</b>(paihr)n:Period of three hours.समय,तीन घंटे का समय Eg:
+<b>चारे पहर</b> The whole day or night.पूरा दिन/पूरी रात,बारह घंटे
+<b>अठो पहर</b> Round the clock;always. चौबीसों घंटे,हर समय
+<b>पहरेदार</b>(paihre daar)nm:Sentry;observer;guard.चौकीदार,,रक्षक
+<b>पहरो</b>(paihro)nm:Watch; surveillance;patrol. रक्षा कार्य, रखवाली
+<b>पहल</b>(paihL)nf:Priority;preference;precedence. प्राथमिकता,प्रधानता
+<b>पहल गहल</b> Primacy;maiden performance. पहल,आरंभ
+<b>पहलवाण</b>(paihLwaan)P.n:Wrestler;body builder;sumo;strong.
+वह व्यक्ति जो कुश्ती लड़ना सिखाए,मोटा-ताज़ा,हट्टा-कट्टा व्यक्ति
+<b>पहलवाणी</b>(paihLwaani)n:Wrestling;struggle;fight. कुश्ती, संघर्ष
+<b>पहलाँ</b>(pehLaa~)adv.Earlier;initially;previously.सर्वप्रथम,पूर्वकाल में
+<b>पहली</b>(paihLi)nf:First;primary;former;past. प्रथम,पहली, विगत
+<b>पहलो</b>(paihLo)adj.First;primary;former;previous. प्रथम,प्रारंभिक, पहले का
+<b>पहलो हलो</b> First episode;attempt. पहला प्रयास,पहली घटना
+<b>पहलो पूर</b> First batch or lot. पहला समूह,पहली टुकड़ी,पहला जत्था
+<b>पहाड़</b>(pahaarh)n:mountain;arduous task.पहाड़,पर्वत,अत्यधिक कठिन
+<b>पहाड़ी</b>(pahaarhi)1.nf:Hill;hillock;mountain. छोटा पहाड़,गिरी,पर्वत
+2.adj.Hilly;hillman;highlander.पहाड़ सम्बन्धी
