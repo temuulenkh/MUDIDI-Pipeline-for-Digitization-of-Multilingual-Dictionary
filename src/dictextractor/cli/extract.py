@@ -849,8 +849,8 @@ Examples:
         type=Path,
         default=None,
         dest="prompts_file",
-        help="Path to PROMPT.md containing Stage 1 and Stage 2 LLM prompts "
-        "(default: assets/PROMPT.md). Edits reload on the next LLM call.",
+        help="Path to PROMPT.json containing Stage 1 and Stage 2 LLM prompts "
+        "(default: assets/PROMPT.json). Edits reload on the next LLM call.",
     )
     parser.add_argument(
         "--compare-gold",

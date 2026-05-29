@@ -158,7 +158,7 @@ Entry point: [`examples/stage-2/run_stage2_extraction.sh`](examples/stage-2/run_
 
 Key flags:
 
-- `--prompts-file assets/PROMPT.md` — Stage 1 and Stage 2 LLM prompts (edit during inference; reloads on next call).
+- `--prompts-file assets/PROMPT.json` — Stage 1 and Stage 2 LLM prompts (edit during inference; reloads on next call).
 - `--no-intro` — withhold the dictionary introduction from both passes.
 - `--toolbox-pdf "Pages from ToolboxReferenceManual.pdf"` — attach the SIL Toolbox MDF manual in Pass 2 only.
 - `--stage1-input flat|column|auto` — choose the Stage 1 transcript source. The paper uses `--stage1-input flat` against `stage-1-gold/` to isolate parsing from OCR error.

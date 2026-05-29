@@ -1,7 +1,7 @@
 """
 Stage 1 prompt builders.
 
-Templates live in ``assets/PROMPT.md``; this module assembles dynamic user turns.
+Templates live in ``assets/PROMPT.json``; this module assembles dynamic user turns.
 """
 
 from dictextractor.llm.prompt_store import get_prompt_store

@@ -1,23 +1,39 @@
 """
-Load LLM prompt templates from ``assets/PROMPT.md``.
+Load LLM prompt templates from ``assets/PROMPT.json``.
 
-Sections are delimited by level-2 markdown headers (``## section_id``). Edit the
-markdown file to customize prompts at inference time; the store reloads when the
+Each entry maps a prompt id to ``prompt`` text and a ``variables`` list describing
+placeholders (Python ``str.format`` keys and optional XML wrapper tags). Edit the
+JSON file to customize prompts at inference time; the store reloads when the
 file modification time changes.
 """
 
 from __future__ import annotations
 
+import json
 import logging
-import re
 from pathlib import Path
 from typing import Dict, Optional
 
+from pydantic import BaseModel, Field
+
 logger = logging.getLogger(__name__)
 
-_SECTION_HEADER = re.compile(r"^## ([A-Za-z0-9_.-]+)\s*$")
-
 _configured_path: Optional[Path] = None
+
+
+class PromptVariable(BaseModel):
+    """Describes one injectable placeholder in a prompt template."""
+
+    name: str
+    tag: str | None = None
+    description: str
+
+
+class PromptDefinition(BaseModel):
+    """One named prompt template and its placeholder metadata."""
+
+    prompt: str
+    variables: list[PromptVariable] = Field(default_factory=list)
 
 
 def repo_root() -> Path:
@@ -26,8 +42,8 @@ def repo_root() -> Path:
 
 
 def default_prompts_path() -> Path:
-    """Default path to ``assets/PROMPT.md``."""
-    return repo_root() / "assets" / "PROMPT.md"
+    """Default path to ``assets/PROMPT.json``."""
+    return repo_root() / "assets" / "PROMPT.json"
 
 
 def configure_prompts(path: Path | str) -> None:
@@ -45,46 +61,34 @@ def _resolve_prompts_path() -> Path:
     return default_prompts_path()
 
 
-def parse_prompt_sections(text: str) -> Dict[str, str]:
+def parse_prompt_file(text: str) -> Dict[str, PromptDefinition]:
     """
-    Parse ``## section_id`` blocks from markdown text.
+    Parse a prompts JSON document.
 
     Time: O(n) in file length.
     """
-    sections: Dict[str, str] = {}
-    current_id: Optional[str] = None
-    current_lines: list[str] = []
-
-    for line in text.splitlines():
-        match = _SECTION_HEADER.match(line)
-        if match:
-            if current_id is not None:
-                sections[current_id] = "\n".join(current_lines).strip("\n")
-            current_id = match.group(1)
-            current_lines = []
-            continue
-        if current_id is not None:
-            current_lines.append(line)
-
-    if current_id is not None:
-        sections[current_id] = "\n".join(current_lines).strip("\n")
-
-    return sections
+    raw = json.loads(text)
+    if not isinstance(raw, dict):
+        raise ValueError("Prompts file must be a JSON object keyed by prompt id.")
+    return {
+        str(key): PromptDefinition.model_validate(value)
+        for key, value in raw.items()
+    }
 
 
 class PromptStore:
-    """Cached reader for ``PROMPT.md`` with mtime-based invalidation."""
+    """Cached reader for ``PROMPT.json`` with mtime-based invalidation."""
 
     def __init__(self, path: Optional[Path] = None) -> None:
         self._path = path or _resolve_prompts_path()
         self._signature: Optional[tuple[float, int]] = None
-        self._sections: Dict[str, str] = {}
+        self._prompts: Dict[str, PromptDefinition] = {}
 
     def set_path(self, path: Path) -> None:
         """Point at a different prompts file and force reload."""
         self._path = path
         self._signature = None
-        self._sections = {}
+        self._prompts = {}
 
     @property
     def path(self) -> Path:
@@ -98,33 +102,41 @@ class PromptStore:
             )
         stat = self._path.stat()
         signature = (stat.st_mtime, stat.st_size)
-        if signature == self._signature and self._sections:
+        if signature == self._signature and self._prompts:
             return
         text = self._path.read_text(encoding="utf-8")
-        self._sections = parse_prompt_sections(text)
+        self._prompts = parse_prompt_file(text)
         self._signature = signature
-        logger.debug("Loaded %d prompt sections from %s", len(self._sections), self._path)
+        logger.debug("Loaded %d prompts from %s", len(self._prompts), self._path)
 
-    def section_ids(self) -> list[str]:
-        """Return loaded section identifiers."""
+    def prompt_ids(self) -> list[str]:
+        """Return loaded prompt identifiers."""
         self._reload_if_changed()
-        return sorted(self._sections)
+        return sorted(self._prompts)
 
-    def get(self, section_id: str) -> str:
-        """Return raw section text (no placeholder substitution)."""
+    def get_definition(self, prompt_id: str) -> PromptDefinition:
+        """Return the full prompt definition (text + variable metadata)."""
         self._reload_if_changed()
         try:
-            return self._sections[section_id]
+            return self._prompts[prompt_id]
         except KeyError as exc:
-            available = ", ".join(sorted(self._sections))
+            available = ", ".join(sorted(self._prompts))
             raise KeyError(
-                f"Prompt section {section_id!r} not found in {self._path}. "
+                f"Prompt {prompt_id!r} not found in {self._path}. "
                 f"Available: {available}"
             ) from exc
 
-    def format(self, section_id: str, **kwargs: object) -> str:
-        """Return section text with ``str.format`` placeholders filled."""
-        template = self.get(section_id)
+    def get(self, prompt_id: str) -> str:
+        """Return raw prompt text (no placeholder substitution)."""
+        return self.get_definition(prompt_id).prompt
+
+    def variables(self, prompt_id: str) -> list[PromptVariable]:
+        """Return variable metadata for a prompt."""
+        return self.get_definition(prompt_id).variables
+
+    def format(self, prompt_id: str, **kwargs: object) -> str:
+        """Return prompt text with ``str.format`` placeholders filled."""
+        template = self.get(prompt_id)
         if not kwargs:
             return template
         return template.format(**kwargs)
