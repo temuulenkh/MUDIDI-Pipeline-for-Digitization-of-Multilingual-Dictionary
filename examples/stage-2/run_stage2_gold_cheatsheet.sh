@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stage-2 gold field cheat sheet: per-language best model+config from the main
-# MDF sweep, with Pass 1 loaded from outputs/stage-2-gold/field_cheatsheet.json.
+# MDF sweep, with Pass 1 loaded from outputs/stage-2-gold/parse-rules.json (legacy: field_cheatsheet.json).
 #
 # Best configs are read from evaluations/stage2_mdf_eval/stage2_mdf_eval_summary.csv
 # (highest MDF_Fields_F1 per language page; __aggregate__ rows excluded).
@@ -75,13 +75,14 @@ fi
 
 missing_gold=()
 for lang in "${LANGUAGES[@]}"; do
-    gold="${SAMPLES_DIR}/${lang}/outputs/stage-2-gold/field_cheatsheet.json"
-    if [[ ! -f "${gold}" ]]; then
-        missing_gold+=("${lang} → ${gold}")
+    gold="${SAMPLES_DIR}/${lang}/outputs/stage-2-gold/parse-rules.json"
+    legacy="${SAMPLES_DIR}/${lang}/outputs/stage-2-gold/field_cheatsheet.json"
+    if [[ ! -f "${gold}" && ! -f "${legacy}" ]]; then
+        missing_gold+=("${lang} → ${gold} (or ${legacy})")
     fi
 done
 if [[ ${#missing_gold[@]} -gt 0 ]]; then
-    echo "ERROR: missing gold field_cheatsheet.json:" >&2
+    echo "ERROR: missing gold parse rules:" >&2
     printf '  %s\n' "${missing_gold[@]}" >&2
     exit 1
 fi
@@ -144,7 +145,7 @@ for row in "${BEST_ROWS[@]}"; do
         --languages "${lang}" \
         --one-page-per-entry \
         --stage1-input flat \
-        --field-cheatsheet-gold \
+        --parse-rules-gold \
         --stage2-experiment-name "${goldcheat_exp}" \
         "${stage2_ablation_flags[@]}" \
         "${EXTRACT_EXTRA_ARGS[@]}"

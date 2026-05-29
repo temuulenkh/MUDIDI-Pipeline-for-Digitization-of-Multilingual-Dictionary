@@ -39,7 +39,7 @@ class RunConfig(BaseModel):
     intro_dir: Path | None = None
     alphabet_path: Path | None = None
     ocr_text_dir: Path | None = None
-    cheatsheet_page_stem: str | None = None
+    parse_rules_page_stem: str | None = None
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -89,7 +89,9 @@ class RunConfig(BaseModel):
             intro_dir=Path(intro) if intro else None,
             alphabet_path=Path(alphabet) if alphabet else None,
             ocr_text_dir=Path(ocr) if ocr else None,
-            cheatsheet_page_stem=getattr(args, "cheatsheet_page", None),
+            parse_rules_page_stem=getattr(
+                args, "parse_rules_page", getattr(args, "cheatsheet_page", None)
+            ),
         )
 
     def apply_to_namespace(self, args: object) -> None:

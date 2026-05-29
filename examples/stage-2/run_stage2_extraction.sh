@@ -8,7 +8,7 @@ set -euo pipefail
 # Pass --stage2-experiment-name to keep ablation runs separate. Combine with
 # --no-intro and/or --toolbox-pdf to control which Stage-2 inputs are in scope.
 # Re-runs without --overwrite resume per-experiment (Pass 1 cheat sheet is cached
-# under outputs/stage-2/<experiment>/field_cheatsheet.json). Pass --overwrite to
+# under outputs/stage-2/<experiment>/parse-rules.json). Pass --overwrite to
 # re-run Pass 1 discovery and Pass 2 extraction for that experiment.
 #
 # Default: --one-page-per-entry — one snippet per language. Uses the lowest-numbered

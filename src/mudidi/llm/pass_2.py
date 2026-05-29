@@ -107,7 +107,6 @@ def build_direct_mdf_messages(
     *,
     transcription: str,
     image_path: str,
-    intro_image_paths: List[str],
     field_map: FieldMapPrompt,
     model: str,
     guides: str = "",
@@ -154,15 +153,6 @@ def build_direct_mdf_messages(
             "image_url": {"url": image_data_url(image_path, mime)},
         }
     )
-    for intro_img in intro_image_paths:
-        content.append(
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": image_data_url(intro_img, resolve_mime_type(intro_img))
-                },
-            }
-        )
     content.extend(toolbox_parts)
     return [
         {
@@ -177,7 +167,6 @@ def extract_direct_mdf(
     *,
     transcription: str,
     image_path: str,
-    intro_image_paths: List[str],
     field_map: FieldMapPrompt,
     model: str,
     reasoning_effort: str,
@@ -195,7 +184,6 @@ def extract_direct_mdf(
     messages = build_direct_mdf_messages(
         transcription=transcription,
         image_path=image_path,
-        intro_image_paths=intro_image_paths,
         field_map=field_map,
         model=model,
         guides=guides,

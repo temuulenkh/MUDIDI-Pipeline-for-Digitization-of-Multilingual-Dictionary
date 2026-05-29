@@ -74,8 +74,8 @@ def test_required_stage_prompts_present() -> None:
         "stage_1_user_ocr_reference",
         "stage_1_user_closing",
         "mdf_marker_reference",
-        "stage_2_discovery_system",
-        "stage_2_discovery_user",
+        "stage_2_pass_1",
+        "stage_2_pass_2",
         "stage_2_direct_mdf_system_benchmark",
         "stage_2_direct_mdf_system_inference",
         "stage_2_direct_mdf_user_benchmark",
@@ -98,10 +98,10 @@ def test_stage_1_alphabet_variables() -> None:
     assert variables[0].tag == "<alphabet>"
 
 
-def test_stage_2_discovery_user_formats_transcription() -> None:
+def test_stage_2_pass_2_formats_transcription() -> None:
     store = PromptStore(default_prompts_path())
     rendered = store.format(
-        "stage_2_discovery_user",
+        "stage_2_pass_2",
         transcription="sample line",
         config_hint="",
     )

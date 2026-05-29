@@ -30,7 +30,7 @@ def test_inference_run_config_defaults(tmp_path: Path) -> None:
     layout = resolve_output_layout(config)
     assert layout.stage1_root == out / "stage-1"
     assert layout.stage2_root == out / "stage-2"
-    assert layout.field_cheatsheet_path == out / "field_cheatsheet.json"
+    assert layout.parse_rules_path == out / "parse-rules.json"
 
 
 def test_benchmark_run_config_layout(tmp_path: Path) -> None:
@@ -71,7 +71,7 @@ def test_run_config_from_namespace(tmp_path: Path) -> None:
         intro=None,
         alphabet=None,
         ocr_text=None,
-        cheatsheet_page=None,
+        parse_rules_page=None,
     )
     config = RunConfig.from_namespace(args)
     assert config.prompt_mode == "inference"

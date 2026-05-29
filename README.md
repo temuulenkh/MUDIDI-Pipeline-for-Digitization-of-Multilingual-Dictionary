@@ -34,7 +34,6 @@ mudidi run --help
 |-----|----------|
 | `GEMINI_API_KEY` | Gemini models (`gemini/...`) |
 | `OPEN_ROUTER_API_KEY` | GPT, Claude, Qwen via OpenRouter (`openrouter/...`) |
-| `MATHPIX_APP_ID` / `MATHPIX_APP_KEY` | Optional OCR hints via Mathpix Convert |
 
 Models are routed through [litellm](https://github.com/BerriAI/litellm). The model string selects the provider (e.g. `gemini/gemini-3-flash-preview`, `openrouter/openai/gpt-5.5`).
 
@@ -50,25 +49,75 @@ Place inputs in a working directory (layout is flexible; paths are passed on the
 
 ```
 my-dictionary/
-    snippets/          # required — page images or PDFs (page_1.png, page_2.pdf, …)
-    introduction/      # optional — front-matter images/PDFs for Stage 2
-    alphabet.txt       # optional — source-script character inventory
-    mathpix/           # optional — OCR hint files from Mathpix Convert (.md per page)
+    snippets/                  # required — page images or PDFs (page_1.png, page_2.pdf, …)
+    introduction/              # optional — front matter for Stage 2 Pass 1
+    dictionary_languages.yaml  # optional — source/target roles (see below)
+    alphabet.txt               # optional — source-script character inventory
 ```
 
 **`snippets/`** — one file per dictionary page. Supported: `.png`, `.jpg`, `.jpeg`, `.webp`, `.pdf`. Pages are processed in numeric order (`page_1`, `page_2`, …, `page_10`).
 
-**`introduction/`** — helps Stage 2 learn abbreviations, entry structure, and which MDF markers the dictionary uses.
+**`introduction/`** — front matter for **Stage 2 Pass 1** (parse-rules discovery): abbreviations, entry structure, and which MDF markers the dictionary uses. Pass 2 uses the cached `parse-rules.json`, not the intro images again.
+
+**`dictionary_languages.yaml`** — optional hint for Pass 1: which language is the headword source, which are gloss targets, and a coarse page-layout label. See [dictionary_languages.yaml](#dictionary_languagesyaml) below.
 
 **`alphabet.txt`** — character list or legend for the vernacular script. Improves Stage 1 accuracy on rare glyphs.
 
-**`mathpix/`** — optional OCR hints. Generate with:
+### `dictionary_languages.yaml`
 
-```bash
-uv run python scripts/run_mathpix_convert.py --samples-dir my-dictionary
+This file is **not** sent to the LLM verbatim. It is loaded at startup and summarized as a short hint in the **Stage 2 Pass 1** user prompt (`{config_hint}`: layout, source language, target languages). Pass 2 then follows the discovered **`parse-rules.json`**, not the YAML directly.
+
+**Where to put it**
+
+| Run | Path |
+|-----|------|
+| Inference (`--pages my-dictionary/snippets`) | `my-dictionary/dictionary_languages.yaml` (same folder that contains `snippets/`) |
+| Benchmark (`--samples-dir …/samples`) | `assets/dictionaries/samples/<Lang-Pair>/dictionary_languages.yaml` |
+
+**What to put inside** — required fields:
+
+| Field | Meaning |
+|-------|---------|
+| `layout` | One of MUDIDI’s three supported layout labels (see below). Pick the **closest match** to your dictionary — you do not need to use this wording in your intro or paper. |
+| `source` | Headword / vernacular language (`language` only — use the name that fits your dictionary, e.g. `Evenki`, `Circassian`). |
+| `targets` | Gloss / translation languages (`language` per target). One or more entries. |
+
+
+**`layout` values (examples, not a closed world)** — MUDIDI only understands these three strings today:
+
+| Value | Typical dictionary shape |
+|-------|---------------------------|
+| `bilingual` | One vernacular headword with one gloss language per entry (most two-language dictionaries). |
+| `inline_trilingual` | Several target languages mixed **inside the same entry block** (e.g. multiple glosses or scripts on one line). |
+| `column_trilingual` | Headwords and glosses in **separate columns** (e.g. vernacular center, English left, Turkish right). |
+
+If none fits well, choose the nearest option and rely on clear `language` names in `source` / `targets`; Pass 1 also sees your introduction and sample page.
+
+You only need human-readable `language` names — no short `code` field. Legacy YAML files that still include `code` are accepted; that field is ignored on load.
+
+**Minimal bilingual example** (Evenki → Russian):
+
+```yaml
+layout: bilingual
+source:
+  language: Evenki
+targets:
+  - language: Russian
 ```
 
-(requires Mathpix credentials; writes `{stem}.md` + `{stem}.lines.json` under `mathpix/`)
+**Column trilingual example** (headword in center column, glosses left/right):
+
+```yaml
+layout: column_trilingual
+source:
+  language: Circassian
+  column_id: center
+targets:
+  - language: English
+    column_id: left
+  - language: Turkish
+    column_id: right
+```
 
 ### Option B — single source PDF
 
@@ -92,7 +141,7 @@ Split pages are cached under `{output_dir}/.rendered_snippets/split/` (dictionar
 
 Run Stage 1 and Stage 2 in one command. Stage 2 automatically reads Stage 1 output from the same run.
 
-### From a snippets directory
+**Option A — `--pages` points to a directory** (one image/PDF per page):
 
 ```bash
 uv run mudidi run \
@@ -107,13 +156,13 @@ uv run mudidi run \
   --stage2-reasoning high
 ```
 
-### From a single PDF
+Place `dictionary_languages.yaml` in `my-dictionary/` (parent of `snippets/`). MUDIDI loads it automatically when you run the command above.
 
-Process dictionary pages 97–123 and introduction pages 1–5 from one scan:
+**Option B — `--pages` points to a single PDF** (same file for dict + intro; requires `pdftk`):
 
 ```bash
 uv run mudidi run \
-  --pages scans/evenki-russian.pdf \
+  --pages my-dictionary/evenki-russian.pdf \
   --dict-pages 97-123 \
   --intro-pages 1-5 \
   --alphabet my-dictionary/alphabet.txt \
@@ -121,14 +170,15 @@ uv run mudidi run \
   --stage all \
   --strategy two_stage \
   --stage1-mode flat \
-  --model gemini/gemini-3-flash-preview
+  --model gemini/gemini-3-flash-preview \
+  --stage2-reasoning high
 ```
 
-Pick non-contiguous pages with comma lists:
+Non-contiguous PDF pages (Option B only):
 
 ```bash
 uv run mudidi run \
-  --pages scans/my-dict.pdf \
+  --pages my-dictionary/evenki-russian.pdf \
   --dict-pages 19,83,162 \
   --output-dir my-dictionary/output \
   --stage 1 \
@@ -138,6 +188,8 @@ uv run mudidi run \
 
 ### Stage 1 only
 
+**Directory:**
+
 ```bash
 uv run mudidi run \
   --pages my-dictionary/snippets \
@@ -149,12 +201,43 @@ uv run mudidi run \
   --model gemini/gemini-3-flash-preview
 ```
 
+**PDF:**
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/evenki-russian.pdf \
+  --dict-pages 97-123 \
+  --output-dir my-dictionary/output \
+  --stage 1 \
+  --strategy two_stage \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview
+```
+
 ### Stage 2 only (reuse existing Stage 1 output)
+
+Use the **same `--pages` path** as the Stage 1 run so output stems line up.
+
+**Directory:**
 
 ```bash
 uv run mudidi run \
   --pages my-dictionary/snippets \
   --intro my-dictionary/introduction \
+  --output-dir my-dictionary/output \
+  --stage 2 \
+  --strategy two_stage \
+  --stage1-source predictions \
+  --model gemini/gemini-3-flash-preview
+```
+
+**PDF:**
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/evenki-russian.pdf \
+  --dict-pages 97-123 \
+  --intro-pages 1-5 \
   --output-dir my-dictionary/output \
   --stage 2 \
   --strategy two_stage \
@@ -172,7 +255,7 @@ All artifacts land under `--output-dir`:
 
 ```
 output/
-├── field_cheatsheet.json          # Pass 1: MDF marker cheat sheet (once per dictionary)
+├── parse-rules.json               # Stage 2 Pass 1: MDF markers + entry rules (once per dictionary)
 ├── stage-1/
 │   └── page_1/
 │       ├── page_1_stage1_flat.txt     # Stage 1 transcript (one line per visible row)
@@ -209,8 +292,18 @@ uv run mudidi run --help
 Model, strategy, and tuning flags (e.g. `--model`, `--stage1-mode`, `--overwrite`) are passed on the same command line — they are forwarded automatically:
 
 ```bash
+# directory input
 uv run mudidi run \
   --pages my-dictionary/snippets \
+  --output-dir my-dictionary/output \
+  --model openrouter/openai/gpt-5.5 \
+  --stage1-mode flat \
+  --overwrite
+
+# PDF input
+uv run mudidi run \
+  --pages my-dictionary/evenki-russian.pdf \
+  --dict-pages 97-123 \
   --output-dir my-dictionary/output \
   --model openrouter/openai/gpt-5.5 \
   --stage1-mode flat \
@@ -237,9 +330,10 @@ uv run mudidi run \
 | `--intro PATH` | — | Introduction directory or text/image file (snippets-directory mode only) |
 | `--intro-pages SPEC` | — | When `--pages` is a PDF: intro pages from the **same PDF** (same syntax as `--dict-pages`) |
 | `--alphabet PATH` | — | Alphabet file (`.txt`/`.md`) or image |
-| `--ocr-text PATH` | — | Directory of OCR hint files (`.md`/`.docx`/`.txt`), matched by page stem |
+| `--ocr-text PATH` | — | Optional OCR hint directory (`.md`/`.docx`/`.txt` per page). Benchmark ablation showed limited benefit — omit unless experimenting |
 | `--prompts-file PATH` | bundled `PROMPT.json` | Custom prompts; edits reload on next LLM call |
-| `--cheatsheet-page STEM` | first page | Which page Pass 1 uses for field discovery |
+| `--parse-rules-page STEM` | first page | Which page Stage 2 Pass 1 uses for parse-rules discovery |
+| `--parse-rules-gold` | off | Benchmark: load gold `parse-rules.json` from `outputs/stage-2-gold/` (skips Pass 1 LLM) |
 | `--stage1-source {gold,predictions}` | `predictions` | Stage 2 input source (inference uses predictions) |
 
 ### Model and strategy flags
@@ -261,20 +355,20 @@ Pass these on the same command line (forwarded to the extraction engine):
 | `--limit N` | — | Process at most N pages |
 | `--no-alphabet` | off | Skip alphabet hint |
 | `--no-ocr-hint` | off | Skip OCR hint |
-| `--no-intro` | off | Skip introduction in Stage 2 |
+| `--no-intro` | off | Skip introduction for Stage 2 Pass 1 (field discovery) |
 
 ### Inference-specific behaviour
 
 - **Neighbor page context** — in inference mode, each page receives previous/next page images (and prior transcripts when available) so the model can handle entries that span page breaks. Output still belongs to the current page only.
 - **Stage chaining** — with `--stage all`, Stage 2 reads Stage 1 predictions from `--output-dir` automatically.
-- **Prompts** — inference uses `*_inference` prompt variants in `assets/PROMPT.json` (editable via `--prompts-file`).
+- **Prompts** — inference uses `*_inference` prompt variants in `assets/PROMPT.json` (see [Customising prompts](#customising-prompts)).
 
 ---
 
 ## Pipeline overview
 
 ```
-snippets/ + alphabet + OCR hints
+snippets/ + alphabet
         │
         ▼
 ┌─────────────────────────┐
@@ -285,16 +379,16 @@ snippets/ + alphabet + OCR hints
             ▼
 ┌─────────────────────────┐
 │ Stage 2 — MDF export    │  →  stage-2/{page}/{page}.mdf.txt
-│  Pass 1: field map      │      field_cheatsheet.json
+│  Pass 1: parse rules    │      parse-rules.json
 │  Pass 2: per-page MDF   │
 └─────────────────────────┘
 ```
 
 **Stage 1** transcribes every visible line on the page image. Use `--stage1-mode flat` for the standard one-line-per-row format.
 
-**Stage 2 Pass 1** runs once: reads the introduction + one sample page and writes `field_cheatsheet.json` (which MDF markers this dictionary uses).
+**Stage 2 Pass 1** runs once: reads the introduction + one sample page (+ `dictionary_languages.yaml` hint) and writes `parse-rules.json` (which MDF markers and entry-structure rules this dictionary uses).
 
-**Stage 2 Pass 2** runs per page: copies characters verbatim from the Stage 1 transcript and assigns MDF markers using the cheat sheet.
+**Stage 2 Pass 2** runs per page: copies characters verbatim from the Stage 1 transcript and assigns MDF markers using `parse-rules.json` (introduction is not re-attached).
 
 Further detail: [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md), [`docs/stage_2_methodology.md`](docs/stage_2_methodology.md).
 
@@ -302,11 +396,315 @@ Further detail: [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md), [`
 
 ## Customising prompts
 
-Prompts live in `assets/PROMPT.json` (also bundled inside the installed package). Each entry has `prompt` text and a `variables` list documenting placeholders like `{alphabet_text}` and `{ocr_hint}`.
+Templates live in [`assets/PROMPT.json`](assets/PROMPT.json) (also bundled as `mudidi/assets/PROMPT.json` in the package). The Python code **loads** these strings, **fills** `{placeholders}` with runtime data, and **concatenates** several entries into each LLM call. You do not pick a single “master prompt” — each pipeline step assembles its own system + user message.
+
+### File shape
+
+Each top-level key is a **prompt id** (for example `stage_1_user_alphabet`). The value has:
+
+| Field | Role |
+|-------|------|
+| `prompt` | Template text sent to the model (may contain `{name}` placeholders). |
+| `variables` | **Documentation only** — not enforced by the loader. |
+
+#### About `variables`
+
+The `variables` list is a **cheat sheet for humans** editing `PROMPT.json`. It records which `{placeholders}` appear in `prompt`, what they mean, and optional XML wrapper tags (for example `<alphabet>`). The runtime only uses whatever you put in `prompt`; it does not read `variables` when calling the LLM.
+
+When you change a prompt, **update `variables` yourself** so the file stays accurate — add, rename, or remove entries as needed. Missing or stale `variables` entries will not break a run; they only make the file harder to maintain.
+
+Placeholders use Python `str.format` syntax. Literal braces in the prompt must be doubled (`{{` / `}}`), as in the JSON example inside `stage_2_pass_2`.
+
+Assembly code: Stage 1 — [`prompts.py`](src/mudidi/llm/prompts.py), [`llm_two_stage.py`](src/mudidi/extraction/llm_two_stage.py); Stage 2 Pass 1 — [`pass_1.py`](src/mudidi/llm/pass_1.py); Stage 2 Pass 2 — [`pass_2.py`](src/mudidi/llm/pass_2.py).
+
+### Example: full messages sent to the model
+
+Below is what actually gets passed to the LLM API after templates are loaded, placeholders filled, and blocks concatenated. Ellipsis (`…`) marks text shortened for readability; images are noted instead of base64 data URLs.
+
+Typical **inference** run: `--stage1-mode flat`, alphabet + OCR hints on, introduction included in Stage 2.
+
+---
+
+#### Stage 1 — one call per dictionary page
+
+Two messages: **system** (one prompt id) and **user** (text + images).
+
+**`role: system`** — from `stage_1_flat_system_inference` (placeholders filled):
+
+```
+You are a precise OCR transcription system specialising in historical and minority-language dictionaries.
+
+Your task is faithful OCR only — do NOT parse dictionary entries or assign fields.
+
+Output structure:
+- `header`: page-level lines at the very top …
+- `lines`: every visible BODY line in reading order …
+- `footer`: page-level lines at the very bottom …
+
+You may receive <ocr_reference>...</ocr_reference> from a standard OCR engine …
+
+Rules for every line in header, lines, and footer:
+- Preserve ALL diacritics …
+- Wrap bold text in <b>...</b> and italic text in <i>...</i> when confident.
+…
+- Hyphenated wraps: when a word breaks across two printed lines with a trailing hyphen,
+  emit TWO separate strings (e.g. "intelligi-" then "ble, adj. clear").
+
+Page boundary rules:
+- Output only content that belongs to the CURRENT page.
+- INCLUDE entries that START on the current page even if they continue onto the next page.
+- EXCLUDE entries that STARTED on the previous page and only continue on the current page.
+- Neighbor pages are context for disambiguation only; do not transcribe their full text into the current page output.
+
+<previous_page>
+page: page_2
+Use this page only for entry-boundary context.
+<transcript>
+… Stage 1 text for page_2 if already processed …
+</transcript>
+</previous_page>
+
+<next_page>
+(none)
+</next_page>
+```
+
+**`role: user`** — text part is three `PROMPT.json` blocks joined with blank lines (`stage_1_user()`), then images appended:
+
+```
+<alphabet>
+а
+б
+в
+… contents of alphabet.txt …
+</alphabet>
+
+The <alphabet> is a reference guide to the list of characters in the script …
+Rules:
+1. Prefer <alphabet> matches over visually similar characters …
+…
+
+<ocr_reference>
+… optional Mathpix / OCR engine text for this page …
+</ocr_reference>
+
+The OCR reference above may contain errors but can help you identify ambiguous character shapes.
+
+Now transcribe every line of text from the dictionary page image exactly as it appears. Preserve all diacritics and special characters.
+
+USER DEFINED GUIDELINES
+… only if --stage-1-guides PATH was passed …
+```
+
+**`role: user`** — vision parts after that text (order matters):
+
+1. `[image]` previous page (`page_2.png`) — inference only, if it exists  
+2. `[image]` next page — inference only, if it exists  
+3. `[image]` alphabet scan — if an alphabet image file exists  
+4. `[image]` **current page** (`page_3.png`) — always  
+
+The model must return structured JSON (`header` / `lines` / `footer`), which is saved as flat text for Stage 2.
+
+---
+
+#### Stage 2 Pass 1 — one call per dictionary (field map)
+
+Two messages. Output is JSON → `parse-rules.json` → rendered as `{field_block}` in Pass 2.
+
+**`role: system`** — `stage_2_pass_1` with `{mdf_marker_reference}` replaced by the entire `mdf_marker_reference` prompt (~thousands of words; abbreviated here):
+
+```
+You analyse dictionary front matter and a sample page to list which SIL Toolbox MDF
+markers this dictionary uses and how entries are structured.
+
+Output a single JSON object — NOT a full typography map. For each marker that appears
+in this dictionary, give a one-line description (role + language tier). Add structure
+rules for entry boundaries (homographs, senses, subentries, gloss lines).
+
+Use MDF marker codes from the reference below. Pick gloss/usage/definition tiers to
+match the dictionary's target languages (e=English, n=national, r=regional, v=vernacular).
+Do NOT assign English-tier markers (ge, de, ue) when the dictionary has no English target.
+
+MDF marker vocabulary (SIL Toolbox — assign ONLY markers whose content appears on
+THIS dictionary's intro + sample page; …):
+
+── Entry structure … ──
+  lx   Lexeme / headword. Record marker; one per lexical entry …
+  hm   Homonym number. …
+…
+  nt   Compiler notes by domain …; bracketed if printed.
+```
+
+**`role: user`** — text from `stage_2_pass_2`, then images:
+
+```
+Study this dictionary and return a marker cheat sheet JSON object.
+
+Inputs:
+1. Introduction pages (images below).
+2. One sample dictionary page (image + flat transcription).
+
+3. Language roles: layout=two_column, source=Evenki, targets=[Russian].
+
+Return JSON with this shape:
+{
+  "dictionary_name": "short name",
+  "markers": [
+    {"marker": "lx", "description": "headword / lexeme (vernacular lemma)"},
+    …
+  ],
+  "rules": [
+    "Separate homograph mains: two \\lx blocks with same lemma, each with \\hm N.",
+    …
+  ],
+  "abbreviations": {"мн.": "plural"}
+}
+
+Include ONLY markers that appear on the sample page or are defined in the intro.
+…
+Return JSON only — no markdown fences.
+
+<sample_transcription>
+A
+<b>а̄́вда</b>  I. <i>v.</i> swell, rise …
+… full Stage 1 flat text for the parse-rules sample page (e.g. page_1) …
+</sample_transcription>
+```
+
+**`role: user`** — vision parts after that text:
+
+1. `[image]` each file in `introduction/` (in order)  
+2. `[image]` sample dictionary page (same page as `<sample_transcription>`)  
+
+---
+
+#### Stage 2 Pass 2 — one call per dictionary page (MDF export)
+
+Two messages. Output is raw MDF text (Toolbox record blocks).
+
+**`role: system`** — from `stage_2_direct_mdf_system_inference`:
+
+```
+You digitize dictionary pages into SIL Toolbox MDF (Multi-Dictionary Formatter) text.
+
+The flat transcription is the Stage-1 OCR text for this page. Copy every vernacular and gloss
+character from it exactly — do NOT re-read, correct, normalise, or substitute letters
+from the page image. Use the page image and field map (from Pass 1) only to decide entry boundaries,
+field roles, and MDF marker assignment.
+
+Output ONLY MDF text — no JSON, no markdown fences, no commentary.
+Use one blank line between lexicon records (between main entry blocks).
+
+Allowed changes (structure only — never alter alphabet/characters):
+  - Strip typography markup (<b>, <i>) when emitting MDF lines …
+  - Rejoin hyphenated line breaks from the transcription when forming headwords/glosses.
+  …
+
+Do NOT invent entries or text spans absent from the transcription.
+
+Page boundary rules:
+- Output only content that belongs to the CURRENT page.
+…
+```
+
+**`role: user`** — text from `stage_2_direct_mdf_user_inference` (all placeholders filled):
+
+```
+Dictionary page extraction.
+
+Inputs:
+1. Stage-1 OCR transcription (bold = <b>…</b>, italic = <i>…</i>) or column TSV
+   (column_id, line_number, text). Treat this as authoritative for all characters.
+2. Photo of the dictionary page (image below) — layout and field-boundary reference only.
+
+4. Attached SIL Toolbox MDF Reference Manual (PDF) — marker reference.
+… line only present when --toolbox-pdf is set and the model accepts PDF vision …
+
+MDF markers for Evenki-Russian (use these exactly):
+
+\lx   headword / lexeme (vernacular lemma)
+\gn   Russian gloss / translation
+\sn   sense number
+…
+
+Rules:
+- Separate homograph mains: two \lx blocks with same lemma, each with \hm N.
+- Numbered senses: one \lx, then \sn 1, \gn …, \sn 2, \gn …
+…
+
+Parse every dictionary entry on the page into MDF text using the field map above.
+Copy headword and gloss characters verbatim from the transcription except for the
+structural normalisations listed in the system prompt.
+
+<transcription>
+A
+<b>а̄́вда</b>  I. <i>v.</i> swell, rise …
+… Stage 1 flat text for **this** page (e.g. page_3) …
+</transcription>
+
+USER DEFINED GUIDELINES
+… only if --stage-2-guides PATH was passed …
+
+Page boundary rules:
+- Output only content that belongs to the CURRENT page.
+…
+
+<previous_page>
+page: page_2
+Use this page only for entry-boundary context.
+<transcript>
+… Stage 1 text for page_2 …
+</transcript>
+</previous_page>
+
+<next_page>
+page: page_4
+Use this page only for entry-boundary context.
+<transcript>
+… Stage 1 text for page_4 if already processed …
+</transcript>
+</next_page>
+```
+
+The **`MDF markers for …`** block is not in `PROMPT.json` — it is built at runtime from Pass 1’s `parse-rules.json` (`format_prompt_block()`).
+
+**`role: user`** — vision parts after that text:
+
+1. `[image]` previous page — inference only  
+2. `[image]` next page — inference only  
+3. `[image]` **current page**  
+4. `[image]` Toolbox PDF — only when `--toolbox-pdf` is set and the model reads PDFs; otherwise the manual text is inlined via `stage_2_toolbox_text_section` inside the text block above  
+
+Introduction images are **not** sent in Pass 2; conventions are captured in the Pass 1 `parse-rules.json` rendered as `{field_block}` above.
+
+---
+
+### Prompt id quick reference
+
+| Step | System prompt id | User text built from |
+|------|------------------|----------------------|
+| Stage 1 flat | `stage_1_flat_system_{benchmark\|inference}` | `stage_1_user_alphabet`? + `stage_1_user_ocr_reference`? + `stage_1_user_closing` + guides |
+| Stage 1 column | `stage_1_system` | same user blocks |
+| Stage 2 Pass 1 | `stage_2_pass_1` (+ nested `mdf_marker_reference`) | `stage_2_pass_2` |
+| Stage 2 Pass 2 | `stage_2_direct_mdf_system_{benchmark\|inference}` | `stage_2_direct_mdf_user_{benchmark\|inference}` + `{field_block}` + `{toolbox_section}` + neighbors |
+
+### Benchmark vs inference variants
+
+Some steps use a **base id** plus a mode suffix. [`resolve_prompt_id()`](src/mudidi/llm/prompt_mode.py) picks `base_benchmark` or `base_inference` when both exist; otherwise it falls back to the unsuffixed id.
+
+| Base id | Suffixed variants |
+|---------|-------------------|
+| `stage_1_flat_system` | `_benchmark`, `_inference` |
+| `stage_2_direct_mdf_system` | `_benchmark`, `_inference` |
+| `stage_2_direct_mdf_user` | `_benchmark`, `_inference` |
+
+Pass 1 prompts (`stage_2_pass_1`, `stage_2_pass_2`) and Stage 1 user blocks (alphabet, OCR, closing) are **shared** across modes.
+
+### Using a custom prompts file
 
 ```bash
 cp assets/PROMPT.json my-prompts.json
-# edit my-prompts.json …
+# edit my-prompts.json — keep prompt ids the code expects, or update Python callers
 uv run mudidi run \
   --pages my-dictionary/snippets \
   --output-dir my-dictionary/output \
@@ -315,7 +713,7 @@ uv run mudidi run \
   --stage1-mode flat
 ```
 
-Changes are picked up on the next LLM call (mtime-based reload).
+The store reloads when the file modification time changes (next LLM call). If you rename prompt ids, update the matching strings in `prompts.py`, `pass_1.py`, and `pass_2.py` (or `resolve_prompt_id` bases).
 
 ---
 
@@ -374,9 +772,9 @@ assets/dictionaries/samples/<Source-Target>/
     dictionary_languages.yaml
     outputs/                     # populated by the pipeline
         stage-1-gold/            # human gold (evaluation only)
-        stage-2-gold/
+        stage-2-gold/            # gold parse-rules.json (legacy name: field_cheatsheet.json)
         stage-1/<experiment>/
-        stage-2/<experiment>/
+        stage-2/<experiment>/      # includes parse-rules.json per experiment
 ```
 
 ### Dataset

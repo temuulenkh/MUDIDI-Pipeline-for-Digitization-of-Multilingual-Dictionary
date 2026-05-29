@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mudidi.config.run_config import RunConfig
+from mudidi.paths import PARSE_RULES_FILENAME
 from mudidi.utils.stage1_input import stage1_experiment_dir, stage1_gold_dir
 
 
@@ -16,7 +17,7 @@ class OutputLayout:
     output_dir: Path
     stage1_root: Path
     stage2_root: Path
-    field_cheatsheet_path: Path
+    parse_rules_path: Path
     inference: bool
 
     def stage1_page_dir(self, stem: str) -> Path:
@@ -37,16 +38,16 @@ def resolve_output_layout(config: RunConfig) -> OutputLayout:
             subdir=config.stage1_output_subdir,
         )
         stage2_root = config.output_dir / "stage-2" / (config.stage2_experiment_name or "default")
-        cheatsheet = stage2_root / "field_cheatsheet.json"
+        parse_rules = stage2_root / PARSE_RULES_FILENAME
     else:
         stage1_root = config.output_dir / "stage-1"
         stage2_root = config.output_dir / "stage-2"
-        cheatsheet = config.output_dir / "field_cheatsheet.json"
+        parse_rules = config.output_dir / PARSE_RULES_FILENAME
     return OutputLayout(
         output_dir=config.output_dir,
         stage1_root=stage1_root,
         stage2_root=stage2_root,
-        field_cheatsheet_path=cheatsheet,
+        parse_rules_path=parse_rules,
         inference=not config.benchmark,
     )
 

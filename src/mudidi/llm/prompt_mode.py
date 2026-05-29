@@ -19,7 +19,7 @@ def resolve_prompt_id(base_id: str, mode: PromptMode) -> str:
     Return the prompt id for ``mode``, falling back to ``base_id``.
 
     Prompts that differ by mode use the ``_{mode}`` suffix in PROMPT.json.
-    Shared prompts (alphabet, OCR hint, discovery, etc.) keep unsuffixed ids.
+    Shared prompts (alphabet, OCR hint, stage 2 pass 1/2, etc.) keep unsuffixed ids.
     """
     if base_id not in _MODE_SUFFIXED:
         return base_id
