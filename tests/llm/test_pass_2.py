@@ -30,7 +30,6 @@ def test_build_messages_without_toolbox_pdf() -> None:
         messages = build_direct_mdf_messages(
             transcription="line",
             image_path=str(png),
-            intro_image_paths=[],
             field_map=_minimal_cheatsheet(),
             model="gemini/gemini-3.1-pro-preview",
         )
@@ -57,7 +56,6 @@ def test_build_messages_with_toolbox_pdf() -> None:
         messages = build_direct_mdf_messages(
             transcription="line",
             image_path=str(png),
-            intro_image_paths=[],
             field_map=_minimal_cheatsheet(),
             model="gemini/gemini-3.1-pro-preview",
             toolbox_pdf=pdf,
@@ -94,7 +92,6 @@ def test_build_messages_uses_toolbox_text_reference_for_gpt() -> None:
         messages = build_direct_mdf_messages(
             transcription="line",
             image_path=str(png),
-            intro_image_paths=[],
             field_map=_minimal_cheatsheet(),
             model="openrouter/openai/gpt-5.5",
             toolbox_pdf=pdf,

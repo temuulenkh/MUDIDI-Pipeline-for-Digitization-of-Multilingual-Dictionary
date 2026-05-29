@@ -36,7 +36,8 @@ import json
 
 from mudidi.evaluation.stage1.flatten import flat_transcription_to_text
 from mudidi.extraction.base import ExtractionStrategy
-from mudidi.llm.pass_1 import load_gold_cheatsheet, load_or_discover_cheatsheet
+from mudidi.llm.pass_1 import load_gold_parse_rules, load_or_discover_parse_rules
+from mudidi.paths import PARSE_RULES_FILENAME
 from mudidi.llm.pass_2 import extract_direct_mdf
 from mudidi.schemas.field_map import FieldMapPrompt
 from mudidi.utils.stage1_input import read_stage1_transcript_text
@@ -148,10 +149,9 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         alphabet_path:      Path to the alphabet file (.txt / .png / .jpg).
                             If an image, it is sent as a vision input to Stage 1.
                             If text, it is embedded in the prompt.
-        intro_text:         Introduction/preface of the dictionary (plain text). Passed to
-                            Stage 2 so the model understands conventions and abbreviations.
-        intro_image_paths:  Intro page images sent as vision context to Stage 2.
-                            Loaded once, shared across all pages.
+        intro_text:         Introduction/preface plain text (reserved; not sent to Pass 2).
+        intro_image_paths:  Intro page images for Stage 2 Pass 1 only (field discovery).
+                            Loaded once, shared across the dictionary run.
     """
 
     def __init__(
@@ -171,7 +171,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         stage2_experiment_dir: Optional[str] = None,
         overwrite: bool = False,
         stage2_toolbox_pdf: Optional[str] = None,
-        field_cheatsheet_gold: bool = False,
+        parse_rules_gold: bool = False,
         prompt_mode: PromptMode = "benchmark",
     ):
         if stage1_mode not in ("column", "flat"):
@@ -195,7 +195,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         self.stage2_toolbox_pdf = (
             Path(stage2_toolbox_pdf) if stage2_toolbox_pdf else None
         )
-        self.field_cheatsheet_gold = field_cheatsheet_gold
+        self.parse_rules_gold = parse_rules_gold
         self.prompt_mode: PromptMode = prompt_mode
         self._field_map: Optional[FieldMapPrompt] = None
 
@@ -212,7 +212,6 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         ocr_result: OCRPageResult,
         image_path: str,
         page_number: int = 1,
-        intro_text: Optional[str] = None,
         stage1_output_path: Optional[str] = None,
         stage2_output_path: Optional[str] = None,
         run_stage: str = "both",
@@ -227,7 +226,6 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                                  to Stage 1 as an optional character-shape reference.
             image_path:          Path to the dictionary page image.
             page_number:         Page number for provenance.
-            intro_text:          Override for the instance-level intro_text (if provided).
             stage1_output_path:  Path for the Stage 1 transcription TSV (e.g.
                                  ``<...>/stage-1/<page>/<page>_stage1.tsv``). The Stage 1
                                  raw/input JSONs are written next to it.
@@ -240,7 +238,6 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             run_stage:           "1" = stage 1 only, "2" = stage 2 only, "both" = full pipeline.
                                  Stage-2-only reads transcription from stage1_output_path.
         """
-        effective_intro = intro_text if intro_text is not None else self.intro_text
         stage1_usage: Dict[str, Any] = {}
         stage2_usage: Dict[str, Any] = {}
         entries: List[DictionaryEntry] = []
@@ -302,8 +299,6 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             mdf_text, stage2_raw, stage2_usage, stage2_msgs = self._stage2_direct_mdf(
                 transcribed_text,
                 image_path,
-                effective_intro,
-                self.intro_image_paths,
                 field_map,
                 page_context=page_context,
             )
@@ -441,17 +436,17 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                 "Stage 2 requires stage2_experiment_dir for field map cache."
             )
 
-        cache_path = self.stage2_experiment_dir / "field_cheatsheet.json"
-        if self.field_cheatsheet_gold:
+        cache_path = self.stage2_experiment_dir / PARSE_RULES_FILENAME
+        if self.parse_rules_gold:
             if self.entry_dir is None:
                 raise ValueError(
-                    "field_cheatsheet_gold requires entry_dir to locate outputs/stage-2-gold/"
+                    "parse_rules_gold requires entry_dir to locate outputs/stage-2-gold/"
                 )
             print(
-                "Pass 1: using gold marker cheat sheet "
-                f"(outputs/stage-2-gold/field_cheatsheet.json) …"
+                "Pass 1: using gold parse rules "
+                f"(outputs/stage-2-gold/{PARSE_RULES_FILENAME}) …"
             )
-            self._field_map = load_gold_cheatsheet(self.entry_dir)
+            self._field_map = load_gold_parse_rules(self.entry_dir)
             if self.overwrite or not cache_path.is_file():
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 cache_path.write_text(
@@ -471,8 +466,8 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                 languages_config=self.dictionary_languages,
                 dictionary_name=dictionary_name,
             )
-            print(f"Pass 1: marker cheat sheet discovery (cache → {cache_path}) …")
-            self._field_map = load_or_discover_cheatsheet(cache_path, **discover_kwargs)
+            print(f"Pass 1: parse rules discovery (cache → {cache_path}) …")
+            self._field_map = load_or_discover_parse_rules(cache_path, **discover_kwargs)
 
         print(self._field_map.format_prompt_block())
         return self._field_map
@@ -481,17 +476,13 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         self,
         transcribed_text: str,
         image_path: str,
-        intro_text: str,
-        intro_image_paths: Optional[List[str]],
         field_map: FieldMapPrompt,
         page_context: PageContext | None = None,
     ) -> tuple[str, str, dict, list]:
         """Pass 2: direct MDF extraction using a field map."""
-        del intro_text  # intro images carry layout context; text unused here
         mdf_text, raw, usage, messages = extract_direct_mdf(
             transcription=transcribed_text,
             image_path=image_path,
-            intro_image_paths=intro_image_paths or [],
             field_map=field_map,
             model=self.structure_model,
             reasoning_effort=self.stage2_reasoning_effort,

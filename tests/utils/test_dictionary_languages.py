@@ -29,6 +29,8 @@ def test_yaml_has_no_mdf_markers() -> None:
     yaml_dict = config_to_yaml_dict(config)
     assert "mdf_marker" not in str(yaml_dict)
     assert "mdf_lexeme" not in str(yaml_dict)
+    assert "code" not in yaml_dict["source"]
+    assert "code" not in yaml_dict["targets"][0]
 
 
 def test_markers_for_config_fallback() -> None:
@@ -39,13 +41,15 @@ def test_markers_for_config_fallback() -> None:
 def test_chukchi_russian_targets() -> None:
     config = build_config_from_folder("Chukchi-Russian", metadata_rows=[])
     assert len(config.targets) == 1
-    assert config.targets[0].code == "ru"
+    assert config.targets[0].language == "Russian"
 
 
 def test_na_english_chinese_trilingual() -> None:
     config = build_config_from_folder("Na-English-Chinese", metadata_rows=[])
-    codes = [t.code for t in config.targets]
-    assert codes == ["en", "zh"]
+    from mudidi.utils.dictionary_languages import language_key
+
+    keys = [language_key(t.language) for t in config.targets]
+    assert keys == ["en", "zh"]
     assert markers_for_config(config) == {"en": "ge", "zh": "gn"}
 
 

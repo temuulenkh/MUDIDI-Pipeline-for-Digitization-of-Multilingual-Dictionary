@@ -15,6 +15,7 @@ from mudidi.ocr.mathpix import MathpixBackend
 from mudidi.ocr.vlm.prompts import find_ocr_hint_file
 from mudidi.schemas.ocr_result import OCRPageResult
 from mudidi.extraction.llm_two_stage import TwoStageLLMExtraction
+from mudidi.paths import PARSE_RULES_FILENAME
 from mudidi.extraction.sample_entry import (
     configure_sample_entry_args,
     report_entry_input_failures,
@@ -472,15 +473,16 @@ def _build_stage2_manifest(
             getattr(args, "prompts_file", None) or default_prompts_path()
         ),
         "stage1_input": getattr(args, "stage1_input", "auto"),
-        "field_cheatsheet": str(
+        "parse_rules": str(
             output_dir
             / "stage-2"
             / args.stage2_experiment_name
-            / "field_cheatsheet.json"
+            / PARSE_RULES_FILENAME
         ),
-        "field_cheatsheet_source": (
+        "parse_rules_source": (
             "gold"
-            if getattr(args, "field_cheatsheet_gold", False)
+            if getattr(args, "parse_rules_gold", False)
+            or getattr(args, "field_cheatsheet_gold", False)
             else "discover"
         ),
         "toolbox_pdf": str(args.toolbox_pdf) if getattr(args, "toolbox_pdf", None) else None,
@@ -549,7 +551,10 @@ def _build_strategy(
             stage2_toolbox_pdf=(
                 str(args.toolbox_pdf) if getattr(args, "toolbox_pdf", None) else None
             ),
-            field_cheatsheet_gold=bool(getattr(args, "field_cheatsheet_gold", False)),
+            parse_rules_gold=bool(
+                getattr(args, "parse_rules_gold", False)
+                or getattr(args, "field_cheatsheet_gold", False)
+            ),
             prompt_mode=getattr(args, "prompt_mode", "benchmark"),
         )
     raise ValueError(f"Unknown strategy: {args.strategy}")
@@ -886,8 +891,8 @@ Examples:
         "--no-intro",
         action="store_true",
         dest="no_intro",
-        help="Suppress dictionary introduction for Stage 2 (and Pass 1 field "
-        "discovery in direct_mdf mode). In --samples-dir mode this skips "
+        help="Suppress dictionary introduction for Stage 2 Pass 1 (field "
+        "discovery). In --samples-dir mode this skips "
         "auto-discovery of <lang>/introduction/; in single-entry mode it "
         "ignores --intro.",
     )
@@ -965,9 +970,14 @@ Examples:
         help="Output directory (alias for --output).",
     )
     parser.add_argument(
+        "--parse-rules-page",
+        dest="parse_rules_page",
+        help="Page stem used for Stage 2 Pass 1 parse-rules discovery (default: first page).",
+    )
+    parser.add_argument(
         "--cheatsheet-page",
-        dest="cheatsheet_page",
-        help="Page stem used for Pass 1 field discovery (default: first page).",
+        dest="parse_rules_page",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--compare-gold",
@@ -986,11 +996,17 @@ Examples:
         "uses the built-in marker text reference instead.",
     )
     parser.add_argument(
+        "--parse-rules-gold",
+        action="store_true",
+        dest="parse_rules_gold",
+        help="Skip Pass 1 discovery; load outputs/stage-2-gold/parse-rules.json "
+        "(or legacy field_cheatsheet.json) for the current dictionary entry.",
+    )
+    parser.add_argument(
         "--field-cheatsheet-gold",
         action="store_true",
         dest="field_cheatsheet_gold",
-        help="Skip Pass 1 discovery; load outputs/stage-2-gold/field_cheatsheet.json "
-        "for the current dictionary entry (direct_mdf mode).",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--stage1-input",
@@ -1460,8 +1476,8 @@ def _run_single_entry(args, parser) -> int:
         )
         print(
             f"Languages: {dictionary_languages.layout} | "
-            f"source={dictionary_languages.source.code} | "
-            f"targets={dictionary_languages.target_codes()}"
+            f"source={dictionary_languages.source.language} | "
+            f"targets={[t.language for t in dictionary_languages.targets]}"
         )
 
     # ── Strategy (instantiated once, shared across pages) ─────────────────────

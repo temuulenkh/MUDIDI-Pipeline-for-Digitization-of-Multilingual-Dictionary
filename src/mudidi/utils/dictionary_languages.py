@@ -38,15 +38,6 @@ _LAYOUT_OVERRIDES: Dict[str, str] = {
     "Circassian-English-Turkish": "column_trilingual",
 }
 
-# column_id → target/source codes for column trilingual dictionaries.
-_COLUMN_TRILINGUAL_MAP: Dict[str, Dict[str, str]] = {
-    "Circassian-English-Turkish": {
-        "en": "left",
-        "circassian": "center",
-        "tr": "right",
-    },
-}
-
 # Folder name → metadata source_language when CSV name differs.
 _SOURCE_ALIASES: Dict[str, str] = {
     "canala": "canala/xârâcùù",
@@ -64,8 +55,8 @@ def _normalize_key(text: str) -> str:
     return text
 
 
-def _slug_code(name: str) -> str:
-    """Stable code from a language name."""
+def language_key(name: str) -> str:
+    """Stable internal key derived from a language name (not stored in YAML)."""
     key = _normalize_key(name)
     if key in ("english",):
         return "en"
@@ -82,6 +73,28 @@ def _slug_code(name: str) -> str:
     if key in ("kurdishturkish",):
         return "ku_tr"
     return key[:24] or "unknown"
+
+
+def _is_english_language(language: str) -> bool:
+    """Whether ``language`` denotes English for MDF ``ge`` tier."""
+    return _normalize_key(language) == "english" or language_key(language) == "en"
+
+
+def _column_id_for_language(folder_name: str, language: str) -> Optional[str]:
+    """Return column_id for a language name in column-trilingual folders."""
+    raw = _COLUMN_TRILINGUAL_BY_LANGUAGE.get(folder_name, {})
+    by_norm = {_normalize_key(lang): cid for lang, cid in raw.items()}
+    return by_norm.get(_normalize_key(language))
+
+
+# Folder-specific column layout (language names, not codes).
+_COLUMN_TRILINGUAL_BY_LANGUAGE: Dict[str, Dict[str, str]] = {
+    "Circassian-English-Turkish": {
+        "English": "left",
+        "Circassian": "center",
+        "Turkish": "right",
+    },
+}
 
 
 def parse_folder_name(folder_name: str) -> Tuple[str, List[Tuple[str, str, str]]]:
@@ -215,26 +228,24 @@ def build_config_from_folder(
     target_meta_names = [meta for _, _, meta in target_tokens]
     meta_row = match_metadata_row(source_display, target_meta_names, metadata_rows)
 
-    source_code = _slug_code(source_display)
     layout = infer_layout(folder_name, len(target_tokens))
-    col_map = _COLUMN_TRILINGUAL_MAP.get(folder_name, {})
-
-    source_col = col_map.get(source_code)
-    if layout == "column_trilingual" and not source_col:
-        for code, cid in col_map.items():
-            if code not in {t[1] for t in target_tokens}:
-                source_col = cid
-                break
 
     targets: List[TargetLanguageConfig] = []
-    for _token, code, meta_name in target_tokens:
+    for _token, _code, meta_name in target_tokens:
         targets.append(
             TargetLanguageConfig(
                 language=meta_name,
-                code=code,
-                column_id=col_map.get(code),
+                column_id=_column_id_for_language(folder_name, meta_name),
             )
         )
+
+    source_col = _column_id_for_language(folder_name, source_display)
+    if layout == "column_trilingual" and not source_col:
+        used = {t.column_id for t in targets if t.column_id}
+        for cid in ("left", "center", "right"):
+            if cid not in used:
+                source_col = cid
+                break
 
     if layout == "column_trilingual":
         for t in targets:
@@ -242,19 +253,13 @@ def build_config_from_folder(
                 logger.warning(
                     "column_trilingual %s: no column_id for target %s",
                     folder_name,
-                    t.code,
+                    t.language,
                 )
-        if source_col:
-            source_code = next(
-                (c for c, cid in col_map.items() if cid == source_col and c not in {t.code for t in targets}),
-                source_code,
-            )
 
     return DictionaryLanguagesConfig(
         layout=layout,  # type: ignore[arg-type]
         source=SourceLanguageConfig(
             language=source_display,
-            code=source_code,
             column_id=source_col,
         ),
         targets=targets,
@@ -267,17 +272,18 @@ def markers_for_config(config: DictionaryLanguagesConfig) -> dict[str, str]:
     """
     Fallback MDF gloss markers for the legacy structured schema export path.
 
-    The direct MDF two-pass pipeline assigns markers in ``field_cheatsheet.json``
+    The direct MDF two-pass pipeline assigns markers in ``parse-rules.json``
     instead; this helper is not used there.
     """
     markers: dict[str, str] = {}
     non_english_index = 0
     for target in config.targets:
-        if target.code == "en":
-            markers[target.code] = "ge"
+        key = language_key(target.language)
+        if _is_english_language(target.language):
+            markers[key] = "ge"
         else:
-            markers[target.code] = mdf_marker_for_target(
-                target.code, non_english_index=non_english_index
+            markers[key] = mdf_marker_for_target(
+                key, non_english_index=non_english_index
             )
             non_english_index += 1
     return markers
@@ -287,19 +293,13 @@ def config_to_yaml_dict(config: DictionaryLanguagesConfig) -> Dict[str, Any]:
     """Serialize for YAML output (languages and layout only — no MDF markers)."""
 
     def _src(s: SourceLanguageConfig) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
-            "language": s.language,
-            "code": s.code,
-        }
+        d: Dict[str, Any] = {"language": s.language}
         if s.column_id:
             d["column_id"] = s.column_id
         return d
 
     def _tgt(t: TargetLanguageConfig) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
-            "language": t.language,
-            "code": t.code,
-        }
+        d: Dict[str, Any] = {"language": t.language}
         if t.column_id:
             d["column_id"] = t.column_id
         return d

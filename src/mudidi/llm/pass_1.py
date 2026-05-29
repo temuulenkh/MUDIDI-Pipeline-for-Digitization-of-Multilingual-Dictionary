@@ -1,8 +1,8 @@
 """
 Pass 1: discover which MDF markers this dictionary uses.
 
-Output is a compact marker list + structure rules. Cached per stage-2 experiment as
-``outputs/stage-2/<experiment>/field_cheatsheet.json``.
+Output is a compact marker list + structure rules (parse rules). Cached per stage-2
+experiment as ``outputs/stage-2/<experiment>/parse-rules.json``.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from typing import List, Optional
 
 from mudidi.llm.client import complete
 from mudidi.llm.prompt_store import get_prompt_store
+from mudidi.paths import LEGACY_PARSE_RULES_FILENAME, PARSE_RULES_FILENAME
 from mudidi.schemas.dictionary_languages import DictionaryLanguagesConfig
 from mudidi.schemas.field_cheatsheet import DictionaryMarkerCheatsheet
 from mudidi.utils.image import image_data_url, resolve_mime_type
@@ -22,11 +23,22 @@ from mudidi.utils.image import image_data_url, resolve_mime_type
 logger = logging.getLogger(__name__)
 
 
-def discovery_system_prompt() -> str:
+def resolve_parse_rules_read_path(directory: Path) -> Path:
+    """Return an existing parse-rules file (new name, then legacy benchmark gold name)."""
+    new_path = directory / PARSE_RULES_FILENAME
+    if new_path.is_file():
+        return new_path
+    legacy = directory / LEGACY_PARSE_RULES_FILENAME
+    if legacy.is_file():
+        return legacy
+    return new_path
+
+
+def pass_1_system_prompt() -> str:
     """Pass 1 field-discovery system prompt."""
     store = get_prompt_store()
     return store.format(
-        "stage_2_discovery_system",
+        "stage_2_pass_1",
         mdf_marker_reference=store.get("mdf_marker_reference"),
     )
 
@@ -65,7 +77,7 @@ def discover_field_cheatsheet(
 ) -> DictionaryMarkerCheatsheet:
     """Pass 1: discover markers + rules for this dictionary."""
     user_text = get_prompt_store().format(
-        "stage_2_discovery_user",
+        "stage_2_pass_2",
         transcription=transcription.strip(),
         config_hint=_config_hint(languages_config),
     )
@@ -88,7 +100,7 @@ def discover_field_cheatsheet(
         }
     )
     messages = [
-        {"role": "system", "content": discovery_system_prompt()},
+        {"role": "system", "content": pass_1_system_prompt()},
         {"role": "user", "content": content},
     ]
     logger.info("Pass 1 field discovery: model=%s sample=%s", model, sample_image.name)
@@ -100,18 +112,55 @@ def discover_field_cheatsheet(
     return sheet
 
 
+def gold_parse_rules_path(entry_dir: Path) -> Path:
+    """Resolve human-authored parse rules under ``outputs/stage-2-gold/``."""
+    gold_dir = entry_dir / "outputs" / "stage-2-gold"
+    return resolve_parse_rules_read_path(gold_dir)
+
+
 def gold_cheatsheet_path(entry_dir: Path) -> Path:
-    """Path to the human-authored marker cheat sheet under ``outputs/stage-2-gold/``."""
-    return entry_dir / "outputs" / "stage-2-gold" / "field_cheatsheet.json"
+    """Deprecated alias for :func:`gold_parse_rules_path`."""
+    return gold_parse_rules_path(entry_dir)
+
+
+def load_gold_parse_rules(entry_dir: Path) -> DictionaryMarkerCheatsheet:
+    """Load gold Pass-1 parse rules for a dictionary entry."""
+    path = gold_parse_rules_path(entry_dir)
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Gold parse rules not found under {entry_dir / 'outputs' / 'stage-2-gold'} "
+            f"(tried {PARSE_RULES_FILENAME} and {LEGACY_PARSE_RULES_FILENAME})"
+        )
+    logger.info("Loading gold parse rules: %s", path)
+    return DictionaryMarkerCheatsheet.model_validate_json(path.read_text(encoding="utf-8"))
 
 
 def load_gold_cheatsheet(entry_dir: Path) -> DictionaryMarkerCheatsheet:
-    """Load the gold Pass-1 marker cheat sheet for a dictionary entry."""
-    path = gold_cheatsheet_path(entry_dir)
-    if not path.is_file():
-        raise FileNotFoundError(f"Gold field cheat sheet not found: {path}")
-    logger.info("Loading gold marker cheat sheet: %s", path)
-    return DictionaryMarkerCheatsheet.model_validate_json(path.read_text(encoding="utf-8"))
+    """Deprecated alias for :func:`load_gold_parse_rules`."""
+    return load_gold_parse_rules(entry_dir)
+
+
+def load_or_discover_parse_rules(
+    cache_path: Path,
+    *,
+    force_refresh: bool = False,
+    **discover_kwargs,
+) -> DictionaryMarkerCheatsheet:
+    """Load cached parse rules or run Pass 1 and save."""
+    read_path = resolve_parse_rules_read_path(cache_path.parent)
+    if read_path.is_file() and not force_refresh:
+        logger.info("Loading cached parse rules: %s", read_path)
+        return DictionaryMarkerCheatsheet.model_validate_json(
+            read_path.read_text(encoding="utf-8")
+        )
+    sheet = discover_field_cheatsheet(**discover_kwargs)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(
+        json.dumps(sheet.model_dump(), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    logger.info("Saved parse rules → %s", cache_path)
+    return sheet
 
 
 def load_or_discover_cheatsheet(
@@ -120,17 +169,5 @@ def load_or_discover_cheatsheet(
     force_refresh: bool = False,
     **discover_kwargs,
 ) -> DictionaryMarkerCheatsheet:
-    """Load cached cheat sheet or run Pass 1 and save."""
-    if cache_path.is_file() and not force_refresh:
-        logger.info("Loading cached marker cheat sheet: %s", cache_path)
-        return DictionaryMarkerCheatsheet.model_validate_json(
-            cache_path.read_text(encoding="utf-8")
-        )
-    sheet = discover_field_cheatsheet(**discover_kwargs)
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    cache_path.write_text(
-        json.dumps(sheet.model_dump(), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    logger.info("Saved marker cheat sheet → %s", cache_path)
-    return sheet
+    """Deprecated alias for :func:`load_or_discover_parse_rules`."""
+    return load_or_discover_parse_rules(cache_path, force_refresh=force_refresh, **discover_kwargs)

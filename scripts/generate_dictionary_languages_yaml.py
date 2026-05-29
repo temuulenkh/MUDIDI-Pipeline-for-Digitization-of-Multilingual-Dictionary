@@ -7,7 +7,7 @@ Derives layout and language roles from folder names and
 
 MDF gloss markers follow SIL naming by language code in ``markers_for_config``
 (fallback for the legacy schema export path only). The two-pass direct MDF
-pipeline discovers markers in ``field_cheatsheet.json`` instead.
+pipeline discovers markers in ``parse-rules.json`` instead.
 """
 
 from __future__ import annotations
@@ -79,8 +79,8 @@ def main() -> int:
                 "%s → layout=%s source=%s targets=%s",
                 entry_dir.name,
                 config.layout,
-                config.source.code,
-                [t.code for t in config.targets],
+                config.source.language,
+                [t.language for t in config.targets],
             )
             written += 1
         except ValueError as exc:

@@ -13,7 +13,6 @@ class SourceLanguageConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     language: str = Field(description="Human-readable source language name.")
-    code: str = Field(description="Short stable code, e.g. na, chukchi.")
     column_id: Optional[str] = Field(
         default=None,
         description="Stage-1 column_id for headwords when layout is column_trilingual.",
@@ -26,9 +25,6 @@ class TargetLanguageConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     language: str = Field(description="Human-readable target language name.")
-    code: str = Field(
-        description="Stable language code used at export, e.g. en, zh, tr."
-    )
     column_id: Optional[str] = Field(
         default=None,
         description="Stage-1 column_id for this gloss when layout is column_trilingual.",
@@ -59,8 +55,10 @@ class DictionaryLanguagesConfig(BaseModel):
     )
 
     def target_codes(self) -> List[str]:
-        """Stable language codes for MDF export."""
-        return [t.code for t in self.targets]
+        """Stable internal keys for MDF export (derived from ``language`` names)."""
+        from mudidi.utils.dictionary_languages import language_key
+
+        return [language_key(t.language) for t in self.targets]
 
     def format_prompt_block(self) -> str:
         """Hint for Pass 1 field discovery (language roles and gloss tiers)."""
@@ -68,7 +66,7 @@ class DictionaryLanguagesConfig(BaseModel):
         lines = [
             "<dictionary_languages>",
             f"Layout: {self.layout}",
-            f"Source language ({self.source.code}): {self.source.language} → headword field",
+            f"Source language: {self.source.language} → headword field",
         ]
         if self.source.column_id:
             lines.append(

@@ -23,7 +23,7 @@ def _sample_sheet() -> DictionaryMarkerCheatsheet:
 
 
 def test_load_or_discover_uses_experiment_cache(tmp_path: Path) -> None:
-    cache_path = tmp_path / "outputs" / "stage-2" / "exp_a" / "field_cheatsheet.json"
+    cache_path = tmp_path / "outputs" / "stage-2" / "exp_a" / "parse-rules.json"
     cache_path.parent.mkdir(parents=True)
     cache_path.write_text(
         json.dumps(_sample_sheet().model_dump(), ensure_ascii=False),
@@ -47,7 +47,7 @@ def test_load_or_discover_uses_experiment_cache(tmp_path: Path) -> None:
 def test_load_or_discover_force_refresh_overwrites_cache(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    cache_path = tmp_path / "outputs" / "stage-2" / "exp_a" / "field_cheatsheet.json"
+    cache_path = tmp_path / "outputs" / "stage-2" / "exp_a" / "parse-rules.json"
     cache_path.parent.mkdir(parents=True)
     cache_path.write_text(
         json.dumps({"dictionary_name": "Stale", "markers": [], "rules": []}),

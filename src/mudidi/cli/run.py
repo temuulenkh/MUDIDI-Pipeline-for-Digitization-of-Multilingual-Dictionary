@@ -94,9 +94,9 @@ def register_run_arguments(parser: argparse.ArgumentParser) -> None:
         help="Stage 2 transcript source. Benchmark default: gold. Inference: predictions.",
     )
     parser.add_argument(
-        "--cheatsheet-page",
-        dest="cheatsheet_page",
-        help="Page stem for Pass 1 field discovery (default: first page).",
+        "--parse-rules-page",
+        dest="parse_rules_page",
+        help="Page stem for Stage 2 Pass 1 parse-rules discovery (default: first page).",
     )
     parser.add_argument(
         "--prompts-file",
@@ -200,8 +200,8 @@ def run_from_args(run_args: argparse.Namespace, remaining: Sequence[str]) -> int
     argv.extend(["--stage", internal_stage])
     if run_args.stage1_source:
         argv.extend(["--stage1-source", run_args.stage1_source])
-    if run_args.cheatsheet_page:
-        argv.extend(["--cheatsheet-page", run_args.cheatsheet_page])
+    if run_args.parse_rules_page:
+        argv.extend(["--parse-rules-page", run_args.parse_rules_page])
     if run_args.prompts_file:
         argv.extend(["--prompts-file", run_args.prompts_file])
     argv.extend(_merge_extract_args(run_args, remaining))

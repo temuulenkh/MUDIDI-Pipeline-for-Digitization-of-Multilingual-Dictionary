@@ -35,9 +35,9 @@ SYNTHETIC_GOLD_MDF = """\
 def _chukchi_config() -> DictionaryLanguagesConfig:
     return DictionaryLanguagesConfig(
         layout="bilingual",
-        source=SourceLanguageConfig(language="Chukchi", code="chukchi"),
+        source=SourceLanguageConfig(language="Chukchi"),
         targets=[
-            TargetLanguageConfig(language="Russian", code="ru"),
+            TargetLanguageConfig(language="Russian"),
         ],
     )
 
