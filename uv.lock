@@ -855,59 +855,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dictextractor"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "grapheme" },
-    { name = "jiwer" },
-    { name = "label-studio" },
-    { name = "litellm" },
-    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "pillow" },
-    { name = "pydantic" },
-    { name = "pymupdf" },
-    { name = "python-docx" },
-    { name = "python-dotenv" },
-    { name = "python-levenshtein" },
-    { name = "pyyaml" },
-    { name = "sacrebleu" },
-    { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "scikit-learn", version = "1.8.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-
-[package.optional-dependencies]
-paddle = [
-    { name = "paddleocr" },
-    { name = "paddlepaddle" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "grapheme" },
-    { name = "jiwer" },
-    { name = "label-studio", specifier = ">=1.23.0" },
-    { name = "litellm" },
-    { name = "paddleocr", marker = "extra == 'paddle'" },
-    { name = "paddlepaddle", marker = "extra == 'paddle'" },
-    { name = "pandas" },
-    { name = "pillow" },
-    { name = "pydantic" },
-    { name = "pymupdf", specifier = ">=1.27.2.2" },
-    { name = "python-docx" },
-    { name = "python-dotenv" },
-    { name = "python-levenshtein" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "sacrebleu" },
-    { name = "scikit-learn" },
-    { name = "scipy", specifier = ">=1.15.3" },
-]
-provides-extras = ["paddle"]
-
-[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2624,6 +2571,59 @@ sdist = { url = "https://files.pythonhosted.org/packages/65/5a/1244466aec5502023
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/cd/07523b9008d5beccebf0fcbcb33b43924bd12dfbbe3b5e4520fdad52aaca/modelscope-1.36.3-py3-none-any.whl", hash = "sha256:65834a077347522d4473778692fded0b23b2a91cb3305811de0deabb83f20e98", size = 6085015, upload-time = "2026-04-28T18:00:50.056Z" },
 ]
+
+[[package]]
+name = "mudidi"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "grapheme" },
+    { name = "jiwer" },
+    { name = "label-studio" },
+    { name = "litellm" },
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pillow" },
+    { name = "pydantic" },
+    { name = "pymupdf" },
+    { name = "python-docx" },
+    { name = "python-dotenv" },
+    { name = "python-levenshtein" },
+    { name = "pyyaml" },
+    { name = "sacrebleu" },
+    { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scikit-learn", version = "1.8.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+
+[package.optional-dependencies]
+paddle = [
+    { name = "paddleocr" },
+    { name = "paddlepaddle" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "grapheme" },
+    { name = "jiwer" },
+    { name = "label-studio", specifier = ">=1.23.0" },
+    { name = "litellm" },
+    { name = "paddleocr", marker = "extra == 'paddle'" },
+    { name = "paddlepaddle", marker = "extra == 'paddle'" },
+    { name = "pandas" },
+    { name = "pillow" },
+    { name = "pydantic" },
+    { name = "pymupdf", specifier = ">=1.27.2.2" },
+    { name = "python-docx" },
+    { name = "python-dotenv" },
+    { name = "python-levenshtein" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "sacrebleu" },
+    { name = "scikit-learn" },
+    { name = "scipy", specifier = ">=1.15.3" },
+]
+provides-extras = ["paddle"]
 
 [[package]]
 name = "multidict"

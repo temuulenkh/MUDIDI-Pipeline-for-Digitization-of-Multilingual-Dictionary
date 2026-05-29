@@ -9,7 +9,7 @@ Stage 2 MDF evaluation measures how well a model extracts **Toolbox MDF** from a
 2. **MDF Fields F1** — F1 over `\marker` assignment on field lines within matched records
 3. **ReadOrderEdit** — whether matched records appear in the correct sequence
 
-**CLI:** `dictextractor-eval-stage2-mdf`  
+**CLI:** `mudidi-eval-stage2-mdf`  
 **Format:** blank-line-delimited Toolbox MDF (`\marker value` lines)
 
 | Path | Location |
@@ -162,7 +162,7 @@ The summary CSV includes a `__aggregate__` row per experiment when more than one
 
 ```bash
 # Single page
-uv run dictextractor-eval-stage2-mdf \
+uv run mudidi-eval-stage2-mdf \
     -p path/to/page.mdf.txt \
     -g path/to/page.mdf.txt
 
@@ -170,7 +170,7 @@ uv run dictextractor-eval-stage2-mdf \
 bash examples/evaluation/run_stage2_eval_mdf.sh
 
 # Batch with custom marker substitution list
-uv run dictextractor-eval-stage2-mdf \
+uv run mudidi-eval-stage2-mdf \
     --samples-dir assets/dictionaries/samples \
     --experiment-name gemini31pro_high_mdf_intro_notoolbox \
     --experiment-name gemini31pro_high_mdf_intro_toolbox \
@@ -236,7 +236,7 @@ Use the summary CSV for cross-configuration tables. Each ablation is a distinct 
 - Character-level OCR quality → Stage 1 `eval-flat`
 - Inline bold/italic preservation → Stage 1 typography metrics
 - Validity of Toolbox export syntax beyond `\marker value` lines
-- Entry-level TSV column matching → legacy `dictextractor-evaluate`
+- Entry-level TSV column matching → legacy `mudidi-evaluate`
 
 ---
 

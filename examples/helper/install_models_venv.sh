@@ -60,7 +60,7 @@ prepare_model_venv() {
 
 install_editable_project() {
   local venv_python="$1"
-  echo "Installing dictextractor (editable) into $(dirname "$(dirname "${venv_python}")")..."
+  echo "Installing mudidi (editable) into $(dirname "$(dirname "${venv_python}")")..."
   uv pip install --python "${venv_python}" -e .
 }
 

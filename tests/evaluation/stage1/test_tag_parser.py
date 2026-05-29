@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dictextractor.evaluation.stage1.tag_parser import (
+from mudidi.evaluation.stage1.tag_parser import (
     normalize_line_text,
     strip_tags,
 )
@@ -23,6 +23,6 @@ def test_normalize_line_text_collapses_whitespace() -> None:
 
 
 def test_alignment_clean_text_collapses_whitespace() -> None:
-    from dictextractor.evaluation.stage1.alignment import clean_text
+    from mudidi.evaluation.stage1.alignment import clean_text
 
     assert clean_text("<b>hello</b>   world") == "hello world"

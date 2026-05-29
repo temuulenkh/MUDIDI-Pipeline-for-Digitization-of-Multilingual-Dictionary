@@ -4,10 +4,10 @@ The dictionary-extractor pipeline has **two independent evaluation tracks**. Sta
 
 | Track | Question | Input format | CLI | Detailed doc |
 | --- | --- | --- | --- | --- |
-| **Stage 1** | What text appears, with what typography? | Flat `.txt` (spec v2) | `dictextractor-eval-flat` | [`stage_1_evaluation_metrics.md`](stage_1_evaluation_metrics.md) |
-| **Stage 2** | Which lexicon records were found, with correct markers and order? | Toolbox MDF `.mdf.txt` | `dictextractor-eval-stage2-mdf` | [`stage_2_evaluation_metrics.md`](stage_2_evaluation_metrics.md) |
+| **Stage 1** | What text appears, with what typography? | Flat `.txt` (spec v2) | `mudidi-eval-flat` | [`stage_1_evaluation_metrics.md`](stage_1_evaluation_metrics.md) |
+| **Stage 2** | Which lexicon records were found, with correct markers and order? | Toolbox MDF `.mdf.txt` | `mudidi-eval-stage2-mdf` | [`stage_2_evaluation_metrics.md`](stage_2_evaluation_metrics.md) |
 
-**Legacy:** `dictextractor-evaluate` supports **entry-level TSV** matching (headword + gloss columns) for the old `--stage2-mode schema` JSON/TSV path. Use the MDF track for direct MDF extraction experiments.
+**Legacy:** `mudidi-evaluate` supports **entry-level TSV** matching (headword + gloss columns) for the old `--stage2-mode schema` JSON/TSV path. Use the MDF track for direct MDF extraction experiments.
 
 ---
 

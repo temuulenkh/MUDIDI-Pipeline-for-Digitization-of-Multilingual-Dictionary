@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from dictextractor.ocr.vlm.completion import (
+from mudidi.ocr.vlm.completion import (
     glm_page_has_content,
     paddle_page_has_content,
 )
-from dictextractor.ocr.vlm.glm_ocr import GlmOcrVlm
-from dictextractor.ocr.vlm.paddle_vl import PaddleVlOcr
+from mudidi.ocr.vlm.glm_ocr import GlmOcrVlm
+from mudidi.ocr.vlm.paddle_vl import PaddleVlOcr
 
 
 def test_paddle_empty_res_json_not_complete(tmp_path: Path) -> None:

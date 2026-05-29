@@ -58,7 +58,7 @@ for exp in "${EXPERIMENTS[@]}"; do
     EXP_ARGS+=(--experiment-name "${exp}")
 done
 
-uv run dictextractor-eval-stage2-mdf \
+uv run mudidi-eval-stage2-mdf \
   --marker-sub-list "${MARKER_SUB_LIST}" \
   --samples-dir "${SAMPLES_DIR}" \
   --languages "${LANGUAGES[@]}" \

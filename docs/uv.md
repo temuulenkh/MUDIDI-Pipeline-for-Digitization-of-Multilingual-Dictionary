@@ -1,6 +1,6 @@
 # uv cheat sheet
 
-This project is managed entirely with [`uv`](https://docs.astral.sh/uv/). Do not invoke `pip` or run `python` directly — the registered console scripts (`dictextractor-*`) only resolve when launched through `uv run`.
+This project is managed entirely with [`uv`](https://docs.astral.sh/uv/). Do not invoke `pip` or run `python` directly — the registered console scripts (`mudidi-*`) only resolve when launched through `uv run`.
 
 ## First time on a new machine
 
@@ -23,8 +23,8 @@ The Stage 1 driver (`examples/stage-1/run_stage1_extraction.sh`) picks the right
 ## Running things
 
 ```bash
-uv run dictextractor-extract --help                # any registered console script
-uv run dictextractor-eval-flat --help
+uv run mudidi-extract --help                # any registered console script
+uv run mudidi-eval-flat --help
 uv run python scripts/flatten_stage1_gold.py       # ad-hoc Python scripts go through uv run
 
 # Reproducing paper sweeps

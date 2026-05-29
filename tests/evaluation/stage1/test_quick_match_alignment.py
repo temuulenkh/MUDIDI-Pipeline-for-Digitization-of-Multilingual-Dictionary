@@ -1,9 +1,9 @@
 """OmniDocBench quick_match line alignment for eval-flat."""
 
-from dictextractor.evaluation.stage1.alignment import align_lines_quick_match, align_rows
-from dictextractor.evaluation.stage1.character_quality import compute_character_quality
-from dictextractor.evaluation.stage1.flat_evaluator import FlatStage1Evaluator, _lines_to_rows
-from dictextractor.evaluation.stage1.read_order import compute_read_order
+from mudidi.evaluation.stage1.alignment import align_lines_quick_match, align_rows
+from mudidi.evaluation.stage1.character_quality import compute_character_quality
+from mudidi.evaluation.stage1.flat_evaluator import FlatStage1Evaluator, _lines_to_rows
+from mudidi.evaluation.stage1.read_order import compute_read_order
 
 
 def test_swapped_lines_penalize_read_order_not_quick_match_gcer() -> None:

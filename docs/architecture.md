@@ -17,7 +17,7 @@ This document walks through the TransLex pipeline module by module so a new cont
                                          │
                                          ▼
        ┌─────────────────────────────────────────────────────────────────┐
-       │  cli/extract.py  (dictextractor-extract)                        │
+       │  cli/extract.py  (mudidi-extract)                        │
        │   • parse args, resolve per-page inputs                         │
        │   • dispatch by --strategy:                                     │
        │       two_stage    → extraction/llm_two_stage.py                │
@@ -39,30 +39,30 @@ This document walks through the TransLex pipeline module by module so a new cont
   evaluation/stage1/  (eval-flat)         evaluation/stage2/  (eval-stage2-mdf)
 ```
 
-The strategy abstraction in [`extraction/base.py`](../src/dictextractor/extraction/base.py) guarantees every backend exposes the same `extract(ocr_result, image_path)` surface; the unified [`OCRPageResult`](../src/dictextractor/schemas/ocr_result.py) is the only interchange type between OCR and extraction.
+The strategy abstraction in [`extraction/base.py`](../src/mudidi/extraction/base.py) guarantees every backend exposes the same `extract(ocr_result, image_path)` surface; the unified [`OCRPageResult`](../src/mudidi/schemas/ocr_result.py) is the only interchange type between OCR and extraction.
 
 ---
 
-## 2. CLI layer (`src/dictextractor/cli/`)
+## 2. CLI layer (`src/mudidi/cli/`)
 
 Every console script is a thin argparse wrapper with **no business logic** — it resolves paths, loads `dictionary_languages.yaml`, and forwards to the strategy.
 
 | Script                          | Module                                      | Role                                               |
 |---------------------------------|---------------------------------------------|----------------------------------------------------|
-| `dictextractor-extract`         | `cli/extract.py`                            | Stage 1 / Stage 2 extraction (batch or single page) |
-| `dictextractor-eval-flat`       | `cli/evaluate_stage1.py`                    | Stage 1 evaluation                                 |
-| `dictextractor-eval-stage2-mdf` | `cli/evaluate_stage2_mdf.py`                | Stage 2 MDF evaluation                             |
-| `dictextractor-evaluate`        | `cli/evaluate.py`                           | Legacy TSV evaluation (schema mode)                |
-| `dictextractor-mathpix-convert` | `cli/run_mathpix_convert.py`                | Mathpix Convert batch driver                       |
-| `dictextractor-run-ocr`         | `cli/run_ocr.py`                            | Stand-alone OCR backend runner                     |
-| `dictextractor-preprocess`      | `cli/preprocess.py`                         | cv2 preprocessing                                  |
-| `dictextractor-annotate`        | `cli/annotate.py`                           | Visualise OCR geometry                             |
+| `mudidi-extract`         | `cli/extract.py`                            | Stage 1 / Stage 2 extraction (batch or single page) |
+| `mudidi-eval-flat`       | `cli/evaluate_stage1.py`                    | Stage 1 evaluation                                 |
+| `mudidi-eval-stage2-mdf` | `cli/evaluate_stage2_mdf.py`                | Stage 2 MDF evaluation                             |
+| `mudidi-evaluate`        | `cli/evaluate.py`                           | Legacy TSV evaluation (schema mode)                |
+| `mudidi-mathpix-convert` | `cli/run_mathpix_convert.py`                | Mathpix Convert batch driver                       |
+| `mudidi-run-ocr`         | `cli/run_ocr.py`                            | Stand-alone OCR backend runner                     |
+| `mudidi-preprocess`      | `cli/preprocess.py`                         | cv2 preprocessing                                  |
+| `mudidi-annotate`        | `cli/annotate.py`                           | Visualise OCR geometry                             |
 
 Console-script registrations live in `pyproject.toml`.
 
 ---
 
-## 3. Extraction strategies (`src/dictextractor/extraction/`)
+## 3. Extraction strategies (`src/mudidi/extraction/`)
 
 ```
 extraction/
@@ -79,22 +79,22 @@ extraction/
 
 The default pipeline that produces the numbers in the paper.
 
-- **Stage 1** (`run_stage1` and `_run_stage1_flat`): builds prompts via [`llm/prompts.py`](../src/dictextractor/llm/prompts.py), calls the LLM through [`llm/client.py`](../src/dictextractor/llm/client.py) using `litellm.complete_structured`, deserialises into `TranscriptionResponse` (column) or `FlatTranscriptionResponse` (flat), and serialises to `*_stage1.tsv` / `*_stage1_flat.txt`.
+- **Stage 1** (`run_stage1` and `_run_stage1_flat`): builds prompts via [`llm/prompts.py`](../src/mudidi/llm/prompts.py), calls the LLM through [`llm/client.py`](../src/mudidi/llm/client.py) using `litellm.complete_structured`, deserialises into `TranscriptionResponse` (column) or `FlatTranscriptionResponse` (flat), and serialises to `*_stage1.tsv` / `*_stage1_flat.txt`.
 - **Stage 2** branches on `stage2_mode`:
-  - `direct_mdf` (default) → Pass 1 [`llm/field_discovery.load_or_discover_cheatsheet`](../src/dictextractor/llm/field_discovery.py), Pass 2 [`llm/stage2_direct_mdf.extract_direct_mdf`](../src/dictextractor/llm/stage2_direct_mdf.py).
-  - `schema` (legacy) → single structured call returning `EntriesResponse`, serialised to JSON + TSV via [`utils/io.py`](../src/dictextractor/utils/io.py).
+  - `direct_mdf` (default) → Pass 1 [`llm/field_discovery.load_or_discover_cheatsheet`](../src/mudidi/llm/field_discovery.py), Pass 2 [`llm/stage2_direct_mdf.extract_direct_mdf`](../src/mudidi/llm/stage2_direct_mdf.py).
+  - `schema` (legacy) → single structured call returning `EntriesResponse`, serialised to JSON + TSV via [`utils/io.py`](../src/mudidi/utils/io.py).
 
 ### `vlm_ocr.run_vlm_ocr_entry`
 
-Drives the specialised document VLMs out of isolated virtual envs (one per model: `.venv-mineru-vllm`, `.venv-paddleocr`, `.venv-glmocr`). Spec resolution and runtime construction happen in [`ocr/vlm/registry.py`](../src/dictextractor/ocr/vlm/registry.py) and [`ocr/vlm/runner.py`](../src/dictextractor/ocr/vlm/runner.py). Raw backend outputs are then funnelled through the **flat adapter** (see §5) so OCR results compete on the same flat contract as LLM transcriptions.
+Drives the specialised document VLMs out of isolated virtual envs (one per model: `.venv-mineru-vllm`, `.venv-paddleocr`, `.venv-glmocr`). Spec resolution and runtime construction happen in [`ocr/vlm/registry.py`](../src/mudidi/ocr/vlm/registry.py) and [`ocr/vlm/runner.py`](../src/mudidi/ocr/vlm/runner.py). Raw backend outputs are then funnelled through the **flat adapter** (see §5) so OCR results compete on the same flat contract as LLM transcriptions.
 
 ### `mathpix_ocr`
 
-Two-step: `dictextractor-mathpix-convert` calls the Mathpix Convert API and caches `.md` + `.lines.json` files; then `--strategy mathpix_ocr` runs the adapter that converts those caches to `*_stage1_flat.txt`.
+Two-step: `mudidi-mathpix-convert` calls the Mathpix Convert API and caches `.md` + `.lines.json` files; then `--strategy mathpix_ocr` runs the adapter that converts those caches to `*_stage1_flat.txt`.
 
 ---
 
-## 4. LLM layer (`src/dictextractor/llm/`)
+## 4. LLM layer (`src/mudidi/llm/`)
 
 ```
 llm/
@@ -111,7 +111,7 @@ llm/
 
 ---
 
-## 5. OCR backends (`src/dictextractor/ocr/`)
+## 5. OCR backends (`src/mudidi/ocr/`)
 
 ```
 ocr/
@@ -145,7 +145,7 @@ ocr/
 
 ---
 
-## 6. Stage 1 evaluation (`src/dictextractor/evaluation/stage1/`)
+## 6. Stage 1 evaluation (`src/mudidi/evaluation/stage1/`)
 
 ```
 stage1/
@@ -166,7 +166,7 @@ Outputs: `evaluations/stage1_flat_eval/{stage1_flat_eval_summary.csv, stage1_fla
 
 ---
 
-## 7. Stage 2 evaluation (`src/dictextractor/evaluation/stage2/`)
+## 7. Stage 2 evaluation (`src/mudidi/evaluation/stage2/`)
 
 ```
 stage2/
@@ -185,7 +185,7 @@ Outputs: `evaluations/stage2_mdf_eval/{stage2_mdf_eval_summary.csv, <experiment>
 
 ---
 
-## 8. Schemas (`src/dictextractor/schemas/`)
+## 8. Schemas (`src/mudidi/schemas/`)
 
 | File                       | Purpose                                                                              |
 |----------------------------|--------------------------------------------------------------------------------------|
@@ -198,7 +198,7 @@ Outputs: `evaluations/stage2_mdf_eval/{stage2_mdf_eval_summary.csv, <experiment>
 
 ---
 
-## 9. Utilities (`src/dictextractor/utils/`)
+## 9. Utilities (`src/mudidi/utils/`)
 
 | File                          | Purpose                                                                          |
 |-------------------------------|----------------------------------------------------------------------------------|
@@ -214,7 +214,7 @@ Outputs: `evaluations/stage2_mdf_eval/{stage2_mdf_eval_summary.csv, <experiment>
 
 ---
 
-## 10. Preprocessing (`src/dictextractor/preprocessing/`)
+## 10. Preprocessing (`src/mudidi/preprocessing/`)
 
 Optional cv2 pipeline (grayscale → deskew → denoise → contrast → sharpen). Off by default — without it, PDFs flow straight to the LLM as `application/pdf` inline data. Triggered by `--preprocess`.
 

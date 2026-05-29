@@ -8,14 +8,14 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.ocr.adapters.mathpix_flat import (
+from mudidi.ocr.adapters.mathpix_flat import (
     mathpix_docx_path,
     mathpix_lines_path,
     mathpix_transcript_from_docx,
     mathpix_transcript_from_page_dir,
 )
-from dictextractor.ocr.adapters.mathpix_lines import mathpix_transcript_from_lines_json
-from dictextractor.ocr.adapters.paddle import paddle_blocks_from_page_dir
+from mudidi.ocr.adapters.mathpix_lines import mathpix_transcript_from_lines_json
+from mudidi.ocr.adapters.paddle import paddle_blocks_from_page_dir
 
 _SAMPLES = Path(__file__).resolve().parents[3] / "assets/dictionaries/samples"
 _CIRCASSIAN_PAGE_1 = _SAMPLES / "Circassian-English-Turkish/mathpix/page_1.docx"

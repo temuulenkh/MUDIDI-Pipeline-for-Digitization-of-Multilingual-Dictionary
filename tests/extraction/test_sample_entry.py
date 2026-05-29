@@ -6,7 +6,7 @@ import shutil
 from argparse import Namespace
 from pathlib import Path
 
-from dictextractor.extraction.sample_entry import (
+from mudidi.extraction.sample_entry import (
     configure_sample_entry_args,
     preflight_validate_sample_entries,
     validate_alphabet_file,

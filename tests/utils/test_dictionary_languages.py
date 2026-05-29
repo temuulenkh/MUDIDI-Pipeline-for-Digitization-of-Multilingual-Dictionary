@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dictextractor.utils.dictionary_languages import (
+from mudidi.utils.dictionary_languages import (
     build_config_from_folder,
     config_to_yaml_dict,
     markers_for_config,

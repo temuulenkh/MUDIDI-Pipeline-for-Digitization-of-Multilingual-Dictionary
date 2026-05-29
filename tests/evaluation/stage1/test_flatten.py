@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.evaluation.stage1.flatten import (
+from mudidi.evaluation.stage1.flatten import (
     FLAT_SPEC_VERSION,
     flat_transcription_to_text,
     flatten_stage1_body_rows,

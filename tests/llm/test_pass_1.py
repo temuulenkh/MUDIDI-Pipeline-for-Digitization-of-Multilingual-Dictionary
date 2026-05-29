@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.llm.pass_1 import (
+from mudidi.llm.pass_1 import (
     load_gold_cheatsheet,
     load_or_discover_cheatsheet,
 )
-from dictextractor.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
+from mudidi.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
 
 
 def _sample_sheet() -> DictionaryMarkerCheatsheet:
@@ -60,7 +60,7 @@ def test_load_or_discover_force_refresh_overwrites_cache(
         return refreshed
 
     monkeypatch.setattr(
-        "dictextractor.llm.pass_1.discover_field_cheatsheet",
+        "mudidi.llm.pass_1.discover_field_cheatsheet",
         _fake_discover,
     )
 

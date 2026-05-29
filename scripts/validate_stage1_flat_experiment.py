@@ -8,8 +8,8 @@ import json
 import sys
 from pathlib import Path
 
-from dictextractor.ocr.vlm.page_inputs import list_snippet_pages
-from dictextractor.ocr.vlm.prompts import find_ocr_hint_file
+from mudidi.ocr.vlm.page_inputs import list_snippet_pages
+from mudidi.ocr.vlm.prompts import find_ocr_hint_file
 
 _IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"}
 

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dictextractor.ocr.adapters.markdown_to_flat import (
+from mudidi.ocr.adapters.markdown_to_flat import (
     find_markdown_source,
     markdown_text_to_flat_lines,
     strip_markdown_line_artifacts,
@@ -27,13 +27,13 @@ def test_strip_mathpix_image_and_header() -> None:
 
 
 def test_drop_empty_markdown_header_line() -> None:
-    from dictextractor.ocr.adapters.markdown_to_flat import markdown_text_to_flat_lines
+    from mudidi.ocr.adapters.markdown_to_flat import markdown_text_to_flat_lines
 
     assert markdown_text_to_flat_lines("###\nhello\n") == ["hello"]
 
 
 def test_drop_hathitrust_line() -> None:
-    from dictextractor.ocr.adapters.markdown_to_flat import markdown_text_to_flat_lines
+    from mudidi.ocr.adapters.markdown_to_flat import markdown_text_to_flat_lines
 
     raw = (
         "Generated at University of Melbourne through HathiTrust on 2026-05-18\n"

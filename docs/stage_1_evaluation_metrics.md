@@ -9,7 +9,7 @@ Stage 1 evaluation measures how well a model transcribes a dictionary page into 
 2. **Markup / typography** — bold and italic on the right words
 3. **Reading order** — OmniDocBench-style ReadOrderEdit over gold line indices
 
-**CLI:** `dictextractor-eval-flat` (the sole Stage 1 evaluation track)  
+**CLI:** `mudidi-eval-flat` (the sole Stage 1 evaluation track)  
 **Format:** one line per row in flat `.txt` (spec v2)
 
 | Path | Location |
@@ -129,7 +129,7 @@ Missing lines hurt read order because their gold indices stay in `gt` but never 
 
 ```bash
 # Single page
-uv run dictextractor-eval-flat \
+uv run mudidi-eval-flat \
     -p path/to/page_stage1_flat.txt \
     -g path/to/page_stage1_GOLD_flat.txt
 
@@ -208,7 +208,7 @@ Use the detailed and summary CSVs for cross-configuration analysis. Each ablatio
 **What Stage 1 evaluation does not measure:**
 
 - Lexicon record detection or MDF marker assignment → Stage 2 `eval-stage2-mdf`
-- Entry-level headword/gloss matching → legacy `dictextractor-evaluate` (TSV)
+- Entry-level headword/gloss matching → legacy `mudidi-evaluate` (TSV)
 - Layout reconstruction quality beyond reading-order edit distance
 - Semantic correctness of dictionary content (paraphrase, merged entries)
 

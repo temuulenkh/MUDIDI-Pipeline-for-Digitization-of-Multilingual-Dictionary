@@ -3,8 +3,8 @@
 import json
 from pathlib import Path
 
-from dictextractor.ocr.adapters.mineru import mineru_blocks_from_json
-from dictextractor.ocr.adapters.paddle import paddle_blocks_from_json
+from mudidi.ocr.adapters.mineru import mineru_blocks_from_json
+from mudidi.ocr.adapters.paddle import paddle_blocks_from_json
 
 
 def test_mineru_skips_phonetic_blocks(tmp_path: Path) -> None:

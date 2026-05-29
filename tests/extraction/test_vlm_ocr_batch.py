@@ -6,7 +6,7 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from dictextractor.extraction.vlm_ocr import (
+from mudidi.extraction.vlm_ocr import (
     alphabet_disabled_for_experiment,
     run_vlm_ocr_batch,
 )
@@ -30,8 +30,8 @@ def test_alphabet_disabled_for_experiment_noalpha_suffix() -> None:
     )
 
 
-@patch("dictextractor.extraction.vlm_ocr.run_vlm_ocr_entry", return_value=0)
-@patch("dictextractor.extraction.vlm_ocr.create_vlm_runner")
+@patch("mudidi.extraction.vlm_ocr.run_vlm_ocr_entry", return_value=0)
+@patch("mudidi.extraction.vlm_ocr.create_vlm_runner")
 def test_run_vlm_ocr_batch_loops_experiments_with_one_load(
     mock_create: MagicMock,
     mock_entry: MagicMock,

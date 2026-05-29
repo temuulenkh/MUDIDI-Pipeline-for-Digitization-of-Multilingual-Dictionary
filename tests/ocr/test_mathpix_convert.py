@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.ocr.mathpix_convert import MathpixConvertError, prepare_mathpix_upload
+from mudidi.ocr.mathpix_convert import MathpixConvertError, prepare_mathpix_upload
 
 
 def test_prepare_mathpix_upload_passes_pdf_through(tmp_path: Path) -> None:

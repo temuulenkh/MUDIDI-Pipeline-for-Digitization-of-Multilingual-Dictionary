@@ -1,8 +1,8 @@
 """Read order metric for eval-flat."""
 
-from dictextractor.evaluation.stage1.alignment import align_lines_quick_match
-from dictextractor.evaluation.stage1.flat_evaluator import FlatStage1Evaluator, _lines_to_rows
-from dictextractor.evaluation.stage1.read_order import compute_read_order
+from mudidi.evaluation.stage1.alignment import align_lines_quick_match
+from mudidi.evaluation.stage1.flat_evaluator import FlatStage1Evaluator, _lines_to_rows
+from mudidi.evaluation.stage1.read_order import compute_read_order
 
 
 def test_perfect_order_scores_zero() -> None:

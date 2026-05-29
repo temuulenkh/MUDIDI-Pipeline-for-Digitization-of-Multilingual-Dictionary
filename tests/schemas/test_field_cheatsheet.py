@@ -1,6 +1,6 @@
 """Tests for compact marker cheat sheet schema."""
 
-from dictextractor.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
+from mudidi.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
 
 
 def test_format_prompt_block() -> None:

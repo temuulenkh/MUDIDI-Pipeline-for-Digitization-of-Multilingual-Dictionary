@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from dictextractor.llm.pass_2 import build_direct_mdf_messages
-from dictextractor.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
+from mudidi.llm.pass_2 import build_direct_mdf_messages
+from mudidi.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
 
 
 def _minimal_cheatsheet() -> DictionaryMarkerCheatsheet:

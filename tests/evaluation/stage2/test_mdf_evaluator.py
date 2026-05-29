@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.evaluation.stage2.mdf_evaluator import MdfEvaluator, DEFAULT_LINE_THRESHOLD, DEFAULT_RECORD_THRESHOLD
-from dictextractor.evaluation.stage2.mdf_marker_equiv import markers_equivalent
-from dictextractor.evaluation.stage2.mdf_parser import parse_mdf
+from mudidi.evaluation.stage2.mdf_evaluator import MdfEvaluator, DEFAULT_LINE_THRESHOLD, DEFAULT_RECORD_THRESHOLD
+from mudidi.evaluation.stage2.mdf_marker_equiv import markers_equivalent
+from mudidi.evaluation.stage2.mdf_parser import parse_mdf
 
 ROOT = Path(__file__).resolve().parents[3]
 SAMPLES = ROOT / "assets" / "dictionaries" / "samples"

@@ -55,7 +55,7 @@ def download_csv(export_url: str, timeout_seconds: float = 60.0) -> bytes:
     """Fetch CSV bytes from a Google Sheets export URL."""
     request = Request(
         export_url,
-        headers={"User-Agent": "dictextractor-export-google-sheet/1.0"},
+        headers={"User-Agent": "mudidi-export-google-sheet/1.0"},
     )
     try:
         with urlopen(request, timeout=timeout_seconds) as response:

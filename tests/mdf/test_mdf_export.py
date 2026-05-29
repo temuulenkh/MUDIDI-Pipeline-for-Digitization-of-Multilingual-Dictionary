@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from dictextractor.schemas.dictionary_languages import (
+from mudidi.schemas.dictionary_languages import (
     DictionaryLanguagesConfig,
     SourceLanguageConfig,
     TargetLanguageConfig,
 )
-from dictextractor.schemas.entry import DictionaryEntry
-from dictextractor.utils.mdf_export import (
+from mudidi.schemas.entry import DictionaryEntry
+from mudidi.utils.mdf_export import (
     block_ids_for_entries,
     entries_to_mdf_text,
     group_entries_to_toolbox_records,

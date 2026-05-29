@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dictextractor.ocr.vlm.prompts import build_stage1_context_prompt
+from mudidi.ocr.vlm.prompts import build_stage1_context_prompt
 
 
 def test_build_stage1_context_prompt_includes_context() -> None:

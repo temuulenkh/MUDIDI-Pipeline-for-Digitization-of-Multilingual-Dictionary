@@ -1,6 +1,6 @@
 """Tests for homonym_number and sense_number normalization on DictionaryEntry."""
 
-from dictextractor.schemas.entry import DictionaryEntry
+from mudidi.schemas.entry import DictionaryEntry
 
 
 def test_homonym_number_integer_on_main() -> None:

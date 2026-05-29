@@ -29,7 +29,7 @@ Pass 1 (once per experiment) ──► outputs/stage-2/<experiment>/field_cheats
 Pass 2 (per page) ──► Toolbox MDF text ({stem}.mdf.txt)
 ```
 
-Implementation: Pass 1 `src/dictextractor/llm/field_discovery.py`; Pass 2 `src/dictextractor/llm/stage2_direct_mdf.py`; orchestration `src/dictextractor/extraction/llm_two_stage.py`.
+Implementation: Pass 1 `src/mudidi/llm/field_discovery.py`; Pass 2 `src/mudidi/llm/stage2_direct_mdf.py`; orchestration `src/mudidi/extraction/llm_two_stage.py`.
 
 ---
 
@@ -56,7 +56,7 @@ Introduction ┴──► (text + optional images) ─────────�
 
 **Separation of concerns:** Stage 1 must not “fix” or normalize dictionary content; Stage 2 may apply linguistic judgment to split subentries/senses, join hyphenated line breaks, and assign MDF markers.
 
-Orchestration: `src/dictextractor/extraction/llm_two_stage.py`. Legacy schema prompts: `src/dictextractor/llm/prompts.py` (`STAGE_2_SYSTEM`, `EntriesResponse`).
+Orchestration: `src/mudidi/extraction/llm_two_stage.py`. Legacy schema prompts: `src/mudidi/llm/prompts.py` (`STAGE_2_SYSTEM`, `EntriesResponse`).
 
 ---
 
@@ -117,7 +117,7 @@ Example: `gemini31pro_high_mdf_intro_toolbox`.
 When running with `--samples-dir` and per-entry batching, the CLI loads:
 
 - **Path:** `{entry}/dictionary_languages.yaml`
-- **Fallback:** If missing, build from folder name + `dictionary_metadata.csv` and write the file (see `load_dictionary_languages` in `src/dictextractor/utils/dictionary_languages.py`).
+- **Fallback:** If missing, build from folder name + `dictionary_metadata.csv` and write the file (see `load_dictionary_languages` in `src/mudidi/utils/dictionary_languages.py`).
 
 The config defines:
 
@@ -157,7 +157,7 @@ The rendered `<dictionary_languages>` block is appended to the **schema-mode** S
 | Extra fields | `--discover-extra-fields` | off | **Schema mode only** — populates `extra_fields` from frozen allowlist |
 | Stage | `--stage 2` or `both` | — | `both` runs Stage 1 then Stage 2 on the same page |
 
-**`direct_mdf`:** Pass 1 and Pass 2 use `llm.complete` (free-form MDF text / JSON cheat sheet). Pass 1 vocabulary comes from `src/dictextractor/llm/mdf_marker_reference.py` (curated marker list in the discovery system prompt).
+**`direct_mdf`:** Pass 1 and Pass 2 use `llm.complete` (free-form MDF text / JSON cheat sheet). Pass 1 vocabulary comes from `src/mudidi/llm/mdf_marker_reference.py` (curated marker list in the discovery system prompt).
 
 **`schema` (legacy):** single Pass 2 call via `llm.complete_structured` with `response_schema=EntriesResponse`.
 
@@ -171,7 +171,7 @@ Stage 1 and Stage 2 can use **different models** via `--model` + `--structure-mo
 
 ### 4.1 Direct MDF — Pass 1 (field discovery)
 
-System prompt embeds the curated **`MDF_MARKER_REFERENCE`** (`src/dictextractor/llm/mdf_marker_reference.py`) plus instructions to output a JSON cheat sheet: markers used on this dictionary, one-line descriptions, and structure rules.
+System prompt embeds the curated **`MDF_MARKER_REFERENCE`** (`src/mudidi/llm/mdf_marker_reference.py`) plus instructions to output a JSON cheat sheet: markers used on this dictionary, one-line descriptions, and structure rules.
 
 User message includes:
 
@@ -249,7 +249,7 @@ See `docs/stage_2_outline.md` for the full JSON → MDF table and grouping notes
 
 **Default: off.** When disabled, the prompt requires `extra_fields: {}` on every entry.
 
-When enabled, the model may add **only** keys from the **built-in allowlist** (hard-coded in `src/dictextractor/llm/prompts.py` — no per-dictionary file yet). Full table with TSV column names and MDF hints: **`docs/mdf_field_reference.md` § Default `extra_fields` allowlist**.
+When enabled, the model may add **only** keys from the **built-in allowlist** (hard-coded in `src/mudidi/llm/prompts.py` — no per-dictionary file yet). Full table with TSV column names and MDF hints: **`docs/mdf_field_reference.md` § Default `extra_fields` allowlist**.
 
 | JSON key | TSV column |
 | --- | --- |
@@ -339,7 +339,7 @@ outputs/
 bash examples/stage-2/run_stage2_extraction.sh
 # intro ablation: RUN_INTRO=0 or RUN_NOINTRO=0 to run one arm only
 # or:
-uv run dictextractor-extract \
+uv run mudidi-extract \
   --strategy two_stage --stage 2 \
   --stage2-mode direct_mdf \
   --samples-dir assets/dictionaries/samples \
@@ -395,8 +395,8 @@ Stage 2 quality is measured on two tracks:
 
 | Track | Format | CLI | Doc |
 | --- | --- | --- | --- |
-| **MDF (primary)** | `.mdf.txt` | `dictextractor-eval-stage2-mdf` | [`stage_2_evaluation_metrics.md`](stage_2_evaluation_metrics.md) |
-| **TSV (legacy)** | entry TSV | `dictextractor-evaluate` | §8.1–8.3 below |
+| **MDF (primary)** | `.mdf.txt` | `mudidi-eval-stage2-mdf` | [`stage_2_evaluation_metrics.md`](stage_2_evaluation_metrics.md) |
+| **TSV (legacy)** | entry TSV | `mudidi-evaluate` | §8.1–8.3 below |
 
 The MDF track evaluates record detection, marker assignment, and read order on blank-line-delimited Toolbox output. Use it for **`direct_mdf`** experiments and gold under `outputs/stage-2-gold/`.
 
@@ -434,7 +434,7 @@ Optional **character-level error analysis** (`DetailedErrorAnalyzer`) breaks dow
 ### 8.4 Legacy TSV CLI
 
 ```bash
-uv run dictextractor-evaluate \
+uv run mudidi-evaluate \
   -e path/to/page_42.tsv \
   -g path/to/gold_entries.tsv \
   -o results/ \
@@ -463,7 +463,7 @@ Those belong on the **transcription track**. MDF validity beyond `\marker value`
 | **`dictionary_languages.yaml`** | Source/target roles and layout for Pass 1 discovery and schema-mode export. |
 | **Separate experiment slots** | Stage-1 ablations fixed while sweeping Stage-2 model, reasoning, or guides. |
 | **Intro only in Stage 2** | Alphabet priming is recognition; abbreviation keys are parsing. |
-| **Schema mode retained** | Legacy JSON/TSV path and `dictextractor-evaluate` TSV matching. |
+| **Schema mode retained** | Legacy JSON/TSV path and `mudidi-evaluate` TSV matching. |
 
 ---
 
@@ -500,7 +500,7 @@ When implementation changes, update this document and `docs/stage_2_outline.md` 
 | `PLAN.md` | Benchmark tracks, ablations, dataset layout |
 | `examples/stage-2/run_stage2_extraction.sh` | Direct MDF batch command |
 | `examples/evaluation/run_stage2_eval_mdf.sh` | MDF evaluation batch |
-| `src/dictextractor/llm/field_discovery.py` | Pass 1 discovery |
-| `src/dictextractor/llm/stage2_direct_mdf.py` | Pass 2 direct MDF |
-| `src/dictextractor/llm/mdf_marker_reference.py` | Curated marker vocabulary for Pass 1 |
+| `src/mudidi/llm/field_discovery.py` | Pass 1 discovery |
+| `src/mudidi/llm/stage2_direct_mdf.py` | Pass 2 direct MDF |
+| `src/mudidi/llm/mdf_marker_reference.py` | Curated marker vocabulary for Pass 1 |
 | `assets/evaluation/mdf_marker_sub_list.yaml` | Eval-time marker substitution groups |

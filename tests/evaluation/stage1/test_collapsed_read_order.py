@@ -1,6 +1,6 @@
 """Tests for collapse-aligned read order."""
 
-from dictextractor.evaluation.stage1.read_order import compute_read_order_collapsed
+from mudidi.evaluation.stage1.read_order import compute_read_order_collapsed
 
 
 def test_perfect_order_zero() -> None:

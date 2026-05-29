@@ -1,11 +1,11 @@
 """Page-collapse alignment for eval-flat character/typography metrics."""
 
-from dictextractor.evaluation.stage1.alignment import (
+from mudidi.evaluation.stage1.alignment import (
     align_page_collapsed,
     collapse_rows_to_page,
 )
-from dictextractor.evaluation.stage1.character_quality import compute_character_quality
-from dictextractor.evaluation.stage1.flat_evaluator import _lines_to_rows
+from mudidi.evaluation.stage1.character_quality import compute_character_quality
+from mudidi.evaluation.stage1.flat_evaluator import _lines_to_rows
 
 
 def _row(text: str) -> dict[str, str]:

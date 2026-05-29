@@ -55,7 +55,7 @@ Optional OCR hint   └──────────────┬────
 
 **Gold:** `{lang}/outputs/stage-1-gold/<stem>/<stem>_stage1_GOLD.tsv`
 
-**Produced by:** `dictextractor-extract --stage1-mode column` with `TranscriptionResponse` (`src/dictextractor/schemas/entry.py`).
+**Produced by:** `mudidi-extract --stage1-mode column` with `TranscriptionResponse` (`src/mudidi/schemas/entry.py`).
 
 **Stage 2 input:** `--stage1-input auto|column|flat` (default `auto`). Batch direct MDF (`examples/stage-2/run_stage2_extraction.sh`) typically uses **`flat` gold** from `stage-1-gold/`. Column TSV is still preferred for column-trilingual layouts when `column_id` matters.
 
@@ -71,7 +71,7 @@ Optional OCR hint   └──────────────┬────
 
 **Gold:** `{lang}/outputs/stage-1-gold/<stem>/<stem>_stage1_GOLD_flat.txt` — **derived** from column gold TSV, not hand-edited separately.
 
-**Implementation:** `src/dictextractor/evaluation/stage1/flatten.py` (`FLAT_SPEC_VERSION = "v2"`).
+**Implementation:** `src/mudidi/evaluation/stage1/flatten.py` (`FLAT_SPEC_VERSION = "v2"`).
 
 **Produced by:**
 
@@ -79,7 +79,7 @@ Optional OCR hint   └──────────────┬────
 - OCR: VLM artifacts → `OcrAdapter_v1` → `write_stage1_flat_for_page()`.
 - At eval time: column preds can be flattened on the fly (`flat_evaluator._load_pred_lines`).
 
-**Evaluation:** `dictextractor-eval-flat` — see §6.
+**Evaluation:** `mudidi-eval-flat` — see §6.
 
 ---
 
@@ -114,7 +114,7 @@ Optional: `--languages Evenki-Russian Yiddish-English`, `--dry-run`, `-v`.
 ### 4.1 CLI
 
 ```bash
-uv run dictextractor-extract \
+uv run mudidi-extract \
   --strategy two_stage \
   --stage 1 \
   --stage1-mode flat \
@@ -124,7 +124,7 @@ uv run dictextractor-extract \
   --experiment-name gemini3flash_flat_alpha_ocr
 ```
 
-**Constraints** (`src/dictextractor/cli/extract.py`):
+**Constraints** (`src/mudidi/cli/extract.py`):
 
 - Requires `--strategy two_stage`.
 - Supports `--stage 1` only (no Stage 2 in the same run).
@@ -135,7 +135,7 @@ Batch wrapper with ablation matrix: `examples/stage-1/run_stage1_extraction_flat
 
 | Piece | Location |
 | --- | --- |
-| System prompt | `STAGE_1_FLAT_SYSTEM` — `src/dictextractor/llm/prompts.py` |
+| System prompt | `STAGE_1_FLAT_SYSTEM` — `src/mudidi/llm/prompts.py` |
 | User prompt | `stage_1_user()` — alphabet, optional `<ocr_reference>`, optional guides |
 | Response schema | `FlatTranscriptionResponse` — fields `header`, `lines`, `footer` |
 | Serialization | `flat_transcription_to_text()` in `flatten.py` |
@@ -178,7 +178,7 @@ Specialized document OCR models (MinerU 2.5 Pro, PaddleOCR-VL 1.5, GLM-OCR) emit
 Page image (snippet)
     │
     ▼
-VlmOcrRunner.run_page()          # src/dictextractor/ocr/vlm/
+VlmOcrRunner.run_page()          # src/mudidi/ocr/vlm/
     │  mineru: content.json, layout trees
     │  paddle: *_res.json, parsing_res_list
     │  glm: result.json, output.txt, layout_details
@@ -243,7 +243,7 @@ Parser details and fairness rules: `PLAN.md` §3–§5.
 
 ### 5.4 Typography normalization (v1)
 
-**Module:** `src/dictextractor/evaluation/stage1/normalize_typography.py` (`TYPOGRAPHY_SPEC_VERSION = "v1"`).
+**Module:** `src/mudidi/evaluation/stage1/normalize_typography.py` (`TYPOGRAPHY_SPEC_VERSION = "v1"`).
 
 Applied to **every OCR flat line** (and available for any flat pred). Order:
 
@@ -278,7 +278,7 @@ Stage 1 metrics are documented in **`docs/stage_1_evaluation_metrics.md`**. Over
 
 | CLI | Pred / gold | Character + markup alignment | Read order |
 | --- | --- | --- | --- |
-| `dictextractor-eval-flat` | Flat `.txt` | **Page collapsed** (one string per side) | **Gold line indices** (OmniDocBench-style) |
+| `mudidi-eval-flat` | Flat `.txt` | **Page collapsed** (one string per side) | **Gold line indices** (OmniDocBench-style) |
 
 **Fair OCR comparison:** always use **eval-flat** with the same `*_stage1_GOLD_flat.txt` and v2 flatten rule.
 

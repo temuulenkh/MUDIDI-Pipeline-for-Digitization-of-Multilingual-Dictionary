@@ -1,6 +1,6 @@
 """Tests for typography normalization v1."""
 
-from dictextractor.evaluation.stage1.normalize_typography import (
+from mudidi.evaluation.stage1.normalize_typography import (
     TYPOGRAPHY_SPEC_VERSION,
     is_junk_ocr_line,
     normalize_line,
@@ -132,7 +132,7 @@ def test_preserve_bilingual_chinese_english_line() -> None:
 
 
 def test_strip_hathitrust_boilerplate_in_line() -> None:
-    from dictextractor.ocr.adapters.markdown_to_flat import is_boilerplate_line
+    from mudidi.ocr.adapters.markdown_to_flat import is_boilerplate_line
 
     assert is_boilerplate_line(
         "Generated at University of Melbourne through HathiTrust on 2026-05-18"
@@ -140,7 +140,7 @@ def test_strip_hathitrust_boilerplate_in_line() -> None:
 
 
 def test_normalize_cuneiform_spacing() -> None:
-    from dictextractor.evaluation.stage1.normalize_typography import (
+    from mudidi.evaluation.stage1.normalize_typography import (
         normalize_cuneiform_spacing,
     )
 
@@ -176,7 +176,7 @@ def test_strip_latex_drop_commands() -> None:
 
 
 def test_markdown_table_and_empty_header() -> None:
-    from dictextractor.ocr.adapters.markdown_to_flat import markdown_text_to_flat_lines
+    from mudidi.ocr.adapters.markdown_to_flat import markdown_text_to_flat_lines
 
     raw = "| :--- | :--- |\n| head | gloss |\n###\n"
     lines = markdown_text_to_flat_lines(raw)

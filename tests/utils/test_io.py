@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dictextractor.utils.io import read_docx_text
+from mudidi.utils.io import read_docx_text
 
 _CIRCASSIAN_PAGE_1 = (
     Path(__file__).resolve().parents[2]

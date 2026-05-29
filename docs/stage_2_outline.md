@@ -36,7 +36,7 @@ uv run python scripts/generate_dictionary_languages_yaml.py --overwrite
 
 Target language **roles** (English vs national vs regional) come from `dictionary_languages.yaml` and inform Pass 1 discovery. In **direct MDF**, actual `\marker` codes are assigned from **`field_cheatsheet.json`**, not from the YAML directly.
 
-Implementation: `src/dictextractor/schemas/dictionary_languages.py`, `src/dictextractor/utils/dictionary_languages.py`.
+Implementation: `src/mudidi/schemas/dictionary_languages.py`, `src/mudidi/utils/dictionary_languages.py`.
 
 ## JSON field → MDF marker
 
@@ -150,7 +150,7 @@ Toolbox (conceptual):
 
 ## TSV columns
 
-`json_to_tsv()` (`src/dictextractor/utils/io.py`) writes:
+`json_to_tsv()` (`src/mudidi/utils/io.py`) writes:
 
 1. **Canonical columns** — `Entry_Type`, `Headword`, `Parent_Lexeme`, `Sense_Number`, `Homonym_Number`, `POS`, `Definition`, `Semantic_Domain`, `Citation_Form`, `Phonetic`, `Cross_References`, `Examples`, `Example_Glosses` (lists joined with ` | `).
 2. **Per-target gloss columns** — `Gloss_<code>` for each key seen in `target_glosses` on the page (e.g. `Gloss_en`, `Gloss_zh`, `Gloss_ru`). Legacy rows with only `gloss` and no map use `Gloss_legacy` when no `target_glosses` keys exist.

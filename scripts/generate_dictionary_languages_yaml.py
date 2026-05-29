@@ -20,7 +20,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from dictextractor.utils.dictionary_languages import (  # noqa: E402
+from mudidi.utils.dictionary_languages import (  # noqa: E402
     build_config_from_folder,
     load_metadata_csv,
     write_dictionary_languages_yaml,

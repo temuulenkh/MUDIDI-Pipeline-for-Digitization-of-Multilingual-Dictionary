@@ -13,7 +13,7 @@ This document supports dictionary-extractor Stage 2 design: which markers map to
 
 | Layer | What it is |
 | --- | --- |
-| **Pass 1 marker reference** | Curated subset in `src/dictextractor/llm/mdf_marker_reference.py` — vocabulary for field discovery (not a hard allowlist). |
+| **Pass 1 marker reference** | Curated subset in `src/mudidi/llm/mdf_marker_reference.py` — vocabulary for field discovery (not a hard allowlist). |
 | **`field_cheatsheet.json`** | Pass 1 output: markers + rules cached under `outputs/stage-2/<experiment>/` for **direct MDF Pass 2**. |
 | **Canonical `DictionaryEntry` fields** | Stable JSON/TSV columns (`schema` mode): `\lx`, `\ge`, `\de`, `\ps`, … |
 | **`target_glosses`** | Per-target gloss keys in schema mode; MDF markers from `dictionary_languages.yaml` at export time. |
@@ -249,7 +249,7 @@ This is the **only** set of `extra_fields` keys Stage 2 may use today. It is com
 | --- | --- |
 | **Enable** | CLI `--discover-extra-fields`, or `DISCOVER_EXTRA=1` in `examples/stage-2/run_stage2_extraction.sh` |
 | **Default** | Off — every entry must have `extra_fields: {}` |
-| **Source code** | `EXTRA_FIELDS_ALLOWLIST` in `src/dictextractor/llm/prompts.py` |
+| **Source code** | `EXTRA_FIELDS_ALLOWLIST` in `src/mudidi/llm/prompts.py` |
 | **Prompt block** | `<extra_fields_discovery>` in `stage_2_user()` when discovery is on |
 | **TSV columns** | One column per key **used on that page** — snake_case → Title_Case (e.g. `usage_note` → `Usage_Note`) |
 
@@ -308,7 +308,7 @@ extra_fields:
     hint: "Latin binomial when marked as scientific name"
 ```
 
-Until that exists, extend the allowlist by editing `EXTRA_FIELDS_ALLOWLIST` in `src/dictextractor/llm/prompts.py` and document new keys in the table above.
+Until that exists, extend the allowlist by editing `EXTRA_FIELDS_ALLOWLIST` in `src/mudidi/llm/prompts.py` and document new keys in the table above.
 
 ---
 

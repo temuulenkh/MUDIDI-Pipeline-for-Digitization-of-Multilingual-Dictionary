@@ -23,7 +23,7 @@ _DEFAULT_SAMPLES = _REPO_ROOT / "assets" / "dictionaries" / "samples"
 if str(_REPO_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT / "src"))
 
-from dictextractor.evaluation.stage1.flatten import (  # noqa: E402
+from mudidi.evaluation.stage1.flatten import (  # noqa: E402
     FLAT_SPEC_VERSION,
     flatten_stage1_tsv,
     flat_output_path_for_gold,

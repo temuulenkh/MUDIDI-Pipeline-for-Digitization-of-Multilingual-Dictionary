@@ -61,7 +61,7 @@ LANGUAGES=(
 echo "=== Stage 1 eval-flat (LLM flat ablations + VLM OCR; OCR-hint split) ==="
 echo "Languages (${#LANGUAGES[@]}): ${LANGUAGES[*]}"
 
-uv run dictextractor-eval-flat \
+uv run mudidi-eval-flat \
   --samples-dir assets/dictionaries/samples \
   --all-experiments \
   --languages "${LANGUAGES[@]}" \

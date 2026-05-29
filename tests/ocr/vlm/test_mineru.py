@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from dictextractor.ocr.vlm.mineru import (
+from mudidi.ocr.vlm.mineru import (
     DEFAULT_MINERU_BATCH_SIZE,
     DEFAULT_MINERU_LAYOUT_MAX_NEW_TOKENS,
     DEFAULT_MINERU_MAX_NEW_TOKENS,

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dictextractor.utils.stage1_input import (
+from mudidi.utils.stage1_input import (
     read_stage1_transcript_text,
     resolve_stage1_gold_transcript_path,
     resolve_stage1_transcript_for_stage2,

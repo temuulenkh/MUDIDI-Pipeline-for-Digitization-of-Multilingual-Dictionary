@@ -12,7 +12,7 @@
 #
 # Restrict languages or experiments via CLI flags, e.g.:
 #   bash examples/evaluation/run_stage2_eval_mdf.sh  # all experiments (default)
-#   uv run dictextractor-eval-stage2-mdf ... --languages Chukchi-Russian --experiment-name gemini31pro_high_mdf_intro_notoolbox
+#   uv run mudidi-eval-stage2-mdf ... --languages Chukchi-Russian --experiment-name gemini31pro_high_mdf_intro_notoolbox
 
 set -euo pipefail
 
@@ -25,7 +25,7 @@ OUTPUT_DIR="evaluations/stage2_mdf_eval"
 echo "=== Stage 2 MDF evaluation (all experiments) ==="
 echo ""
 
-uv run dictextractor-eval-stage2-mdf \
+uv run mudidi-eval-stage2-mdf \
   --marker-sub-list assets/evaluation/mdf_marker_sub_list.yaml \
   --samples-dir "$SAMPLES_DIR" \
   --all-experiments \

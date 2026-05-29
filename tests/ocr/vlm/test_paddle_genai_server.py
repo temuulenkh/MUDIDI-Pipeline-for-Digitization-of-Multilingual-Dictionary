@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from dictextractor.ocr.vlm.paddle_genai_server import (
+from mudidi.ocr.vlm.paddle_genai_server import (
     DEFAULT_PADDLE_GENAI_PORT,
     PaddleGenaiServerManager,
     paddle_genai_server_url,
@@ -58,7 +58,7 @@ def test_should_auto_start_default_on() -> None:
     assert should_auto_start_paddle_genai_server(args) is True
 
 
-@patch("dictextractor.ocr.vlm.paddle_genai_server._health_ok", return_value=True)
+@patch("mudidi.ocr.vlm.paddle_genai_server._health_ok", return_value=True)
 def test_manager_reuses_healthy_server(mock_health: MagicMock) -> None:
     mgr = PaddleGenaiServerManager(port=8765, server_python=Path("/bin/python"))
     url = mgr.start()

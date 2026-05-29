@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dictextractor.utils.stage2_page_selection import (
+from mudidi.utils.stage2_page_selection import (
     list_stage2_gold_stems,
     select_one_stage2_page,
 )

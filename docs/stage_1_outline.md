@@ -9,7 +9,7 @@ Stage 1 answers: **what text appears on the page, in what order, with what inlin
 | Track | Mode | Primary output | Evaluation |
 | --- | --- | --- | --- |
 | **Column** | `--stage1-mode column` (default) | `*_stage1.tsv` | (Stage 2 input only) |
-| **Flat** | `--stage1-mode flat` | `*_stage1_flat.txt` | `dictextractor-eval-flat` |
+| **Flat** | `--stage1-mode flat` | `*_stage1_flat.txt` | `mudidi-eval-flat` |
 
 Flat track is required for **fair comparison** between Gemini flat LLM runs and specialized VLM OCR (MinerU, Paddle, GLM).
 
@@ -23,7 +23,7 @@ Line order in every flat gold/pred file:
 2. **Body** — column-major: `left` → `center`/`middle` → `right` → `single`; within column by `line_number`.
 3. **Footer** — TSV `column_id=footer` rows, file order (or adapter-classified footer blocks).
 
-Implementation: `src/dictextractor/evaluation/stage1/flatten.py` (`FLAT_SPEC_VERSION = "v2"`).
+Implementation: `src/mudidi/evaluation/stage1/flatten.py` (`FLAT_SPEC_VERSION = "v2"`).
 
 ---
 
@@ -53,13 +53,13 @@ Implementation: `src/dictextractor/evaluation/stage1/flatten.py` (`FLAT_SPEC_VER
 
 ```text
 Page image + optional alphabet/OCR hint
-  → dictextractor-extract --stage1-mode flat
+  → mudidi-extract --stage1-mode flat
   → FlatTranscriptionResponse (header / lines / footer)
   → {stem}_stage1_flat.txt
 ```
 
 - Script: `examples/stage-1/run_stage1_extraction_flat.sh`
-- Prompt: `STAGE_1_FLAT_SYSTEM` in `src/dictextractor/llm/prompts.py`
+- Prompt: `STAGE_1_FLAT_SYSTEM` in `src/mudidi/llm/prompts.py`
 - Experiments: `gemini3flash_flat_alpha_ocr`, `_noalpha_ocr`, `_alpha_noocr`, `_bare`
 
 ### B. VLM OCR + flatten
@@ -72,7 +72,7 @@ Page image
   → {stem}_stage1_flat.txt
 ```
 
-- OCR run: `dictextractor` VLM CLI / batch jobs (see `src/dictextractor/ocr/vlm/`)
+- OCR run: `mudidi` VLM CLI / batch jobs (see `src/mudidi/ocr/vlm/`)
 - Flatten script: `examples/helper/run_flatten_vlm_ocr.sh`
 - Experiments: `MinerU2.5-Pro`, `PaddleOCR-VL-1.5`, `GLM-OCR`
 - Adapter: `layout_to_transcript_v1` (`ADAPTER_VERSION = "v1"`)

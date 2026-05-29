@@ -62,7 +62,7 @@ echo "Predictions: outputs/${STAGE1_OUTPUT_SUBDIR}/"
 echo "Output: ${OUTPUT_DIR}/"
 echo ""
 
-uv run dictextractor-eval-flat \
+uv run mudidi-eval-flat \
   --samples-dir "${SAMPLES_DIR}" \
   --stage1-output-subdir "${STAGE1_OUTPUT_SUBDIR}" \
   --experiment-name-contains ocrhint \
