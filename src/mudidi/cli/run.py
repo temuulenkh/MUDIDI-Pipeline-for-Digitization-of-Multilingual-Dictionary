@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 from typing import Sequence
 
-from mudidi.config.run_config import RunConfig, stage_from_cli
+from mudidi.config.run_config import stage_from_cli
 from mudidi.llm.prompt_store import configure_prompts, default_prompts_path
+from mudidi.utils.pdf_split import parse_page_spec
 
 
 def register_run_arguments(parser: argparse.ArgumentParser) -> None:
@@ -21,8 +23,14 @@ def register_run_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--pages",
         dest="pages",
-        help="Directory of dictionary page snippets (pdf/png/jpg/jpeg). "
+        help="Snippets directory or single source PDF (requires --dict-pages). "
         "Alias for --input-image.",
+    )
+    parser.add_argument(
+        "--dict-pages",
+        dest="dict_pages",
+        help="When --pages is a PDF: 1-based dictionary pages to process "
+        "(e.g. '1-10' or '1,3,5'). Required for PDF input; uses pdftk.",
     )
     parser.add_argument(
         "--input-image",
@@ -54,7 +62,14 @@ def register_run_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--intro",
-        help="Path to dictionary introduction (directory of images/PDFs).",
+        help="Introduction directory or text/image file. Not used when --pages is a PDF "
+        "(use --intro-pages instead).",
+    )
+    parser.add_argument(
+        "--intro-pages",
+        dest="intro_pages",
+        help="When --pages is a PDF: 1-based introduction pages from that same PDF "
+        "(e.g. '1-5'). Optional; uses pdftk.",
     )
     parser.add_argument(
         "--alphabet",
@@ -92,6 +107,47 @@ def register_run_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _validate_pdf_page_args(run_args: argparse.Namespace) -> None:
+    """Validate PDF page specs before delegating to the extract driver."""
+    pages = run_args.pages or run_args.input_image
+    pages_path = Path(pages) if pages else None
+    is_source_pdf = bool(
+        pages_path and pages_path.is_file() and pages_path.suffix.lower() == ".pdf"
+    )
+
+    if is_source_pdf:
+        if not run_args.dict_pages:
+            raise SystemExit(
+                "--dict-pages is required when --pages is a PDF "
+                "(e.g. '1-10' or '1,3,5')"
+            )
+        try:
+            if not parse_page_spec(run_args.dict_pages):
+                raise SystemExit("--dict-pages must list at least one page")
+        except ValueError as exc:
+            raise SystemExit(f"Invalid --dict-pages: {exc}") from exc
+        if run_args.intro:
+            raise SystemExit(
+                "--intro cannot be used when --pages is a PDF; "
+                "pass --intro-pages to select pages from the same PDF"
+            )
+        if run_args.intro_pages:
+            try:
+                if not parse_page_spec(run_args.intro_pages):
+                    raise SystemExit("--intro-pages must list at least one page")
+            except ValueError as exc:
+                raise SystemExit(f"Invalid --intro-pages: {exc}") from exc
+    else:
+        if run_args.dict_pages:
+            raise SystemExit(
+                "--dict-pages is only valid when --pages is a single PDF file"
+            )
+        if run_args.intro_pages:
+            raise SystemExit(
+                "--intro-pages is only valid when --pages is a single PDF file"
+            )
+
+
 def _merge_extract_args(_run_args: argparse.Namespace, remaining: Sequence[str]) -> list[str]:
     """Forward unhandled flags to the legacy extract driver."""
     return list(remaining)
@@ -107,6 +163,8 @@ def run_from_args(run_args: argparse.Namespace, remaining: Sequence[str]) -> int
             raise SystemExit("--benchmark requires --samples-dir or --pages with sample layout.")
     elif not pages or not output:
         raise SystemExit("Inference mode requires --pages and --output-dir.")
+
+    _validate_pdf_page_args(run_args)
 
     if run_args.prompts_file:
         configure_prompts(run_args.prompts_file)
@@ -130,6 +188,10 @@ def run_from_args(run_args: argparse.Namespace, remaining: Sequence[str]) -> int
         argv.extend(["--languages", *run_args.languages])
     if run_args.intro:
         argv.extend(["--intro", run_args.intro])
+    if run_args.intro_pages:
+        argv.extend(["--intro-pages", run_args.intro_pages])
+    if run_args.dict_pages:
+        argv.extend(["--dict-pages", run_args.dict_pages])
     if run_args.alphabet:
         argv.extend(["--alphabet", run_args.alphabet])
     if run_args.ocr_text:

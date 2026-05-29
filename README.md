@@ -1,277 +1,415 @@
 # MUDIDI
 
-A two-stage framework for multilingual bilingual-dictionary digitization with vision-language models (VLMs) and large language models (LLMs).
+Digitize scanned bilingual dictionary pages into structured lexicon records using LLMs.
 
-This repository implements **MUDIDI** — the benchmark pipeline, evaluation code, example shell scripts, and aggregate results from our work on multilingual dictionary digitization with language models. It compares specialized document VLMs (MinerU 2.5 Pro, PaddleOCR-VL 1.5, GLM-OCR), commercial OCR (Mathpix), and general-purpose LLMs (Gemini 3 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7, Qwen3-VL-235B) on **30 public-domain dictionaries** spanning **diverse writing systems** (Cuneiform, Bengali, Devanagari, Cyrillic, Arabic-based, Han, Khmer, Hebrew, Syriac, Latin, …).
+MUDIDI runs a two-stage pipeline:
 
-- Stage 1 — **page transcription**: faithful Unicode + markup OCR of dictionary pages.
-- Stage 2 — **lexicographic parsing**: transcript → SIL Toolbox MDF (Multi-Dictionary Formatter) records.
+1. **Stage 1 — transcription** — faithful OCR of each page (Unicode, diacritics, bold/italic markup).
+2. **Stage 2 — MDF export** — parse the transcript into [SIL Toolbox MDF](https://software.sil.org/toolbox/) records.
 
-The pipeline is modular: each OCR backend produces an `OCRPageResult`; each extraction strategy consumes one and produces a `DictionaryPage` or MDF text. Adding a new model, backend, or strategy is one file.
-
----
-
-## Pipeline at a glance
-
-```
-                    ┌───────────────────────────────────────────────┐
-Page image  ───────►│ Stage 1 — transcription (vanilla OCR)         │
-Alphabet (opt.)     │  • flat .txt (one line per row, column-major) │
-OCR hint (opt.)     │  • <b>/<i> markup preserved                   │
-                    └──────────────────────┬────────────────────────┘
-                                           │
-                                           ▼
-                    ┌───────────────────────────────────────────────┐
-Intro pages (opt.)  │ Stage 2 — direct MDF (two passes)             │
-Toolbox PDF (opt.)  │  Pass 1: field_cheatsheet.json (per dict)     │
-                    │  Pass 2: {stem}.mdf.txt (per page)            │
-                    └──────────────────────┬────────────────────────┘
-                                           ▼
-                    eval-flat   (TextEdit, GCER, WER, Markup F1, ReadOrderEdit)
-                    eval-stage2 (Record Accuracy, MDF Fields F1, ReadOrderEdit)
-```
-
-Detailed module map: [`docs/architecture.md`](docs/architecture.md). Stage 1 methodology: [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md). Stage 2 methodology: [`docs/stage_2_methodology.md`](docs/stage_2_methodology.md).
+This README focuses on **running the pipeline on a new dictionary**. Benchmark and paper-reproduction instructions are at the bottom.
 
 ---
 
-## Quick start
+## Install
 
 ```bash
-# Install (uv-managed; do not invoke pip / python directly)
-uv sync                  # creates .venv + installs all deps
-uv sync --extra paddle   # also install PaddleOCR / paddlepaddle (optional)
-
-# Configure API keys (any subset, depending on which backends you run)
-cp .env.example .env
-# then fill in:
-#   GEMINI_API_KEY=...        # Gemini 3 Flash / 3.1 Pro
-#   OPEN_ROUTER_API_KEY=...   # GPT-5.5, Claude Opus 4.7, Qwen3-VL
-#   ANTHROPIC_API_KEY=...     # direct Claude (alternative to OpenRouter)
-#   OPENAI_API_KEY=...        # direct OpenAI (alternative to OpenRouter)
-#   MATHPIX_APP_ID=...        # Mathpix OCR baseline
-#   MATHPIX_APP_KEY=...
-
-# Reproduce the paper sweeps
-bash examples/stage-1/run_stage1_extraction.sh           # Stage 1 transcription (LLMs + OCR + VLM)
-bash examples/stage-2/run_stage2_extraction.sh           # Stage 2 direct MDF (intro × toolbox ablations)
-bash examples/evaluation/run_stage1_eval_flat.sh         # Stage 1 evaluation
-bash examples/evaluation/run_stage2_eval_mdf.sh          # Stage 2 evaluation
+git clone <repo-url> && cd MUDIDI
+uv sync
+cp .env.example .env   # add at least one LLM provider key (see below)
 ```
 
-Both stage scripts are the canonical entry points used to produce all numbers in the paper. They drive `mudidi run --benchmark` and write per-page outputs into the samples tree under `{lang}/outputs/`.
-
----
-
-## Repository layout
-
-```
-src/mudidi/
-    cli/                # argparse entry points (registered as console scripts)
-    extraction/         # Extraction strategies — two_stage, vlm_ocr
-    llm/                # litellm client, prompts, Pass 1 discovery, Pass 2 direct-MDF
-    ocr/                # OCR backends: mathpix, mathpix_convert, paddle, vlm/
-    ocr/adapters/       # OCR layout → flat .txt adapter (frozen v1)
-    ocr/vlm/            # MinerU / PaddleOCR-VL / GLM-OCR runners + prompts
-    schemas/            # Pydantic models (entry, field_cheatsheet, field_map, …)
-    evaluation/
-        stage1/         # Flat eval: TextEdit, GCER, WER, Markup F1, ReadOrderEdit
-        stage2/         # MDF eval: Record Accuracy, MDF Fields F1, ReadOrderEdit
-    utils/              # I/O, image, PDF render, MDF helpers, stage-1 input resolution
-
-docs/                   # Architecture + per-stage methodology + evaluation metrics
-examples/
-    stage-1/            # Stage 1 extraction sweeps (LLM + OCR + VLM)
-    stage-2/            # Stage 2 direct MDF + gold cheat-sheet sweeps
-    evaluation/         # Evaluation batch wrappers
-    helper/             # Sample setup, Mathpix batch, VLM-OCR flatten, etc.
-    label-studio/       # Provision Label Studio projects for human post-editing
-evaluations/            # Frozen evaluation outputs reported in the paper
-scripts/                # Maintenance scripts (sample extraction, gold flatten, validators)
-label-studio/           # Label Studio project setup
-assets/                 # Sample dictionaries, gold annotations (gitignored — local only)
-```
-
----
-
-## CLI reference
-
-Install the package (`uv sync`), then use:
+After `uv sync`, the `mudidi` command is installed in the project virtualenv. Use either:
 
 ```bash
-# Inference (default): explicit inputs, neighbor-page context, stage-1 → stage-2 chain
+uv run mudidi run --help          # recommended — no need to activate the venv
+# or:
+source .venv/bin/activate
+mudidi run --help
+```
+
+### API keys (`.env`)
+
+| Key | Used for |
+|-----|----------|
+| `GEMINI_API_KEY` | Gemini models (`gemini/...`) |
+| `OPEN_ROUTER_API_KEY` | GPT, Claude, Qwen via OpenRouter (`openrouter/...`) |
+| `MATHPIX_APP_ID` / `MATHPIX_APP_KEY` | Optional OCR hints via Mathpix Convert |
+
+Models are routed through [litellm](https://github.com/BerriAI/litellm). The model string selects the provider (e.g. `gemini/gemini-3-flash-preview`, `openrouter/openai/gpt-5.5`).
+
+---
+
+## Prepare your dictionary folder
+
+You can supply pages in either of two ways:
+
+### Option A — snippets directory (recommended for large jobs)
+
+Place inputs in a working directory (layout is flexible; paths are passed on the CLI):
+
+```
+my-dictionary/
+    snippets/          # required — page images or PDFs (page_1.png, page_2.pdf, …)
+    introduction/      # optional — front-matter images/PDFs for Stage 2
+    alphabet.txt       # optional — source-script character inventory
+    mathpix/           # optional — OCR hint files from Mathpix Convert (.md per page)
+```
+
+**`snippets/`** — one file per dictionary page. Supported: `.png`, `.jpg`, `.jpeg`, `.webp`, `.pdf`. Pages are processed in numeric order (`page_1`, `page_2`, …, `page_10`).
+
+**`introduction/`** — helps Stage 2 learn abbreviations, entry structure, and which MDF markers the dictionary uses.
+
+**`alphabet.txt`** — character list or legend for the vernacular script. Improves Stage 1 accuracy on rare glyphs.
+
+**`mathpix/`** — optional OCR hints. Generate with:
+
+```bash
+uv run python scripts/run_mathpix_convert.py --samples-dir my-dictionary
+```
+
+(requires Mathpix credentials; writes `{stem}.md` + `{stem}.lines.json` under `mathpix/`)
+
+### Option B — single source PDF
+
+Pass the full scanned dictionary PDF on `--pages` and list which **1-based PDF page numbers** to process. Dictionary entries and introduction can both come from the same file — use `--dict-pages` for entry pages and `--intro-pages` for front matter. MUDIDI splits each page internally with **pdftk** (must be installed and on `PATH`).
+
+| Flag | Required | Page spec examples |
+|------|----------|-------------------|
+| `--pages dictionary.pdf` | yes | path to the scan |
+| `--dict-pages` | yes | `97-123`, `1,3,5`, `97-123, 179-182` |
+| `--intro-pages` | no | `1-5`, `1,2,4` (same PDF as `--pages`) |
+
+Do **not** pass `--intro` when using a PDF — introduction pages are selected with `--intro-pages` from the same file.
+
+Split pages are cached under `{output_dir}/.rendered_snippets/split/` (dictionary) and `{output_dir}/.rendered_intro/split/` (introduction) as `page_{N}.pdf`. Re-runs reuse cached splits unless you pass `--overwrite`.
+
+**pdftk install:** `apt install pdftk-java`, `brew install pdftk-java`, or your distro’s equivalent.
+
+---
+
+## Quick start — full pipeline
+
+Run Stage 1 and Stage 2 in one command. Stage 2 automatically reads Stage 1 output from the same run.
+
+### From a snippets directory
+
+```bash
 uv run mudidi run \
-  --pages /path/to/snippets \
-  --intro /path/to/introduction \
-  --alphabet /path/to/alphabet.txt \
-  --output-dir /path/to/out \
+  --pages my-dictionary/snippets \
+  --intro my-dictionary/introduction \
+  --alphabet my-dictionary/alphabet.txt \
+  --output-dir my-dictionary/output \
   --stage all \
-  --model gemini/gemini-3-flash-preview
+  --strategy two_stage \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview \
+  --stage2-reasoning high
+```
 
-# Benchmark (paper workflow): samples tree, gold defaults, independent pages
+### From a single PDF
+
+Process dictionary pages 97–123 and introduction pages 1–5 from one scan:
+
+```bash
+uv run mudidi run \
+  --pages scans/evenki-russian.pdf \
+  --dict-pages 97-123 \
+  --intro-pages 1-5 \
+  --alphabet my-dictionary/alphabet.txt \
+  --output-dir my-dictionary/output \
+  --stage all \
+  --strategy two_stage \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview
+```
+
+Pick non-contiguous pages with comma lists:
+
+```bash
+uv run mudidi run \
+  --pages scans/my-dict.pdf \
+  --dict-pages 19,83,162 \
+  --output-dir my-dictionary/output \
+  --stage 1 \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview
+```
+
+### Stage 1 only
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --alphabet my-dictionary/alphabet.txt \
+  --output-dir my-dictionary/output \
+  --stage 1 \
+  --strategy two_stage \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview
+```
+
+### Stage 2 only (reuse existing Stage 1 output)
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --intro my-dictionary/introduction \
+  --output-dir my-dictionary/output \
+  --stage 2 \
+  --strategy two_stage \
+  --stage1-source predictions \
+  --model gemini/gemini-3-flash-preview
+```
+
+Stage 2 reads `{output_dir}/stage-1/{page}/{page}_stage1_flat.txt` by default in inference mode.
+
+---
+
+## What you get — output layout
+
+All artifacts land under `--output-dir`:
+
+```
+output/
+├── field_cheatsheet.json          # Pass 1: MDF marker cheat sheet (once per dictionary)
+├── stage-1/
+│   └── page_1/
+│       ├── page_1_stage1_flat.txt     # Stage 1 transcript (one line per visible row)
+│       ├── page_1_stage1_raw.json     # raw LLM structured response
+│       └── page_1_stage1_input.json   # request snapshot (for debugging)
+└── stage-2/
+    └── page_1/
+        ├── page_1.mdf.txt             # Toolbox MDF records for this page
+        ├── page_1_stage2_raw.txt      # raw LLM MDF response
+        ├── page_1_stage2_input.json   # request snapshot
+        └── page_1_usage.json          # token counts / estimated cost
+```
+
+Re-running the same command **skips pages that already have output** (resume). Pass `--overwrite` to force re-processing.
+
+---
+
+## CLI commands
+
+| Command | Purpose |
+|---------|---------|
+| `mudidi run` | Run Stage 1, Stage 2, or both on your dictionary |
+| `mudidi eval stage1` | Evaluate Stage 1 against gold transcripts (benchmark) |
+| `mudidi eval stage2` | Evaluate Stage 2 MDF against gold (benchmark) |
+| `mudidi-eval-flat` | Same as `mudidi eval stage1` (standalone script) |
+| `mudidi-eval-stage2-mdf` | Same as `mudidi eval stage2` (standalone script) |
+
+Get full flag lists:
+
+```bash
+uv run mudidi run --help
+```
+
+Model, strategy, and tuning flags (e.g. `--model`, `--stage1-mode`, `--overwrite`) are passed on the same command line — they are forwarded automatically:
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --output-dir my-dictionary/output \
+  --model openrouter/openai/gpt-5.5 \
+  --stage1-mode flat \
+  --overwrite
+```
+
+---
+
+## `mudidi run` arguments
+
+### Required (inference mode)
+
+| Flag | Description |
+|------|-------------|
+| `--pages PATH` | Snippets directory **or** a single source PDF |
+| `--output-dir PATH` | Where to write `stage-1/` and `stage-2/` results |
+| `--dict-pages SPEC` | **Required when `--pages` is a PDF.** 1-based dictionary page numbers: `1-10`, `1,3,5`, or `97-123, 179-182` |
+
+### Common optional flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--stage {1,2,all}` | `all` | Run transcription only, MDF only, or both |
+| `--intro PATH` | — | Introduction directory or text/image file (snippets-directory mode only) |
+| `--intro-pages SPEC` | — | When `--pages` is a PDF: intro pages from the **same PDF** (same syntax as `--dict-pages`) |
+| `--alphabet PATH` | — | Alphabet file (`.txt`/`.md`) or image |
+| `--ocr-text PATH` | — | Directory of OCR hint files (`.md`/`.docx`/`.txt`), matched by page stem |
+| `--prompts-file PATH` | bundled `PROMPT.json` | Custom prompts; edits reload on next LLM call |
+| `--cheatsheet-page STEM` | first page | Which page Pass 1 uses for field discovery |
+| `--stage1-source {gold,predictions}` | `predictions` | Stage 2 input source (inference uses predictions) |
+
+### Model and strategy flags
+
+Pass these on the same command line (forwarded to the extraction engine):
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--strategy` | `two_stage` | `two_stage` (LLM) or `vlm_ocr` (specialised VLM backends) |
+| `--model` | `gemini/gemini-3-flash-preview` | Stage 1 model (litellm string) |
+| `--structure-model` | same as `--model` | Stage 2 model |
+| `--stage1-mode {column,flat}` | `column` | Stage 1 output format; use **`flat`** for new dictionaries |
+| `--stage1-reasoning {none,low,medium,high}` | `low` | Stage 1 reasoning effort |
+| `--stage2-reasoning {low,medium,high}` | `low` | Stage 2 reasoning effort |
+| `--toolbox-pdf PATH` | — | Attach SIL Toolbox MDF manual in Pass 2 |
+| `--stage-1-guides PATH` | — | Extra rules appended to Stage 1 prompt |
+| `--stage-2-guides PATH` | — | Extra rules appended to Stage 2 prompt |
+| `--overwrite` | off | Re-process pages even if output exists |
+| `--limit N` | — | Process at most N pages |
+| `--no-alphabet` | off | Skip alphabet hint |
+| `--no-ocr-hint` | off | Skip OCR hint |
+| `--no-intro` | off | Skip introduction in Stage 2 |
+
+### Inference-specific behaviour
+
+- **Neighbor page context** — in inference mode, each page receives previous/next page images (and prior transcripts when available) so the model can handle entries that span page breaks. Output still belongs to the current page only.
+- **Stage chaining** — with `--stage all`, Stage 2 reads Stage 1 predictions from `--output-dir` automatically.
+- **Prompts** — inference uses `*_inference` prompt variants in `assets/PROMPT.json` (editable via `--prompts-file`).
+
+---
+
+## Pipeline overview
+
+```
+snippets/ + alphabet + OCR hints
+        │
+        ▼
+┌─────────────────────────┐
+│ Stage 1 — transcription │  →  stage-1/{page}/{page}_stage1_flat.txt
+└───────────┬─────────────┘
+            │
+ intro + Pass 1 cheat sheet
+            ▼
+┌─────────────────────────┐
+│ Stage 2 — MDF export    │  →  stage-2/{page}/{page}.mdf.txt
+│  Pass 1: field map      │      field_cheatsheet.json
+│  Pass 2: per-page MDF   │
+└─────────────────────────┘
+```
+
+**Stage 1** transcribes every visible line on the page image. Use `--stage1-mode flat` for the standard one-line-per-row format.
+
+**Stage 2 Pass 1** runs once: reads the introduction + one sample page and writes `field_cheatsheet.json` (which MDF markers this dictionary uses).
+
+**Stage 2 Pass 2** runs per page: copies characters verbatim from the Stage 1 transcript and assigns MDF markers using the cheat sheet.
+
+Further detail: [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md), [`docs/stage_2_methodology.md`](docs/stage_2_methodology.md).
+
+---
+
+## Customising prompts
+
+Prompts live in `assets/PROMPT.json` (also bundled inside the installed package). Each entry has `prompt` text and a `variables` list documenting placeholders like `{alphabet_text}` and `{ocr_hint}`.
+
+```bash
+cp assets/PROMPT.json my-prompts.json
+# edit my-prompts.json …
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --output-dir my-dictionary/output \
+  --prompts-file my-prompts.json \
+  --strategy two_stage \
+  --stage1-mode flat
+```
+
+Changes are picked up on the next LLM call (mtime-based reload).
+
+---
+
+## Tooling notes
+
+- Use **`uv sync`** and **`uv run`** (or activate `.venv` first). This ensures dependencies and console scripts resolve correctly.
+- LLM calls go through litellm; provider keys are inferred from the model string.
+- **`pdftk`** is required when `--pages` is a PDF file (page splitting). Snippets-directory workflows do not need it.
+- Specialised VLM backends (`--strategy vlm_ocr`) require separate model venvs — see [`examples/helper/install_models_venv.sh`](examples/helper/install_models_venv.sh). Most new-dictionary workflows use `--strategy two_stage` with a general LLM.
+
+---
+
+## Benchmark mode (paper / evaluation)
+
+The sections below are for reproducing the MUDIDI benchmark on the 30-dictionary evaluation set — not needed for digitizing a new dictionary.
+
+### Benchmark vs inference
+
+| | Inference (default) | Benchmark (`--benchmark`) |
+|--|---------------------|---------------------------|
+| Purpose | Digitize your dictionary | Evaluate models against gold labels |
+| Inputs | `--pages`, `--output-dir` | `--samples-dir` + samples tree layout |
+| Stage 2 input | Stage 1 predictions | Gold transcripts (default) |
+| Page context | Previous/next pages | Independent pages |
+| Output layout | `{output_dir}/stage-1/`, `stage-2/` | `{lang}/outputs/stage-1/{experiment}/` |
+
+### Benchmark quick start
+
+```bash
 uv run mudidi run --benchmark \
   --samples-dir assets/dictionaries/samples \
   --languages Evenki-Russian \
   --experiment-name gemini31pro_flat_alpha \
   --stage 1 \
   --strategy two_stage \
+  --stage1-mode flat \
   --model gemini/gemini-3-flash-preview
 ```
 
-| Console script           | Purpose                                      |
-|--------------------------|----------------------------------------------|
-| `mudidi`                 | Main CLI (`run`, `eval stage1`, `eval stage2`) |
-| `mudidi-eval-flat`       | Stage 1 flat transcription evaluation        |
-| `mudidi-eval-stage2-mdf` | Stage 2 MDF evaluation                       |
+Paper sweeps:
 
-Standalone scripts under `scripts/` include `run_mathpix_convert.py` (Mathpix Convert API batch driver; feeds Stage 1 OCR hints).
-
-Pass `--help` to any command for full options.
-
----
-
-## Stage 1 — transcription
-
-Stage 1 produces a faithful, markup-preserving transcription of each page. Three model families participate, all writing to the same flat `.txt` contract for fair cross-paradigm comparison:
-
-| Family                     | Backend                                       | Prompt configurable | Alphabet hint | OCR hint |
-|----------------------------|-----------------------------------------------|:-------------------:|:-------------:|:--------:|
-| **General LLM**            | Gemini 3 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7 | yes | yes | yes |
-| **Open-weights VLM**       | Qwen3-VL-235B-A22B-Instruct                   | yes                 | yes           | yes      |
-| **Specialised document VLM** | MinerU 2.5 Pro, PaddleOCR-VL 1.5             | no                  | —             | —        |
-| **Specialised document VLM** | GLM-OCR                                      | yes                 | yes           | —        |
-| **Commercial OCR (hint)**  | Mathpix Convert → `--ocr-text` / auto `mathpix/` | no               | —             | yes      |
-
-Entry point: [`examples/stage-1/run_stage1_extraction.sh`](examples/stage-1/run_stage1_extraction.sh).
-
-Key flags exposed by `mudidi-extract`:
-
-- `--strategy two_stage --stage 1 --stage1-mode flat` — flat transcription pass.
-- `--strategy vlm_ocr --vlm-model {mineru2.5-pro|paddleocr-vl-1.5|glm-ocr}` — specialised VLM run (uses isolated venvs from `examples/helper/install_models_venv.sh`).
-- `--ocr-text <entry>/mathpix` — Mathpix OCR hint (auto-wired in `--samples-dir` mode when `mathpix/` exists; run `scripts/run_mathpix_convert.py` first).
-- `--no-alphabet` / `--no-ocr-hint` — ablation knobs.
-- `--experiment-name <name>` — independent output slot under `outputs/stage-1/<name>/`. Each slot keeps its own `run_config.json` capturing the full configuration.
-
-Outputs land under the samples tree:
-
-```
-{lang}/outputs/stage-1/<experiment>/<page>/<page>_stage1_flat.txt   # one line per visible row
-                                          <page>_stage1_raw.json    # structured LLM response
-                                          <page>_stage1_input.json  # request snapshot
-                          run_config.json                            # full experiment manifest
+```bash
+bash examples/stage-1/run_stage1_extraction.sh
+bash examples/stage-2/run_stage2_extraction.sh
+bash examples/evaluation/run_stage1_eval_flat.sh
+bash examples/evaluation/run_stage2_eval_mdf.sh
 ```
 
-Gold flats live under `{lang}/outputs/stage-1-gold/<page>/<page>_stage1_GOLD_flat.txt`; regenerate after editing column gold with `uv run python scripts/flatten_stage1_gold.py`.
-
-Stage 1 metrics: [`docs/stage_1_evaluation_metrics.md`](docs/stage_1_evaluation_metrics.md).
-
----
-
-## Stage 2 — direct MDF
-
-Stage 2 turns a gold (or predicted) Stage-1 transcript into Toolbox **MDF** lexicon records. The pipeline runs in two passes:
-
-1. **Pass 1 — field discovery** (once per dictionary): the LLM reads the dictionary introduction and one sample page and emits a `field_cheatsheet.json` that lists which MDF markers this dictionary uses and how entries are structured. Cached under `outputs/stage-2/<experiment>/field_cheatsheet.json`.
-2. **Pass 2 — page extraction** (per page): the LLM copies vernacular and gloss characters verbatim from the Stage-1 transcript and emits blank-line-delimited Toolbox MDF using the markers from the cheat sheet. Image + introduction are used **only** for entry boundaries and marker assignment.
-
-Entry point: [`examples/stage-2/run_stage2_extraction.sh`](examples/stage-2/run_stage2_extraction.sh) — runs the full intro × Toolbox-manual ablation per model on the 10 dictionaries reported in the paper.
-
-Key flags:
-
-- `--prompts-file assets/PROMPT.json` — Stage 1 and Stage 2 LLM prompts (edit during inference; reloads on next call).
-- `--no-intro` — withhold the dictionary introduction from both passes.
-- `--toolbox-pdf "Pages from ToolboxReferenceManual.pdf"` — attach the SIL Toolbox MDF manual in Pass 2 only.
-- `--stage1-input flat|column|auto` — choose the Stage 1 transcript source. The paper uses `--stage1-input flat` against `stage-1-gold/` to isolate parsing from OCR error.
-- `--stage2-reasoning {low|medium|high}` — reasoning effort (paper uses `high`).
-- `--one-page-per-entry` — limit each language to its lowest-numbered annotated page (used in the paper sweeps).
-
-Outputs:
-
-```
-{lang}/outputs/stage-2/<experiment>/<page>/<page>.mdf.txt          # Toolbox MDF
-                                          <page>_stage2_raw.txt    # raw LLM response
-                                          <page>_stage2_input.json # request snapshot
-                                          <page>_usage.json        # token / cost
-                                  field_cheatsheet.json             # Pass 1 cache
-                                  run_config.json                   # experiment manifest
-```
-
-Gold MDF lives under `{lang}/outputs/stage-2-gold/<page>/<page>.mdf.txt`.
-
-Stage 2 metrics: [`docs/stage_2_evaluation_metrics.md`](docs/stage_2_evaluation_metrics.md). JSON / MDF field mapping: [`docs/stage_2_outline.md`](docs/stage_2_outline.md). Full marker reference: [`docs/mdf_field_reference.md`](docs/mdf_field_reference.md).
-
----
-
-## Dataset
-
-The benchmark covers **30 public-domain bilingual dictionaries** sourced from HathiTrust and spanning Latin, Cyrillic, Greek, Devanagari, Bengali, Gujarati, Gurmukhi, Kannada, Telugu, Hebrew, Syriac, Arabic-based, Khmer, Han + IPA, Kana + Kanji, and Cuneiform scripts. **Stage 1** is evaluated on **3 i.i.d. content pages per dictionary** (90 pages total). **Stage 2** focuses on **10 dictionaries × 1 page** chosen to be representative of formats, descriptive traditions, and target languages (English, Russian, French, Chinese, Turkish).
-
-The curated gold release lives at [`dataset/mudidi/`](dataset/mudidi/) (source pages, Stage 1/2 gold, manifests). See [`dataset/mudidi/README.md`](dataset/mudidi/README.md) for layout and loading instructions.
-
-Per-language sample folders follow:
+### Benchmark sample layout
 
 ```
 assets/dictionaries/samples/<Source-Target>/
-    snippets/                    # page images or PDFs (3 per dictionary)
-    introduction/                # intro pages (text, image, or PDF)
-    alphabet.txt                 # source-language alphabet list (optional)
-    dictionary_languages.yaml    # source/target roles + layout type
-    outputs/                     # populated by the pipeline (gitignored locally)
+    snippets/
+    introduction/
+    alphabet.txt
+    dictionary_languages.yaml
+    outputs/                     # populated by the pipeline
+        stage-1-gold/            # human gold (evaluation only)
+        stage-2-gold/
+        stage-1/<experiment>/
+        stage-2/<experiment>/
 ```
 
-The full per-language table (script, language family, region, EGIDS, Joshi class) is reproduced in the paper's Table 1.
+### Dataset
 
-Sample-extraction helpers under [`examples/helper/`](examples/helper/) bootstrap a new language from a dictionary PDF + metadata CSV.
+The benchmark covers **30 public-domain bilingual dictionaries**. Gold data and manifests: [`dataset/mudidi/`](dataset/mudidi/). See [`dataset/mudidi/README.md`](dataset/mudidi/README.md).
 
----
+### Reproducing paper tables
 
-## Reproducing the paper
+| Paper artifact | Command |
+|----------------|---------|
+| Table 2 — Stage 1 alphabet ablation | `examples/stage-1/run_stage1_extraction.sh` + `examples/evaluation/run_stage1_eval_flat.sh` |
+| Table 3 — Stage 1 OCR-hint ablation | `examples/stage-1/run_stage1_per_lang_best_flat_alpha_ocr.sh` + eval script |
+| Table 4 — Stage 2 MDF aggregate | `examples/stage-2/run_stage2_extraction.sh` + `examples/evaluation/run_stage2_eval_mdf.sh` |
+| Table 5 — Stage 2 gold cheat-sheet | `examples/stage-2/run_stage2_gold_cheatsheet.sh` + eval script |
 
-| Paper artifact                                          | How to reproduce                                                                                             |
-|---------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| **Table 2** — Stage 1 alphabet ablation (30 dict. agg.) | `bash examples/stage-1/run_stage1_extraction.sh` then `bash examples/evaluation/run_stage1_eval_flat.sh`     |
-| **Table 3** — Stage 1 OCR-hint ablation                 | `bash examples/stage-1/run_stage1_per_lang_best_flat_alpha_ocr.sh` then `bash examples/evaluation/run_stage1_eval_ocr_hint.sh` |
-| **Table 4** — Stage 2 MDF (intro × manual) aggregate    | `bash examples/stage-2/run_stage2_extraction.sh` then `bash examples/evaluation/run_stage2_eval_mdf.sh`      |
-| **Table 5** — Stage 2 gold cheat-sheet diagnostic       | `bash examples/stage-2/run_stage2_gold_cheatsheet.sh` then `bash examples/evaluation/run_stage2_eval_gold_cheat_sheet.sh` |
-| **Tables 6–11** — Per-dictionary Stage 1 breakdown      | Same as Table 2; per-dictionary CSVs are written under `evaluations/stage1_flat_eval/<experiment>/`          |
-| **Table 12** — Per-dictionary Stage 2 breakdown         | Same as Table 4; per-dictionary rows live in `evaluations/stage2_mdf_eval/stage2_mdf_eval_summary.csv`       |
-
-Frozen evaluation outputs that back the published tables are committed under [`evaluations/`](evaluations/) for direct inspection.
-
-Human post-editing of silver-standard transcripts was driven by Label Studio; see [`examples/label-studio/`](examples/label-studio/) and [`label-studio/setup.py`](label-studio/setup.py).
+Frozen evaluation outputs: [`evaluations/`](evaluations/).
 
 ---
 
-## Documentation map
+## Documentation
 
-| Doc                                                                          | Topic                                                                  |
-|------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`docs/architecture.md`](docs/architecture.md)                               | Module-by-module breakdown and data-flow diagrams                      |
-| [`docs/stage_1_outline.md`](docs/stage_1_outline.md)                         | Stage 1 quick reference (tracks, file layout, versioning)              |
-| [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md)                 | Full Stage 1 pipeline: LLM flat, VLM-OCR adapter, typography normalise |
-| [`docs/stage_1_evaluation_metrics.md`](docs/stage_1_evaluation_metrics.md)   | TextEdit, GCER, WER, Markup F1, ReadOrderEdit definitions              |
-| [`docs/stage_2_outline.md`](docs/stage_2_outline.md)                         | Direct MDF + legacy JSON/TSV mapping                                   |
-| [`docs/stage_2_methodology.md`](docs/stage_2_methodology.md)                 | Pass 1 + Pass 2 design, prompts, experiment slots                      |
-| [`docs/stage_2_evaluation_metrics.md`](docs/stage_2_evaluation_metrics.md)   | Record Accuracy, MDF Fields F1, ReadOrderEdit definitions              |
-| [`docs/mdf_field_reference.md`](docs/mdf_field_reference.md)                 | Full SIL Toolbox MDF marker reference                                  |
-| [`docs/evaluation_metrics.md`](docs/evaluation_metrics.md)                   | Overview of both evaluation tracks                                     |
-| [`docs/uv.md`](docs/uv.md)                                                   | uv cheat sheet                                                         |
-
----
-
-## Tooling notes
-
-- The project uses [`uv`](https://docs.astral.sh/uv/). Never invoke `pip` or run `python` directly — always go through `uv run` (registered console scripts only resolve when launched by uv).
-- LLM calls are routed through `litellm`. Provider keys are resolved by substring of the model string (`gemini` → `GEMINI_API_KEY`, `claude` → `ANTHROPIC_API_KEY` or OpenRouter, etc.). Model-family quirks are centralised in [`src/mudidi/llm/client.py`](src/mudidi/llm/client.py).
-- Specialised VLMs run in isolated venvs (`.venv-mineru-vllm`, `.venv-paddleocr`, `.venv-glmocr`) provisioned by [`examples/helper/install_models_venv.sh`](examples/helper/install_models_venv.sh).
-- `assets/` is gitignored — sample dictionaries, gold labels, and runtime outputs are local-only.
-- Generated LaTeX tables under `examples/evaluation/*.tex` are gitignored; regenerate via the Python generators in the same folder.
+| Doc | Topic |
+|-----|-------|
+| [`docs/architecture.md`](docs/architecture.md) | Module map and data flow |
+| [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md) | Stage 1 pipeline detail |
+| [`docs/stage_2_methodology.md`](docs/stage_2_methodology.md) | Pass 1 + Pass 2 design |
+| [`docs/mdf_field_reference.md`](docs/mdf_field_reference.md) | SIL Toolbox MDF markers |
+| [`docs/stage_1_evaluation_metrics.md`](docs/stage_1_evaluation_metrics.md) | Benchmark metrics (Stage 1) |
+| [`docs/stage_2_evaluation_metrics.md`](docs/stage_2_evaluation_metrics.md) | Benchmark metrics (Stage 2) |
 
 ---
 
 ## Citation
-
-If you use this benchmark or code, please cite the paper. The citation block below is a placeholder and will be updated once the paper is published.
 
 ```bibtex
 @inproceedings{mudidi2026,

@@ -58,6 +58,7 @@ from mudidi.llm.prompts import (
 )
 from mudidi.utils.image import image_data_url, resolve_mime_type
 from mudidi.utils.io import read_docx_text
+from mudidi.utils.page_context import PageContext
 
 
 def _sum_costs(c1, c2) -> Optional[float]:

@@ -43,6 +43,7 @@ from mudidi.utils.stage2_page_selection import select_one_stage2_page, sort_snip
 from mudidi.config.output_paths import resolve_output_layout
 from mudidi.config.run_config import RunConfig
 from mudidi.utils.page_context import resolve_page_context
+from mudidi.utils.pdf_split import extract_pdf_pages, parse_page_spec
 from mudidi.utils.stage1_input import read_stage1_transcript_text
 from mudidi.llm.prompt_store import configure_prompts, default_prompts_path
 
@@ -139,8 +140,87 @@ def _materialize_page_inputs(
     return sort_snippet_pages(collected)
 
 
+def _materialize_snippet_inputs(
+    pages_path: Path,
+    cache_dir: Path,
+    *,
+    dict_pages_spec: Optional[str],
+    render_pdfs: bool,
+    overwrite: bool,
+) -> List[Path]:
+    """Resolve dictionary page inputs from a snippets directory or source PDF."""
+    if pages_path.is_dir():
+        return _materialize_page_inputs(pages_path, cache_dir, render_pdfs=render_pdfs)
+
+    if pages_path.suffix.lower() not in _PDF_EXTS:
+        raise ValueError(f"--pages must be a directory or PDF file: {pages_path}")
+
+    if not dict_pages_spec:
+        raise ValueError(
+            "--dict-pages is required when --pages is a PDF (e.g. '1-10' or '1,3,5')"
+        )
+
+    try:
+        page_numbers = parse_page_spec(dict_pages_spec)
+    except ValueError as exc:
+        raise ValueError(f"Invalid --dict-pages: {exc}") from exc
+    if not page_numbers:
+        raise ValueError("--dict-pages must list at least one page")
+
+    split_dir = cache_dir / "split"
+    pdfs = extract_pdf_pages(
+        pages_path,
+        page_numbers,
+        split_dir,
+        overwrite=overwrite,
+    )
+
+    if render_pdfs:
+        collected: List[Path] = []
+        for pdf in pdfs:
+            collected.extend(_render_pdf_pages(pdf, cache_dir))
+        return sort_snippet_pages(collected)
+
+    return sort_snippet_pages(pdfs)
+
+
+def _collect_intro_from_pdf(
+    source_pdf: Path,
+    intro_pages_spec: str,
+    pdf_cache_dir: Path,
+    *,
+    render_pdfs: bool,
+    overwrite: bool = False,
+) -> Tuple[str, List[str]]:
+    """Extract introduction pages from ``source_pdf`` and return vision inputs."""
+    try:
+        page_numbers = parse_page_spec(intro_pages_spec)
+    except ValueError as exc:
+        raise ValueError(f"Invalid --intro-pages: {exc}") from exc
+    if not page_numbers:
+        raise ValueError("--intro-pages must list at least one page")
+
+    split_dir = pdf_cache_dir / "split"
+    pdfs = extract_pdf_pages(
+        source_pdf,
+        page_numbers,
+        split_dir,
+        overwrite=overwrite,
+    )
+    image_paths: List[str] = []
+    for pdf in pdfs:
+        if render_pdfs:
+            image_paths.extend(str(p) for p in _render_pdf_pages(pdf, pdf_cache_dir))
+        else:
+            image_paths.append(str(pdf))
+    return "", image_paths
+
+
 def _collect_intro(
-    intro_path: Path, pdf_cache_dir: Path, *, render_pdfs: bool
+    intro_path: Path,
+    pdf_cache_dir: Path,
+    *,
+    render_pdfs: bool,
 ) -> Tuple[str, List[str]]:
     """
     Load intro context from a file or directory. Supports images, PDFs,
@@ -709,9 +789,14 @@ Examples:
     )
     parser.add_argument(
         "--intro",
-        help="Dictionary introduction/preface — a file (.txt/.md/.docx) or a directory. "
-        "Images are sent as vision context to Stage 2 field discovery and MDF extraction. "
-        "Loaded once, shared across all pages.",
+        help="Dictionary introduction/preface — a file (.txt/.md/.docx) or a directory "
+        "of images/PDFs. Not used when --pages is a PDF (use --intro-pages instead).",
+    )
+    parser.add_argument(
+        "--intro-pages",
+        dest="intro_pages",
+        help="When --pages is a PDF: 1-based introduction pages from that same PDF "
+        "(e.g. '1-5' or '1,3'). Optional; uses pdftk.",
     )
     parser.add_argument(
         "--stage1-reasoning",
@@ -865,7 +950,14 @@ Examples:
     parser.add_argument(
         "--pages",
         dest="pages",
-        help="Directory of page snippets (alias for --input-image).",
+        help="Snippets directory or single source PDF (with --dict-pages). "
+        "Alias for --input-image.",
+    )
+    parser.add_argument(
+        "--dict-pages",
+        dest="dict_pages",
+        help="When --pages is a single PDF: 1-based dictionary page numbers to process "
+        "(e.g. '1-10' or '1,3,5'). Required for PDF input; uses pdftk.",
     )
     parser.add_argument(
         "--output-dir",
@@ -951,6 +1043,8 @@ Examples:
         if not args.toolbox_pdf.is_file():
             parser.error(f"--toolbox-pdf path not found: {args.toolbox_pdf}")
 
+    _validate_pdf_page_args(args, parser)
+
     if (
         args.stage == "2"
         and getattr(args, "stage1_source", "gold") == "predictions"
@@ -1012,6 +1106,42 @@ Examples:
         )
 
     return _run_single_entry(args, parser)
+
+
+def _validate_pdf_page_args(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    """Validate --dict-pages / --intro-pages pairing with PDF inputs."""
+    pages_path = Path(args.input_image) if args.input_image else None
+    is_source_pdf = bool(
+        pages_path and pages_path.is_file() and pages_path.suffix.lower() in _PDF_EXTS
+    )
+
+    if is_source_pdf:
+        if not getattr(args, "dict_pages", None):
+            parser.error(
+                "--dict-pages is required when --pages is a PDF "
+                "(e.g. '1-10' or '1,3,5')"
+            )
+        try:
+            if not parse_page_spec(args.dict_pages):
+                parser.error("--dict-pages must list at least one page")
+        except ValueError as exc:
+            parser.error(f"Invalid --dict-pages: {exc}")
+        if args.intro:
+            parser.error(
+                "--intro cannot be used when --pages is a PDF; "
+                "pass --intro-pages to select pages from the same PDF"
+            )
+        if getattr(args, "intro_pages", None):
+            try:
+                if not parse_page_spec(args.intro_pages):
+                    parser.error("--intro-pages must list at least one page")
+            except ValueError as exc:
+                parser.error(f"Invalid --intro-pages: {exc}")
+    else:
+        if getattr(args, "dict_pages", None):
+            parser.error("--dict-pages is only valid when --pages is a single PDF file")
+        if getattr(args, "intro_pages", None):
+            parser.error("--intro-pages is only valid when --pages is a single PDF file")
 
 
 def _normalize_experiment_names(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
@@ -1094,13 +1224,44 @@ def _run_samples_dir_vlm(args, parser) -> int:
 
 
 def _run_single_entry_vlm(args, parser) -> int:
-    """Run VLM OCR on a single entry's snippets directory."""
-    input_dir = Path(args.input_image)
-    if not input_dir.is_dir():
-        parser.error(f"--input-image must be a directory: {input_dir}")
+    """Run VLM OCR on a single entry's snippets directory or source PDF."""
+    input_path = Path(args.input_image)
+    if not input_path.is_dir() and not (
+        input_path.is_file() and input_path.suffix.lower() in _PDF_EXTS
+    ):
+        parser.error(f"--pages must be a directory or PDF file: {input_path}")
+
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    snippets_cache_dir = output_dir / ".rendered_snippets"
+    render_pdfs = True
+    try:
+        if input_path.is_dir():
+            images = _materialize_page_inputs(
+                input_path, snippets_cache_dir, render_pdfs=render_pdfs
+            )
+            input_dir = input_path
+        else:
+            images = _materialize_snippet_inputs(
+                input_path,
+                snippets_cache_dir,
+                dict_pages_spec=getattr(args, "dict_pages", None),
+                render_pdfs=render_pdfs,
+                overwrite=bool(getattr(args, "overwrite", False)),
+            )
+            input_dir = snippets_cache_dir / "split"
+    except ValueError as exc:
+        parser.error(str(exc))
+    except RuntimeError as exc:
+        print(exc)
+        return 1
+
+    if not images:
+        print(f"No pages found for {input_path}")
+        return 1
 
     if stage1_context_inputs_apply(args):
-        entry_dir = Path(getattr(args, "entry_dir", None) or input_dir.parent)
+        entry_dir = Path(getattr(args, "entry_dir", None) or input_path.parent)
         input_errors = validate_configured_sample_entry(args, entry_dir, input_dir)
         if input_errors:
             report_entry_input_failures(
@@ -1109,9 +1270,6 @@ def _run_single_entry_vlm(args, parser) -> int:
                 experiment_name=args.experiment_name,
             )
             return 1
-
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     from mudidi.ocr.vlm.paddle_genai_server import ensure_paddle_vllm_server_args
     from mudidi.ocr.vlm.glm_vllm_server import ensure_glm_vllm_server_args
@@ -1184,13 +1342,16 @@ def _run_samples_dir(args, parser) -> int:
 
 
 def _run_single_entry(args, parser) -> int:
-    """Run extraction for a single entry (one --input-image directory)."""
-    # ── Validate input dir ─────────────────────────────────────────────────────
-    input_dir = Path(args.input_image)
-    if not input_dir.is_dir():
-        parser.error(f"--input-image must be a directory: {input_dir}")
+    """Run extraction for a single entry (snippets directory or source PDF)."""
+    input_path = Path(args.input_image)
+    if not input_path.is_dir() and not (
+        input_path.is_file() and input_path.suffix.lower() in _PDF_EXTS
+    ):
+        parser.error(f"--pages must be a directory or PDF file: {input_path}")
 
-    if stage1_context_inputs_apply(args):
+    input_dir = input_path if input_path.is_dir() else input_path.parent
+
+    if stage1_context_inputs_apply(args) and input_path.is_dir():
         entry_dir = Path(getattr(args, "entry_dir", None) or input_dir.parent)
         input_errors = validate_configured_sample_entry(args, entry_dir, input_dir)
         if input_errors:
@@ -1216,11 +1377,21 @@ def _run_single_entry(args, parser) -> int:
 
     # ── Collect snippet pages (render PDFs when the model needs PNG) ───────────
     render_pdfs = _needs_pdf_rasterization(args.model)
-    images = _materialize_page_inputs(
-        input_dir, snippets_cache_dir, render_pdfs=render_pdfs
-    )
+    try:
+        images = _materialize_snippet_inputs(
+            input_path,
+            snippets_cache_dir,
+            dict_pages_spec=getattr(args, "dict_pages", None),
+            render_pdfs=render_pdfs,
+            overwrite=bool(getattr(args, "overwrite", False)),
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
+    except RuntimeError as exc:
+        print(exc)
+        return 1
     if not images:
-        print(f"No images or PDFs found in {input_dir}")
+        print(f"No images or PDFs found for {input_path}")
         return 1
 
     if getattr(args, "one_page_per_entry", False):
@@ -1248,7 +1419,25 @@ def _run_single_entry(args, parser) -> int:
 
     # ── Intro (loaded once for all pages) ─────────────────────────────────────
     intro_text, intro_image_paths = "", []
-    if args.intro:
+    is_source_pdf = input_path.is_file() and input_path.suffix.lower() in _PDF_EXTS
+    if is_source_pdf and getattr(args, "intro_pages", None):
+        try:
+            intro_text, intro_image_paths = _collect_intro_from_pdf(
+                input_path,
+                args.intro_pages,
+                intro_cache_dir,
+                render_pdfs=render_pdfs,
+                overwrite=bool(getattr(args, "overwrite", False)),
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
+        except RuntimeError as exc:
+            print(exc)
+            return 1
+        print(
+            f"Intro: {len(intro_text)} chars of text, {len(intro_image_paths)} images loaded."
+        )
+    elif args.intro:
         intro_path = Path(args.intro)
         if not intro_path.exists():
             print(f"Warning: --intro path not found: {args.intro}")
@@ -1261,7 +1450,7 @@ def _run_single_entry(args, parser) -> int:
             )
 
     dictionary_languages = None
-    entry_path = _resolve_entry_dir(args, output_dir, input_dir)
+    entry_path = _resolve_entry_dir(args, output_dir, input_dir if input_path.is_dir() else input_path.parent)
     if entry_path:
         args.entry_dir = str(entry_path)
     if entry_path and args.strategy == "two_stage":

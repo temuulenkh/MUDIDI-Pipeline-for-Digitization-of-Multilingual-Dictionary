@@ -11,11 +11,10 @@ from __future__ import annotations
 import argparse
 import csv
 import logging
-import re
-import shutil
-import subprocess
 import sys
 from pathlib import Path
+
+from mudidi.utils.pdf_split import extract_single_page, parse_page_spec
 
 logger = logging.getLogger(__name__)
 
@@ -54,56 +53,6 @@ def build_folder_name(source_language: str, target_language: str) -> str:
     targets = [sanitize_language_token(t) for t in target_language.split(",") if t.strip()]
     parts = [source, *targets]
     return "-".join(parts)
-
-
-def parse_page_spec(spec: str) -> list[int]:
-    """Expand a page specification string into an ordered list of page numbers.
-
-    Supports comma-separated singletons and hyphen-separated inclusive ranges,
-    e.g. ``"97 - 123, 179 - 182"`` or ``"19, 83, 162"``. Returns ``[]`` for
-    empty/whitespace input.
-    """
-    if not spec or not spec.strip():
-        return []
-
-    pages: list[int] = []
-    for chunk in spec.split(","):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        if "-" in chunk:
-            match = re.match(r"^\s*(\d+)\s*-\s*(\d+)\s*$", chunk)
-            if not match:
-                raise ValueError(f"Unrecognised page range: {chunk!r}")
-            start, end = int(match.group(1)), int(match.group(2))
-            if end < start:
-                raise ValueError(f"Descending range not supported: {chunk!r}")
-            pages.extend(range(start, end + 1))
-        else:
-            if not chunk.isdigit():
-                raise ValueError(f"Unrecognised page token: {chunk!r}")
-            pages.append(int(chunk))
-    return pages
-
-
-def extract_single_page(source_pdf: Path, page: int, output_pdf: Path) -> None:
-    """Extract a single page from ``source_pdf`` to ``output_pdf`` via pdftk."""
-    output_pdf.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        "pdftk",
-        str(source_pdf),
-        "cat",
-        str(page),
-        "output",
-        str(output_pdf),
-    ]
-    logger.debug("Running: %s", " ".join(cmd))
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"pdftk failed for {source_pdf.name} page {page}: "
-            f"{result.stderr.strip() or result.stdout.strip()}"
-        )
 
 
 def process_row(
@@ -183,7 +132,9 @@ def main(argv: list[str] | None = None) -> int:
         datefmt="%H:%M:%S",
     )
 
-    if shutil.which("pdftk") is None:
+    from mudidi.utils.pdf_split import pdftk_available
+
+    if not pdftk_available():
         logger.error("pdftk is not available on PATH; install it (e.g. `brew install pdftk-java`)")
         return 1
 
