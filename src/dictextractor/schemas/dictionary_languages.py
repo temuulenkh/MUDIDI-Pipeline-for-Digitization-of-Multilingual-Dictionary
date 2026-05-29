@@ -63,7 +63,7 @@ class DictionaryLanguagesConfig(BaseModel):
         return [t.code for t in self.targets]
 
     def format_prompt_block(self) -> str:
-        """Inject into Stage 2 user prompt (schema fields only — no MDF markers)."""
+        """Hint for Pass 1 field discovery (language roles and gloss tiers)."""
         primary = self.targets[0]
         lines = [
             "<dictionary_languages>",

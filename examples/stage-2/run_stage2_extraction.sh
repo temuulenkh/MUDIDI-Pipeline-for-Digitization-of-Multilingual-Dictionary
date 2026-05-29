@@ -55,7 +55,6 @@ run_stage2() {
 # # Baseline: Gemini 3.1 Pro, high reasoning, intro + no toolbox PDF
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model gemini/gemini-3.1-pro-preview \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -67,7 +66,6 @@ run_stage2 \
 # Sweep example — intro × toolbox ablations against the baseline (uncomment what you need):
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model gemini/gemini-3.1-pro-preview \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -79,7 +77,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model gemini/gemini-3.1-pro-preview \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -91,7 +88,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model gemini/gemini-3.1-pro-preview \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -105,7 +101,6 @@ run_stage2 \
 # # OpenRouter — GPT-5.5 (OPEN_ROUTER_API_KEY):
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/openai/gpt-5.5 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -116,7 +111,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/openai/gpt-5.5 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -128,7 +122,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/openai/gpt-5.5 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -140,7 +133,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/openai/gpt-5.5 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -154,7 +146,6 @@ run_stage2 \
 # # OpenRouter — Claude Opus 4.7:
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/anthropic/claude-opus-4.7 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -165,7 +156,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/anthropic/claude-opus-4.7 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -177,7 +167,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/anthropic/claude-opus-4.7 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -189,7 +178,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/anthropic/claude-opus-4.7 \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -203,7 +191,6 @@ run_stage2 \
 # # OpenRouter — Qwen3-VL 235B:
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/qwen/qwen3-vl-235b-a22b-instruct \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -214,7 +201,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/qwen/qwen3-vl-235b-a22b-instruct \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -226,7 +212,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/qwen/qwen3-vl-235b-a22b-instruct \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \
@@ -238,7 +223,6 @@ run_stage2 \
 
 run_stage2 \
     --strategy two_stage --stage 2 \
-    --stage2-mode direct_mdf \
     --model openrouter/qwen/qwen3-vl-235b-a22b-instruct \
     --stage2-reasoning high \
     --samples-dir assets/dictionaries/samples \

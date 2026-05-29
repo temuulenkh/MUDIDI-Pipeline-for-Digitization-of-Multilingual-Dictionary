@@ -11,15 +11,13 @@ logger = logging.getLogger(__name__)
 PDF_RENDER_DPI = 200
 
 
-def needs_pdf_rasterization(model: str, *, preprocess: bool = False) -> bool:
+def needs_pdf_rasterization(model: str) -> bool:
     """
     Return True when PDF inputs must be rendered to PNG before LLM calls.
 
     Gemini accepts ``application/pdf`` inline; most hosted VLMs (OpenRouter GPT,
     Claude via image_url, etc.) require raster images.
     """
-    if preprocess:
-        return True
     model_lower = model.lower()
     if "gemini" in model_lower or model_lower.startswith("google/"):
         return False

@@ -353,7 +353,7 @@ Under `evaluations/stage1_flat_eval/`:
 | --- | --- |
 | Flat spec + gold write | `evaluation/stage1/flatten.py` |
 | Flat eval + discovery | `evaluation/stage1/flat_evaluator.py` |
-| eval-flat CLI | `cli/evaluate_stage_flat.py` |
+| eval-flat CLI | `cli/evaluate_stage1.py` |
 | Report generation | `evaluation/stage1/stage1_reports.py` |
 | LLM flat extract | `extraction/llm_two_stage.py`, `llm/prompts.py` |
 | OCR → flat export | `ocr/adapters/flat_export.py` |

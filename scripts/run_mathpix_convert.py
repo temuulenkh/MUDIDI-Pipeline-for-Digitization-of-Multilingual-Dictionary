@@ -1,11 +1,12 @@
-"""CLI: OCR every dictionary's snippet pages via the Mathpix Convert API.
+"""Batch-convert dictionary snippet pages via the Mathpix Convert API.
 
-For each ``{source}-{target...}`` entry folder under the samples root, if no
-``mathpix/`` subfolder exists, create it and convert every PDF/PNG found in
-``snippets/`` into markdown using the Mathpix Convert API.
+For each ``{source}-{target...}`` entry folder under the samples root, writes
+``.md`` and ``.lines.json`` files under ``mathpix/``. Use those artifacts as
+Stage 1 OCR hints with ``dictextractor-extract --strategy two_stage`` and
+``--ocr-text <entry>/mathpix`` (auto-wired in ``--samples-dir`` mode).
 
 Usage:
-    python -m dictextractor.cli.run_mathpix_convert \\
+    uv run python scripts/run_mathpix_convert.py \\
         --samples-dir assets/dictionaries/samples-2
 
 Environment variables ``MATHPIX_APP_ID`` and ``MATHPIX_APP_KEY`` must be set
@@ -29,12 +30,8 @@ from dictextractor.ocr.vlm.page_inputs import list_snippet_pages
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SAMPLES_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "assets"
-    / "dictionaries"
-    / "samples-2"
-)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SAMPLES_DIR = REPO_ROOT / "assets" / "dictionaries" / "samples-2"
 
 
 def iter_entry_folders(samples_dir: Path) -> list[Path]:

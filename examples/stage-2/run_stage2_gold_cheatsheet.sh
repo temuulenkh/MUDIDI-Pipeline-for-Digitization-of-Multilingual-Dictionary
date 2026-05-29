@@ -138,7 +138,6 @@ for row in "${BEST_ROWS[@]}"; do
 
     run_stage2 \
         --strategy two_stage --stage 2 \
-        --stage2-mode direct_mdf \
         --model "${model}" \
         --stage2-reasoning high \
         --samples-dir "${SAMPLES_DIR}" \

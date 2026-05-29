@@ -118,7 +118,7 @@ run_mathpix_convert_for_lang() {
 
     echo ""
     echo " Mathpix convert: ${lang}"
-    if ! uv run dictextractor-mathpix-convert \
+    if ! uv run python scripts/run_mathpix_convert.py \
         --samples-dir "${SAMPLES_DIR}" \
         --languages "${lang}" \
         "${mathpix_convert_extra[@]}"; then

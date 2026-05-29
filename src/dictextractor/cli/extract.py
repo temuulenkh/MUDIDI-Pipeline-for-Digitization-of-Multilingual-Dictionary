@@ -14,18 +14,12 @@ from typing import Any, Dict, List, Optional, Tuple
 from dictextractor.ocr.mathpix import MathpixBackend
 from dictextractor.ocr.vlm.prompts import find_ocr_hint_file
 from dictextractor.schemas.ocr_result import OCRPageResult
-from dictextractor.extraction.llm_manual import ManualLLMExtraction
-from dictextractor.extraction.llm_join import JoinLLMExtraction
 from dictextractor.extraction.llm_two_stage import TwoStageLLMExtraction
 from dictextractor.extraction.sample_entry import (
     configure_sample_entry_args,
     report_entry_input_failures,
     stage1_context_inputs_apply,
     validate_configured_sample_entry,
-)
-from dictextractor.extraction.mathpix_ocr import (
-    run_mathpix_ocr_batch,
-    run_mathpix_ocr_entry,
 )
 from dictextractor.extraction.vlm_ocr import run_vlm_ocr_batch, run_vlm_ocr_entry
 from dictextractor.ocr.vlm.registry import get_vlm_spec, list_vlm_keys
@@ -34,7 +28,6 @@ from dictextractor.utils.dictionary_languages import (
     config_to_yaml_dict,
     load_dictionary_languages,
 )
-from dictextractor.utils.io import save_stage2_outputs, save_to_json, json_to_tsv
 from dictextractor.utils.stage2_direct_mdf_io import save_direct_mdf_outputs
 from dictextractor.utils.stage1_input import (
     resolve_stage1_transcript_for_stage2,
@@ -47,6 +40,7 @@ from dictextractor.utils.stage1_input import (
     stage1_transcript_kind,
 )
 from dictextractor.utils.stage2_page_selection import select_one_stage2_page
+from dictextractor.llm.prompt_store import configure_prompts, default_prompts_path
 
 _DEFAULT_METADATA_CSV = (
     Path(__file__).resolve().parents[3]
@@ -91,12 +85,10 @@ def _resolve_entry_dir(
 
 
 _STRATEGIES = {
-    "manual": ManualLLMExtraction,
-    "join": JoinLLMExtraction,
     "two_stage": TwoStageLLMExtraction,
 }
 
-_STRATEGY_CHOICES = list(_STRATEGIES.keys()) + ["vlm_ocr", "mathpix_ocr"]
+_STRATEGY_CHOICES = list(_STRATEGIES.keys()) + ["vlm_ocr"]
 
 _IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 _PDF_EXTS = {".pdf"}
@@ -108,9 +100,9 @@ _TEXT_EXTS = {".txt", ".md", ".docx"}
 from dictextractor.utils.pdf_render import needs_pdf_rasterization, render_pdf_pages
 
 
-def _needs_pdf_rasterization(model: str, preprocess: bool) -> bool:
+def _needs_pdf_rasterization(model: str) -> bool:
     """Return True when PDF inputs must be rendered to PNG before LLM calls."""
-    return needs_pdf_rasterization(model, preprocess=preprocess)
+    return needs_pdf_rasterization(model)
 
 
 def _render_pdf_pages(pdf_path: Path, cache_dir: Path, dpi: int = 200) -> List[Path]:
@@ -124,7 +116,7 @@ def _materialize_page_inputs(
     """Return sorted page input paths from ``input_dir``.
 
     When ``render_pdfs`` is True, PDFs are rasterized to PNG in ``cache_dir``.
-    Required for cv2 preprocessing and for VLMs that only accept raster images
+    Required for VLMs that only accept raster images
     (e.g. OpenRouter/Parasail). When False, PDFs pass through as
     ``application/pdf`` inline data (Gemini-only path).
     """
@@ -201,22 +193,6 @@ def _build_ocr_result(image_path: str, ocr_file: Optional[Path]) -> OCRPageResul
     if ocr_file:
         return MathpixBackend().run(image_path, ocr_file=str(ocr_file))
     return OCRPageResult(source_image=image_path, backend="none", blocks=[])
-
-
-def _apply_preprocessing(image_path: str, enabled: bool, preprocess_dir: Path) -> str:
-    """Run the full cv2 preprocessing pipeline when enabled; otherwise no-op."""
-    if not enabled:
-        return image_path
-    from dictextractor.preprocessing.preprocess import DictionaryPreprocessor
-
-    preprocessor = DictionaryPreprocessor(image_path, output_dir=str(preprocess_dir))
-    preprocessor.step1_convert_to_grayscale()
-    preprocessor.step2_deskew()
-    preprocessor.step3_denoise()
-    preprocessor.step4_contrast_normalization()
-    preprocessor.step5_sharpen()
-    out = preprocess_dir / f"preprocessed_{Path(image_path).name}"
-    return preprocessor.save_result(str(out))
 
 
 _IMAGE_ALPHABET_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
@@ -371,8 +347,7 @@ def _build_stage1_manifest(
         "git_sha": _git_short_sha(),
         "model": args.model,
         "reasoning_effort": args.stage1_reasoning_effort,
-        "preprocess": bool(args.preprocess),
-        "render_pdfs": _needs_pdf_rasterization(args.model, args.preprocess),
+        "render_pdfs": _needs_pdf_rasterization(args.model),
         "alphabet": _alphabet_manifest_entry(args.alphabet),
         "ocr_hint": {
             "used": bool(ocr_dir),
@@ -408,10 +383,10 @@ def _build_stage2_manifest(
         "git_sha": _git_short_sha(),
         "model": args.structure_model or args.model,
         "reasoning_effort": args.stage2_reasoning_effort,
-        "discover_extra_fields": bool(
-            getattr(args, "discover_extra_fields", False)
+        "stage2_output_format": "mdf",
+        "prompts_file": str(
+            getattr(args, "prompts_file", None) or default_prompts_path()
         ),
-        "stage2_output_format": getattr(args, "stage2_mode", "direct_mdf"),
         "stage1_input": getattr(args, "stage1_input", "auto"),
         "field_cheatsheet": str(
             output_dir
@@ -468,11 +443,7 @@ def _build_strategy(
     dictionary_languages=None,
     stage2_experiment_dir: Optional[Path] = None,
 ):
-    """Instantiate the correct extraction strategy."""
-    if args.strategy == "manual":
-        return ManualLLMExtraction(model=args.model)
-    if args.strategy == "join":
-        return JoinLLMExtraction(model=args.model)
+    """Instantiate the extraction strategy."""
     if args.strategy == "two_stage":
         return TwoStageLLMExtraction(
             transcribe_model=args.model,
@@ -480,13 +451,11 @@ def _build_strategy(
             alphabet_path=args.alphabet or None,
             intro_text=intro_text,
             intro_image_paths=intro_image_paths,
-            discover_extra_fields=getattr(args, "discover_extra_fields", False),
             stage1_reasoning_effort=getattr(args, "stage1_reasoning_effort", "low"),
             stage2_reasoning_effort=getattr(args, "stage2_reasoning_effort", "low"),
             stage1_guides=getattr(args, "stage1_guides_text", ""),
             stage2_guides=getattr(args, "stage2_guides_text", ""),
             stage1_mode=getattr(args, "stage1_mode", "column"),
-            stage2_mode=getattr(args, "stage2_mode", "direct_mdf"),
             dictionary_languages=dictionary_languages,
             entry_dir=str(getattr(args, "entry_dir", "") or "") or None,
             stage2_experiment_dir=(
@@ -588,8 +557,7 @@ Examples:
         choices=_STRATEGY_CHOICES,
         default="two_stage",
         help="Extraction strategy (default: two_stage). Use vlm_ocr for "
-        "specialized OCR/VLM models (MinerU, PaddleOCR-VL, GLM-OCR). "
-        "Use mathpix_ocr for pre-generated Mathpix Convert markdown under mathpix/.",
+        "specialized OCR/VLM models (MinerU, PaddleOCR-VL, GLM-OCR).",
     )
     parser.add_argument(
         "--vlm-model",
@@ -737,17 +705,8 @@ Examples:
     parser.add_argument(
         "--intro",
         help="Dictionary introduction/preface — a file (.txt/.md/.docx) or a directory. "
-        "Text files are embedded in the Stage 2 system prompt; "
-        "images are sent as vision context. Loaded once, shared across all pages.",
-    )
-    parser.add_argument(
-        "--discover-extra-fields",
-        action="store_true",
-        dest="discover_extra_fields",
-        help="Stage 2 only. Instruct the LLM to also extract any "
-        "structurally-marked fields beyond the canonical schema "
-        "(etymology, IPA, plural form, gender, register, cross-refs, etc.) "
-        "into each entry's `extra_fields` map. Off by default.",
+        "Images are sent as vision context to Stage 2 field discovery and MDF extraction. "
+        "Loaded once, shared across all pages.",
     )
     parser.add_argument(
         "--stage1-reasoning",
@@ -766,9 +725,9 @@ Examples:
         choices=["low", "medium", "high"],
         default="low",
         dest="stage2_reasoning_effort",
-        help="Reasoning effort for the Stage 2 structuring LLM call "
+        help="Reasoning effort for the Stage 2 MDF extraction LLM call "
         "(default: low). High reasoning has been observed to leak chain-of-"
-        "thought into JSON string fields on dense pages — bump only when "
+        "thought into output on dense pages — bump only when "
         "you've confirmed the leak doesn't happen for your model + pages.",
     )
     parser.add_argument(
@@ -805,8 +764,8 @@ Examples:
         default=None,
         help="Stage-2 experiment slot under outputs/stage-2/<name>/. Defaults "
         "to --experiment-name. Use a different value to sweep stage-2 "
-        "configurations (intro, structure-model, reasoning, --discover-extra-"
-        "fields, stage-2 guides) against a fixed stage-1 baseline; the "
+        "configurations (intro, structure-model, reasoning, stage-2 guides) "
+        "against a fixed stage-1 baseline; the "
         "stage-2 manifest records --experiment-name as its stage1_source.",
     )
     parser.add_argument(
@@ -843,17 +802,6 @@ Examples:
         "ignores --intro.",
     )
 
-    # Preprocessing — off by default. When on, PDFs are rendered to PNG first
-    # (cv2 can't read PDFs); when off, PDFs flow straight to the LLM as
-    # application/pdf inline data.
-    parser.add_argument(
-        "--preprocess",
-        action="store_true",
-        help="Enable the full cv2 preprocessing pipeline "
-        "(grayscale → deskew → denoise → contrast → sharpen). Off by default.",
-    )
-
-    # Batch control
     parser.add_argument(
         "--limit",
         type=int,
@@ -897,12 +845,12 @@ Examples:
         "column TSV (default) or flat text (eval-flat).",
     )
     parser.add_argument(
-        "--stage2-mode",
-        choices=["schema", "direct_mdf"],
-        default="direct_mdf",
-        dest="stage2_mode",
-        help="Stage 2 output mode: two-pass direct MDF (marker cheat sheet + MDF text, "
-        "default) or legacy structured JSON schema.",
+        "--prompts-file",
+        type=Path,
+        default=None,
+        dest="prompts_file",
+        help="Path to PROMPT.md containing Stage 1 and Stage 2 LLM prompts "
+        "(default: assets/PROMPT.md). Edits reload on the next LLM call.",
     )
     parser.add_argument(
         "--compare-gold",
@@ -954,9 +902,6 @@ Examples:
             parser.error("--vlm-model is required when --strategy vlm_ocr")
         if args.stage != "1":
             parser.error("--strategy vlm_ocr only supports --stage 1")
-    elif args.strategy == "mathpix_ocr":
-        if args.stage != "1":
-            parser.error("--strategy mathpix_ocr only supports --stage 1")
     elif args.vlm_model:
         parser.error("--vlm-model is only valid with --strategy vlm_ocr")
 
@@ -966,10 +911,8 @@ Examples:
         parser.error("--stage1-mode flat requires --strategy two_stage")
 
     if getattr(args, "toolbox_pdf", None):
-        if args.strategy != "two_stage" or args.stage2_mode != "direct_mdf":
-            parser.error(
-                "--toolbox-pdf requires --strategy two_stage and --stage2-mode direct_mdf"
-            )
+        if args.strategy != "two_stage":
+            parser.error("--toolbox-pdf requires --strategy two_stage")
         if not args.toolbox_pdf.is_file():
             parser.error(f"--toolbox-pdf path not found: {args.toolbox_pdf}")
 
@@ -1009,6 +952,11 @@ Examples:
             parser.error(f"--stage-2-guides path not found: {p}")
         args.stage2_guides_text = _read_text_file(p)
 
+    prompts_path = args.prompts_file or default_prompts_path()
+    if not prompts_path.is_file():
+        parser.error(f"Prompts file not found: {prompts_path}")
+    configure_prompts(prompts_path)
+
     # ── Dispatch: samples-dir batch mode vs. single-entry mode ────────────────
     if args.strategy == "vlm_ocr":
         if args.samples_dir:
@@ -1019,16 +967,6 @@ Examples:
                 "unless --samples-dir is used."
             )
         return _run_single_entry_vlm(args, parser)
-
-    if args.strategy == "mathpix_ocr":
-        if args.samples_dir:
-            return _run_samples_dir_mathpix(args, parser)
-        if not args.input_image or not args.output:
-            parser.error(
-                "--input-image and --output are required for mathpix_ocr "
-                "unless --samples-dir is used."
-            )
-        return _run_single_entry_mathpix(args, parser)
 
     if args.samples_dir:
         return _run_samples_dir(args, parser)
@@ -1054,9 +992,6 @@ def _normalize_experiment_names(args: argparse.Namespace, parser: argparse.Argum
     if args.strategy == "vlm_ocr" and names == ["default"]:
         spec = get_vlm_spec(args.vlm_model)
         names = [spec.experiment_name]
-        print(f"Using experiment slot: {names[0]}")
-    elif args.strategy == "mathpix_ocr" and names == ["default"]:
-        names = ["Mathpix-OCR"]
         print(f"Using experiment slot: {names[0]}")
 
     for name in names:
@@ -1121,55 +1056,6 @@ def _run_samples_dir_vlm(args, parser) -> int:
         f"{samples_root}"
     )
     return run_vlm_ocr_batch(args, entries)
-
-
-def _run_samples_dir_mathpix(args, parser) -> int:
-    """Batch Mathpix OCR flat export over sample entries."""
-    samples_root = Path(args.samples_dir)
-    if not samples_root.is_dir():
-        parser.error(f"--samples-dir must be a directory: {samples_root}")
-
-    try:
-        entries = _discover_sample_entries(samples_root, args.languages)
-    except ValueError as exc:
-        parser.error(str(exc))
-
-    if not entries:
-        print(f"No entry subfolders found under {samples_root}")
-        return 1
-
-    print(
-        f"Mathpix OCR batch: {len(entries)} "
-        f"entr{'y' if len(entries) == 1 else 'ies'} under {samples_root}"
-    )
-    return run_mathpix_ocr_batch(args, entries)
-
-
-def _run_single_entry_mathpix(args, parser) -> int:
-    """Run Mathpix flat export on a single entry's snippets directory."""
-    input_dir = Path(args.input_image)
-    if not input_dir.is_dir():
-        parser.error(f"--input-image must be a directory: {input_dir}")
-
-    entry_dir = Path(getattr(args, "entry_dir", None) or input_dir.parent)
-    mathpix_dir = entry_dir / "mathpix"
-    input_errors = validate_configured_sample_entry(args, entry_dir, input_dir)
-    if input_errors:
-        report_entry_input_failures(
-            entry_dir.name,
-            input_errors,
-            experiment_name=args.experiment_name,
-        )
-        return 1
-
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return run_mathpix_ocr_entry(
-        args,
-        input_dir,
-        output_dir,
-        mathpix_dir=mathpix_dir,
-    )
 
 
 def _run_single_entry_vlm(args, parser) -> int:
@@ -1294,12 +1180,11 @@ def _run_single_entry(args, parser) -> int:
         output_dir, args.experiment_name, subdir=args.stage1_output_subdir
     )
     stage2_dir = output_dir / "stage-2" / args.stage2_experiment_name
-    preprocess_dir = output_dir / ".preprocessed"
     snippets_cache_dir = output_dir / ".rendered_snippets"
     intro_cache_dir = output_dir / ".rendered_intro"
 
-    # ── Collect snippet pages (render PDFs when preprocessing or model needs PNG) ─
-    render_pdfs = _needs_pdf_rasterization(args.model, args.preprocess)
+    # ── Collect snippet pages (render PDFs when the model needs PNG) ───────────
+    render_pdfs = _needs_pdf_rasterization(args.model)
     images = _materialize_page_inputs(
         input_dir, snippets_cache_dir, render_pdfs=render_pdfs
     )
@@ -1404,7 +1289,6 @@ def _run_single_entry(args, parser) -> int:
                     )
             print(
                 f"Stage-2 slot: {args.stage2_experiment_name} | "
-                f"Mode: {args.stage2_mode} | "
                 f"Reasoning: {args.stage2_reasoning_effort}"
                 + (
                     f" | Toolbox PDF: {args.toolbox_pdf.name}"
@@ -1468,11 +1352,7 @@ def _run_single_entry(args, parser) -> int:
             stage1_done = stage1_transcript
         out_tsv = stage2_page_dir / (stem + ".tsv")
         out_mdf = stage2_page_dir / (stem + ".mdf.txt")
-        stage2_done = (
-            out_mdf
-            if getattr(args, "stage2_mode", "direct_mdf") == "direct_mdf"
-            else out_tsv
-        )
+        stage2_done = out_mdf
 
         # ── Resume: skip already-processed pages ──────────────────────────────
         if not args.overwrite:
@@ -1532,10 +1412,7 @@ def _run_single_entry(args, parser) -> int:
 
         try:
             # Preprocessing
-            preprocess_dir.mkdir(parents=True, exist_ok=True)
-            image_path = _apply_preprocessing(
-                str(image_file), args.preprocess, preprocess_dir
-            )
+            image_path = str(image_file)
 
             # OCR hint
             ocr_file = _find_ocr_file(ocr_dir, image_file.stem) if ocr_dir else None
@@ -1563,7 +1440,7 @@ def _run_single_entry(args, parser) -> int:
 
             # Save outputs (skip for stage-1-only since there are no entries)
             if args.stage != "1":
-                if args.strategy == "two_stage" and args.stage2_mode == "direct_mdf":
+                if args.strategy == "two_stage":
                     gold_path = _resolve_gold_mdf_path(
                         output_dir, stem, getattr(args, "compare_gold", None)
                     )
@@ -1581,27 +1458,6 @@ def _run_single_entry(args, parser) -> int:
                         )
                     else:
                         print(f"  → MDF saved to stage-2/{stem}/{stem}.mdf.txt")
-                elif args.strategy == "two_stage":
-                    out_json = out_tsv.with_suffix(".json")
-                    result = save_stage2_outputs(
-                        page,
-                        str(out_json),
-                        languages_config=dictionary_languages,
-                    )
-                    print(
-                        f"  → {len(page.entries)} entries saved to stage-2/{stem}/"
-                        f"{out_tsv.name} (validation "
-                        f"{'ok' if result['validation_ok'] else 'FAILED'}: "
-                        f"{result['error_count']} errors, "
-                        f"{result['warning_count']} warnings)"
-                    )
-                else:
-                    out_json = out_tsv.with_suffix(".json")
-                    save_to_json(page, str(out_json))
-                    json_to_tsv(str(out_json), str(out_tsv))
-                    print(
-                        f"  → {len(page.entries)} entries saved to stage-2/{stem}/{out_tsv.name}"
-                    )
 
             processed += 1
 

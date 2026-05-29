@@ -12,7 +12,6 @@ from dictextractor.utils.pdf_render import needs_pdf_rasterization, render_pdf_p
 def test_needs_pdf_rasterization_by_model() -> None:
     assert needs_pdf_rasterization("openrouter/openai/gpt-5.5") is True
     assert needs_pdf_rasterization("gemini/gemini-3.1-pro-preview") is False
-    assert needs_pdf_rasterization("any-model", preprocess=True) is True
 
 
 def test_render_pdf_pages_caches_png(tmp_path: Path) -> None:

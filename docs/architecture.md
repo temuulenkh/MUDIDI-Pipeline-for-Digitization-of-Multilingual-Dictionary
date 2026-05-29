@@ -50,7 +50,7 @@ Every console script is a thin argparse wrapper with **no business logic** — i
 | Script                          | Module                                      | Role                                               |
 |---------------------------------|---------------------------------------------|----------------------------------------------------|
 | `dictextractor-extract`         | `cli/extract.py`                            | Stage 1 / Stage 2 extraction (batch or single page) |
-| `dictextractor-eval-flat`       | `cli/evaluate_stage_flat.py`                | Stage 1 evaluation                                 |
+| `dictextractor-eval-flat`       | `cli/evaluate_stage1.py`                    | Stage 1 evaluation                                 |
 | `dictextractor-eval-stage2-mdf` | `cli/evaluate_stage2_mdf.py`                | Stage 2 MDF evaluation                             |
 | `dictextractor-evaluate`        | `cli/evaluate.py`                           | Legacy TSV evaluation (schema mode)                |
 | `dictextractor-mathpix-convert` | `cli/run_mathpix_convert.py`                | Mathpix Convert batch driver                       |

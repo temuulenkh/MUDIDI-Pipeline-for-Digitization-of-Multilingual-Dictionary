@@ -15,8 +15,6 @@ dependencies = [
     "pydantic",
     "python-dotenv",
     "pandas",
-    "opencv-python",
-    "matplotlib",
     "scikit-learn",
     "python-Levenshtein",
     "grapheme",
@@ -39,13 +37,8 @@ paddle = [
 
 [project.scripts]
 dictextractor-extract   = "dictextractor.cli.extract:main"
-dictextractor-evaluate  = "dictextractor.cli.evaluate:main"
-dictextractor-preprocess = "dictextractor.cli.preprocess:main"
-dictextractor-run-ocr   = "dictextractor.cli.run_ocr:main"
-dictextractor-annotate  = "dictextractor.cli.annotate:main"
-dictextractor-eval-flat = "dictextractor.cli.evaluate_stage_flat:main"
+dictextractor-eval-flat = "dictextractor.cli.evaluate_stage1:main"
 dictextractor-eval-stage2-mdf = "dictextractor.cli.evaluate_stage2_mdf:main"
-dictextractor-mathpix-convert = "dictextractor.cli.run_mathpix_convert:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dictextractor"]

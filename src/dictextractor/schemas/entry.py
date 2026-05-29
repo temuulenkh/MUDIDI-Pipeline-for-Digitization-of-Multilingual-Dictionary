@@ -1,8 +1,7 @@
 """
 Canonical Pydantic schemas for structured dictionary entries.
 
-Stage 2 uses a deliberately small ``DictionaryEntry`` surface so the LLM fills
-plain string fields. MDF export adds block grouping and language codes downstream.
+``DictionaryEntry`` supports MDF export helpers and legacy JSON/TSV tooling.
 """
 
 from typing import Dict, List, Literal, Optional
@@ -142,7 +141,7 @@ class DictionaryPage(BaseModel):
     source_file: str
     mdf_text: str = Field(
         default="",
-        description="Direct MDF output when stage2_mode=direct_mdf.",
+        description="Toolbox MDF text from Stage 2 direct MDF extraction.",
     )
 
 
@@ -190,9 +189,3 @@ class TranscriptionResponse(BaseModel):
         description="Body columns left → right; transcribe each fully top → bottom."
     )
     footer: List[str] = Field(default=[])
-
-
-class EntriesResponse(BaseModel):
-    """Stage 2 structured output — array of DictionaryEntry rows."""
-
-    entries: List[DictionaryEntry]

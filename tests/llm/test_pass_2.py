@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from dictextractor.llm.stage2_direct_mdf import build_direct_mdf_messages
+from dictextractor.llm.pass_2 import build_direct_mdf_messages
 from dictextractor.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
 
 

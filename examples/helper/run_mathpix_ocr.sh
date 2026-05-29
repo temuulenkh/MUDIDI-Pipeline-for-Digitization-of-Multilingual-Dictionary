@@ -1,1 +1,1 @@
-uv run dictextractor-mathpix-convert --samples-dir assets/dictionaries/samples-2
+uv run python scripts/run_mathpix_convert.py --samples-dir assets/dictionaries/samples-2

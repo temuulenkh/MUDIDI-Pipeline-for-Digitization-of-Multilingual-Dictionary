@@ -224,5 +224,5 @@ Use the detailed and summary CSVs for cross-configuration analysis. Each ablatio
 | Typography metrics | `evaluation/stage1/markup_quality.py` |
 | Report generation | `evaluation/stage1/stage1_reports.py` |
 | Eval cache | `evaluation/stage1/stage1_eval_cache.py` (format version **12**) |
-| CLI | `cli/evaluate_stage_flat.py` |
+| CLI | `cli/evaluate_stage1.py` |
 | Gold flattening | `evaluation/stage1/flatten.py` |

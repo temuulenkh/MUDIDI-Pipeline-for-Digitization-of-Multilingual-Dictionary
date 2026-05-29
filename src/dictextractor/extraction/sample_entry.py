@@ -18,7 +18,7 @@ _IMAGE_ALPHABET_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 def stage1_context_inputs_apply(args: Any) -> bool:
     """Return True when alphabet/OCR hint settings apply to this run."""
     strategy = getattr(args, "strategy", None)
-    if strategy in ("vlm_ocr", "mathpix_ocr"):
+    if strategy in ("vlm_ocr",):
         return True
     if strategy == "two_stage":
         return getattr(args, "stage", "both") in ("1", "both")
@@ -79,42 +79,6 @@ def validate_alphabet_file(path: Path) -> list[str]:
     return []
 
 
-def validate_mathpix_sources_for_snippets(
-    mathpix_dir: Path,
-    snippets_dir: Path,
-) -> list[str]:
-    """Return validation errors for Mathpix markdown, DOCX, or lines.json sources."""
-    if not mathpix_dir.is_dir():
-        return [f"Mathpix source directory not found: {mathpix_dir}"]
-
-    try:
-        snippets = list_snippet_pages(snippets_dir)
-    except FileNotFoundError as exc:
-        return [str(exc)]
-
-    errors: list[str] = []
-    for snippet in snippets:
-        hint = find_ocr_hint_file(mathpix_dir, snippet.stem)
-        lines_json = mathpix_dir / f"{snippet.stem}.lines.json"
-        if hint is None and not lines_json.is_file():
-            errors.append(
-                f"Mathpix source missing for {snippet.stem} "
-                f"(expected {mathpix_dir}/{snippet.stem}.{{md,docx,lines.json}})"
-            )
-            continue
-        if lines_json.is_file():
-            continue
-        if hint is not None:
-            try:
-                hint_text = load_ocr_hint_text(hint).strip()
-            except (OSError, ValueError) as exc:
-                errors.append(f"Mathpix source unreadable: {hint} ({exc})")
-                continue
-            if not hint_text:
-                errors.append(f"Mathpix source is empty: {hint}")
-    return errors
-
-
 def validate_ocr_hints_for_snippets(
     ocr_dir: Path,
     snippets_dir: Path,
@@ -150,12 +114,6 @@ def validate_configured_sample_entry(
     """Validate alphabet/OCR inputs for one entry given configured ``args``."""
     if not stage1_context_inputs_apply(args):
         return []
-
-    if getattr(args, "strategy", None) == "mathpix_ocr":
-        mathpix_dir = entry_dir / "mathpix"
-        if not mathpix_dir.is_dir():
-            return [f"Mathpix source directory not found: {mathpix_dir}"]
-        return validate_mathpix_sources_for_snippets(mathpix_dir, snippets_dir)
 
     errors: list[str] = []
     if not getattr(args, "no_alphabet", False):

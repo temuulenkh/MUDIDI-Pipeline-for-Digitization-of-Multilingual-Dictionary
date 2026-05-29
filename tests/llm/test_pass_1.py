@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.llm.field_discovery import (
+from dictextractor.llm.pass_1 import (
     load_gold_cheatsheet,
     load_or_discover_cheatsheet,
 )
@@ -60,7 +60,7 @@ def test_load_or_discover_force_refresh_overwrites_cache(
         return refreshed
 
     monkeypatch.setattr(
-        "dictextractor.llm.field_discovery.discover_field_cheatsheet",
+        "dictextractor.llm.pass_1.discover_field_cheatsheet",
         _fake_discover,
     )
 

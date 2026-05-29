@@ -14,61 +14,21 @@ from pathlib import Path
 from typing import List, Optional
 
 from dictextractor.llm.client import complete
-from dictextractor.llm.mdf_marker_reference import MDF_MARKER_REFERENCE
+from dictextractor.llm.prompt_store import get_prompt_store
 from dictextractor.schemas.dictionary_languages import DictionaryLanguagesConfig
 from dictextractor.schemas.field_cheatsheet import DictionaryMarkerCheatsheet
 from dictextractor.utils.image import image_data_url, resolve_mime_type
 
 logger = logging.getLogger(__name__)
 
-DISCOVERY_SYSTEM = f"""\
-You analyse dictionary front matter and a sample page to list which SIL Toolbox MDF
-markers this dictionary uses and how entries are structured.
 
-Output a single JSON object — NOT a full typography map. For each marker that appears
-in this dictionary, give a one-line description (role + language tier). Add structure
-rules for entry boundaries (homographs, senses, subentries, gloss lines).
-
-Use MDF marker codes from the reference below. Pick gloss/usage/definition tiers to
-match the dictionary's target languages (e=English, n=national, r=regional, v=vernacular).
-Do NOT assign English-tier markers (ge, de, ue) when the dictionary has no English target.
-
-{MDF_MARKER_REFERENCE}
-"""
-
-DISCOVERY_USER_TEMPLATE = """\
-Study this dictionary and return a marker cheat sheet JSON object.
-
-Inputs:
-1. Introduction pages (images below).
-2. One sample dictionary page (image + flat transcription).
-{config_hint}
-
-Return JSON with this shape:
-{{
-  "dictionary_name": "short name",
-  "markers": [
-    {{"marker": "lx", "description": "headword / lexeme (vernacular lemma)"}},
-    {{"marker": "gn", "description": "Russian gloss / translation"}},
-    {{"marker": "un", "description": "usage note (parenthetical Russian expansion)"}}
-  ],
-  "rules": [
-    "Separate homograph mains: two \\\\lx blocks with same lemma, each with \\\\hm N.",
-    "Numbered senses: one \\\\lx, then \\\\sn 1, \\\\gn …, \\\\sn 2, \\\\gn …",
-    "Run-on sub-entries: \\\\se sub-lemma then \\\\gn … inside the same record block."
-  ],
-  "abbreviations": {{"мн.": "plural"}}
-}}
-
-Include ONLY markers that appear on the sample page or are defined in the intro.
-Omit markers not used. Keep descriptions short (one line each). Rules should cover
-entry structure and gloss-line conventions (semicolons, hyphen rejoining).
-Return JSON only — no markdown fences.
-
-<sample_transcription>
-{transcription}
-</sample_transcription>
-"""
+def discovery_system_prompt() -> str:
+    """Pass 1 field-discovery system prompt."""
+    store = get_prompt_store()
+    return store.format(
+        "stage_2_discovery_system",
+        mdf_marker_reference=store.get("mdf_marker_reference"),
+    )
 
 
 def _extract_json_object(text: str) -> dict:
@@ -104,7 +64,8 @@ def discover_field_cheatsheet(
     dictionary_name: str = "",
 ) -> DictionaryMarkerCheatsheet:
     """Pass 1: discover markers + rules for this dictionary."""
-    user_text = DISCOVERY_USER_TEMPLATE.format(
+    user_text = get_prompt_store().format(
+        "stage_2_discovery_user",
         transcription=transcription.strip(),
         config_hint=_config_hint(languages_config),
     )
@@ -127,10 +88,10 @@ def discover_field_cheatsheet(
         }
     )
     messages = [
-        {"role": "system", "content": DISCOVERY_SYSTEM},
+        {"role": "system", "content": discovery_system_prompt()},
         {"role": "user", "content": content},
     ]
-    logger.info("Field discovery: model=%s sample=%s", model, sample_image.name)
+    logger.info("Pass 1 field discovery: model=%s sample=%s", model, sample_image.name)
     raw = complete(model=model, messages=messages, reasoning_effort=reasoning_effort)  # type: ignore[arg-type]
     data = _extract_json_object(raw)
     sheet = DictionaryMarkerCheatsheet.model_validate(data)

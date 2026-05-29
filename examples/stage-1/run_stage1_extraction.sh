@@ -144,51 +144,9 @@ run_qwen3vl_flat() {
 run_qwen3vl_flat --experiment-name qwen3vl235_flat_alpha
 run_qwen3vl_flat --no-alphabet --experiment-name qwen3vl235_flat_noalpha
 
-### Mathpix-OCR experiment (API convert → markdown + flat via markdown_to_flat) ###
-run_mathpix() {
-    local lang
-    local -a mathpix_convert_extra=()
-    local arg
-    for arg in "${EXTRACT_EXTRA_ARGS[@]}"; do
-        if [[ "${arg}" == "--overwrite" ]]; then
-            mathpix_convert_extra+=(--overwrite-files --force)
-        fi
-    done
-
-    echo ""
-    echo "============================================================"
-    echo " Mathpix OCR: Mathpix-OCR (--strategy mathpix_ocr)"
-    echo "  convert: snippets/*.{pdf,png,...} → mathpix/{stem}.md + {stem}.lines.json"
-    echo "  extract: mathpix/*.md → stage-1/Mathpix-OCR/{stem}/output.md + *_stage1_flat.txt"
-    echo "============================================================"
-
-    for lang in "${LANGUAGES[@]}"; do
-        echo ""
-        echo "------------------------------------------------------------"
-        echo " Mathpix-OCR: ${lang}"
-        echo "------------------------------------------------------------"
-        if ! uv run dictextractor-mathpix-convert \
-            --samples-dir "${SAMPLES_DIR}" \
-            --languages "${lang}" \
-            "${mathpix_convert_extra[@]}"; then
-            echo "WARNING: Mathpix convert failed for ${lang}; skipping extract." >&2
-            continue
-        fi
-        if ! uv run dictextractor-extract \
-            --strategy mathpix_ocr \
-            --samples-dir "${SAMPLES_DIR}" \
-            --stage 1 \
-            --no-ocr-hint \
-            --no-alphabet \
-            --experiment-name Mathpix-OCR \
-            --languages "${lang}" \
-            "${EXTRACT_EXTRA_ARGS[@]}"; then
-            echo "WARNING: Mathpix-OCR failed for ${lang}; continuing." >&2
-        fi
-    done
-}
-
-run_mathpix
+# Mathpix Convert (optional prep for OCR-hint LLM runs):
+#   uv run python scripts/run_mathpix_convert.py --samples-dir "${SAMPLES_DIR}"
+# OCR-hint sweeps: examples/stage-1/run_stage1_per_lang_best_flat_alpha_ocr.sh
 
 ### VLM OCR (separate venvs per model — outputs are flat via vlm_ocr adapter) ###
 

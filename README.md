@@ -68,13 +68,12 @@ Both stage scripts are the canonical entry points used to produce all numbers in
 ```
 src/dictextractor/
     cli/                # argparse entry points (registered as console scripts)
-    extraction/         # Extraction strategies — manual, join, two_stage, vlm_ocr, mathpix_ocr
+    extraction/         # Extraction strategies — two_stage, vlm_ocr
     llm/                # litellm client, prompts, Pass 1 discovery, Pass 2 direct-MDF
     ocr/                # OCR backends: mathpix, mathpix_convert, paddle, vlm/
     ocr/adapters/       # OCR layout → flat .txt adapter (frozen v1)
     ocr/vlm/            # MinerU / PaddleOCR-VL / GLM-OCR runners + prompts
     schemas/            # Pydantic models (entry, field_cheatsheet, field_map, …)
-    preprocessing/      # cv2 page preprocessing (optional)
     evaluation/
         stage1/         # Flat eval: TextEdit, GCER, WER, Markup F1, ReadOrderEdit
         stage2/         # MDF eval: Record Accuracy, MDF Fields F1, ReadOrderEdit
@@ -102,13 +101,10 @@ All entry points are registered as console scripts (run with `uv run <name>`):
 | Console script                  | Module                                     | Purpose                                                 |
 |---------------------------------|--------------------------------------------|---------------------------------------------------------|
 | `dictextractor-extract`         | `dictextractor.cli.extract`                | Run extraction (Stage 1, Stage 2, or both) — batch or single page |
-| `dictextractor-eval-flat`       | `dictextractor.cli.evaluate_stage_flat`    | Stage 1 flat transcription evaluation                   |
+| `dictextractor-eval-flat`       | `dictextractor.cli.evaluate_stage1`        | Stage 1 flat transcription evaluation                   |
 | `dictextractor-eval-stage2-mdf` | `dictextractor.cli.evaluate_stage2_mdf`    | Stage 2 MDF evaluation                                  |
-| `dictextractor-evaluate`        | `dictextractor.cli.evaluate`               | Legacy Stage 2 TSV evaluation (schema mode)             |
-| `dictextractor-mathpix-convert` | `dictextractor.cli.run_mathpix_convert`    | Batch OCR via Mathpix Convert API                       |
-| `dictextractor-run-ocr`         | `dictextractor.cli.run_ocr`                | Run a chosen OCR backend stand-alone                    |
-| `dictextractor-preprocess`      | `dictextractor.cli.preprocess`             | Stand-alone cv2 image preprocessing                     |
-| `dictextractor-annotate`        | `dictextractor.cli.annotate`               | Visualise OCR block geometry on a page image            |
+
+Standalone scripts under `scripts/` include `run_mathpix_convert.py` (Mathpix Convert API batch driver; feeds Stage 1 OCR hints).
 
 Pass `--help` to any of them for full options.
 
@@ -124,7 +120,7 @@ Stage 1 produces a faithful, markup-preserving transcription of each page. Three
 | **Open-weights VLM**       | Qwen3-VL-235B-A22B-Instruct                   | yes                 | yes           | yes      |
 | **Specialised document VLM** | MinerU 2.5 Pro, PaddleOCR-VL 1.5             | no                  | —             | —        |
 | **Specialised document VLM** | GLM-OCR                                      | yes                 | yes           | —        |
-| **Commercial OCR**         | Mathpix Convert                               | no                  | —             | —        |
+| **Commercial OCR (hint)**  | Mathpix Convert → `--ocr-text` / auto `mathpix/` | no               | —             | yes      |
 
 Entry point: [`examples/stage-1/run_stage1_extraction.sh`](examples/stage-1/run_stage1_extraction.sh).
 
@@ -132,7 +128,7 @@ Key flags exposed by `dictextractor-extract`:
 
 - `--strategy two_stage --stage 1 --stage1-mode flat` — flat transcription pass.
 - `--strategy vlm_ocr --vlm-model {mineru2.5-pro|paddleocr-vl-1.5|glm-ocr}` — specialised VLM run (uses isolated venvs from `examples/helper/install_models_venv.sh`).
-- `--strategy mathpix_ocr` — commercial OCR baseline (requires Mathpix credentials).
+- `--ocr-text <entry>/mathpix` — Mathpix OCR hint (auto-wired in `--samples-dir` mode when `mathpix/` exists; run `scripts/run_mathpix_convert.py` first).
 - `--no-alphabet` / `--no-ocr-hint` — ablation knobs.
 - `--experiment-name <name>` — independent output slot under `outputs/stage-1/<name>/`. Each slot keeps its own `run_config.json` capturing the full configuration.
 
@@ -153,7 +149,7 @@ Stage 1 metrics: [`docs/stage_1_evaluation_metrics.md`](docs/stage_1_evaluation_
 
 ## Stage 2 — direct MDF
 
-Stage 2 turns a gold (or predicted) Stage-1 transcript into Toolbox **MDF** lexicon records. The default pipeline (`--stage2-mode direct_mdf`) runs in two passes:
+Stage 2 turns a gold (or predicted) Stage-1 transcript into Toolbox **MDF** lexicon records. The pipeline runs in two passes:
 
 1. **Pass 1 — field discovery** (once per dictionary): the LLM reads the dictionary introduction and one sample page and emits a `field_cheatsheet.json` that lists which MDF markers this dictionary uses and how entries are structured. Cached under `outputs/stage-2/<experiment>/field_cheatsheet.json`.
 2. **Pass 2 — page extraction** (per page): the LLM copies vernacular and gloss characters verbatim from the Stage-1 transcript and emits blank-line-delimited Toolbox MDF using the markers from the cheat sheet. Image + introduction are used **only** for entry boundaries and marker assignment.
@@ -162,8 +158,7 @@ Entry point: [`examples/stage-2/run_stage2_extraction.sh`](examples/stage-2/run_
 
 Key flags:
 
-- `--stage2-mode direct_mdf` — emit `*.mdf.txt` (default).
-- `--stage2-mode schema` — legacy JSON/TSV output (canonical `DictionaryEntry`).
+- `--prompts-file assets/PROMPT.md` — Stage 1 and Stage 2 LLM prompts (edit during inference; reloads on next call).
 - `--no-intro` — withhold the dictionary introduction from both passes.
 - `--toolbox-pdf "Pages from ToolboxReferenceManual.pdf"` — attach the SIL Toolbox MDF manual in Pass 2 only.
 - `--stage1-input flat|column|auto` — choose the Stage 1 transcript source. The paper uses `--stage1-input flat` against `stage-1-gold/` to isolate parsing from OCR error.

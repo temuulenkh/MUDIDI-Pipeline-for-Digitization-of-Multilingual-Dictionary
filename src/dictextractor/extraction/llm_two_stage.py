@@ -8,10 +8,10 @@ Stage 1 — Transcription  (low/minimal reasoning, structured output)
   Task   : Faithfully reproduce every character visible on the page (no interpretation).
   Output : TranscriptionResponse → list of lines → joined into plain text
 
-Stage 2 — Structuring  (high reasoning, structured output)
-  Inputs : Stage-1 transcript + dictionary intro text/images + image of the page
-  Task   : Identify entities, infer the entry structure, and map to the schema.
-  Output : EntriesResponse → List[DictionaryEntry]
+Stage 2 — Direct MDF  (two-pass within Stage 2)
+  Pass 1 : Discover MDF marker cheat sheet from intro + sample page.
+  Pass 2 : Transcribe page into Toolbox MDF text using the field map.
+  Output : MDF text on ``DictionaryPage.mdf_text``.
 
 Reasoning budget rationale
 --------------------------
@@ -19,19 +19,15 @@ Stage 1 is a copying/transcription task — creativity and inference are harmful
   → reasoning_effort="low"  (maps to thinking_level: low on Gemini 3)
 
 Stage 2 requires understanding multi-column layouts, abbreviations, cross-references,
-and mapping ambiguous text spans to typed schema fields.
-  → reasoning_effort="medium" by default (maps to thinking_level: medium on Gemini 3).
-  Tunable via the strategy ctor / CLI: too-high reasoning has been observed to
-  leak chain-of-thought into JSON string fields under structured output, so we
-  default to medium and only bump up explicitly when needed.
+and mapping text spans to MDF marker fields.
+  → reasoning_effort="low" by default; bump only when needed for your model + pages.
 
 Structured output rationale
 ---------------------------
-Both stages use response_format with a Pydantic schema enforced by the API:
-  - Stage 1: TranscriptionResponse(lines: List[str])
+Stage 1 uses response_format with a Pydantic schema enforced by the API:
+  - TranscriptionResponse / FlatTranscriptionResponse
       Forces line-by-line enumeration; structurally prevents preamble/postamble.
-  - Stage 2: EntriesResponse(entries: List[DictionaryEntry])
-      Guarantees valid JSON matching the schema; eliminates all parsing heuristics.
+Stage 2 emits free-form MDF text (Pass 2) after marker discovery (Pass 1).
 """
 
 from pathlib import Path
@@ -40,26 +36,23 @@ import json
 
 from dictextractor.evaluation.stage1.flatten import flat_transcription_to_text
 from dictextractor.extraction.base import ExtractionStrategy
-from dictextractor.llm.field_discovery import load_gold_cheatsheet, load_or_discover_cheatsheet
-from dictextractor.llm.stage2_direct_mdf import extract_direct_mdf
+from dictextractor.llm.pass_1 import load_gold_cheatsheet, load_or_discover_cheatsheet
+from dictextractor.llm.pass_2 import extract_direct_mdf
 from dictextractor.schemas.field_map import FieldMapPrompt
 from dictextractor.utils.stage1_input import read_stage1_transcript_text
 from dictextractor.schemas.dictionary_languages import DictionaryLanguagesConfig
 from dictextractor.schemas.entry import (
     DictionaryEntry,
     DictionaryPage,
-    EntriesResponse,
     FlatTranscriptionResponse,
     TranscriptionResponse,
 )
 from dictextractor.schemas.ocr_result import OCRPageResult
 from dictextractor.llm import client as llm
 from dictextractor.llm.prompts import (
-    STAGE_1_FLAT_SYSTEM,
-    STAGE_1_SYSTEM,
-    STAGE_2_SYSTEM,
+    stage_1_flat_system_prompt,
+    stage_1_system_prompt,
     stage_1_user,
-    stage_2_user,
 )
 from dictextractor.utils.image import image_data_url, resolve_mime_type
 from dictextractor.utils.io import read_docx_text
@@ -144,11 +137,11 @@ def _transcription_to_tsv(result: TranscriptionResponse) -> str:
 
 class TwoStageLLMExtraction(ExtractionStrategy):
     """
-    Two-stage strategy: Stage 1 transcribes faithfully, Stage 2 structures the result.
+    Two-stage strategy: Stage 1 transcribes faithfully, Stage 2 emits direct MDF.
 
     Args:
         transcribe_model:   Model used for Stage 1 (transcription).
-        structure_model:    Model used for Stage 2 (structuring). Defaults to transcribe_model.
+        structure_model:    Model used for Stage 2 (MDF extraction). Defaults to transcribe_model.
         alphabet_path:      Path to the alphabet file (.txt / .png / .jpg).
                             If an image, it is sent as a vision input to Stage 1.
                             If text, it is embedded in the prompt.
@@ -165,13 +158,11 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         alphabet_path: Optional[str] = None,
         intro_text: str = "",
         intro_image_paths: Optional[List[str]] = None,
-        discover_extra_fields: bool = False,
         stage1_reasoning_effort: str = "low",
         stage2_reasoning_effort: str = "low",
         stage1_guides: str = "",
         stage2_guides: str = "",
         stage1_mode: str = "column",
-        stage2_mode: str = "direct_mdf",
         dictionary_languages: Optional[DictionaryLanguagesConfig] = None,
         entry_dir: Optional[str] = None,
         stage2_experiment_dir: Optional[str] = None,
@@ -181,22 +172,16 @@ class TwoStageLLMExtraction(ExtractionStrategy):
     ):
         if stage1_mode not in ("column", "flat"):
             raise ValueError(f"stage1_mode must be 'column' or 'flat', got {stage1_mode!r}")
-        if stage2_mode not in ("schema", "direct_mdf"):
-            raise ValueError(
-                f"stage2_mode must be 'schema' or 'direct_mdf', got {stage2_mode!r}"
-            )
         self.transcribe_model = transcribe_model
         self.structure_model = structure_model or transcribe_model
         self.alphabet_path = alphabet_path
         self.intro_text = intro_text
         self.intro_image_paths = intro_image_paths or []
-        self.discover_extra_fields = discover_extra_fields
         self.stage1_reasoning_effort = stage1_reasoning_effort
         self.stage2_reasoning_effort = stage2_reasoning_effort
         self.stage1_guides = stage1_guides
         self.stage2_guides = stage2_guides
         self.stage1_mode = stage1_mode
-        self.stage2_mode = stage2_mode
         self.dictionary_languages = dictionary_languages
         self.entry_dir = Path(entry_dir) if entry_dir else None
         self.stage2_experiment_dir = (
@@ -241,7 +226,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                                  ``<...>/stage-1/<page>/<page>_stage1.tsv``). The Stage 1
                                  raw/input JSONs are written next to it.
                                  Stage-2-only reads the transcription from this path.
-            stage2_output_path:  Path for the final Stage 2 TSV (e.g.
+            stage2_output_path:  Path for the final Stage 2 artifact base (e.g.
                                  ``<...>/stage-2/<page>/<page>.tsv``). The Stage 2
                                  raw/input/usage JSONs are derived from this path's
                                  stem. If omitted, Stage 2 artifacts fall back to
@@ -291,7 +276,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                 f"({len(transcribed_text)} chars)"
             )
 
-        # ── Stage 2: structuring ───────────────────────────────────────────────
+        # ── Stage 2: direct MDF ────────────────────────────────────────────────
         stage2_base: Optional[Path] = None
         if run_stage in ("2", "both"):
             # Resolve where Stage 2 artifacts live:
@@ -306,29 +291,20 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                     + s1.suffix
                 )
 
-            print("Stage 2: Structuring transcribed text …")
-            if self.stage2_mode == "direct_mdf":
-                field_map = self._ensure_field_map(transcribed_text, image_path)
-                mdf_text, stage2_raw, stage2_usage, stage2_msgs = self._stage2_direct_mdf(
-                    transcribed_text,
-                    image_path,
-                    effective_intro,
-                    self.intro_image_paths,
-                    field_map,
-                )
-                print(f"Direct MDF ({len(mdf_text)} chars).")
-            else:
-                entries, stage2_raw, stage2_usage, stage2_msgs = self._stage2_structure(
-                    transcribed_text, image_path, effective_intro, self.intro_image_paths
-                )
-                print(f"Extracted {len(entries)} entries.")
+            print("Stage 2: Direct MDF extraction …")
+            field_map = self._ensure_field_map(transcribed_text, image_path)
+            mdf_text, stage2_raw, stage2_usage, stage2_msgs = self._stage2_direct_mdf(
+                transcribed_text,
+                image_path,
+                effective_intro,
+                self.intro_image_paths,
+                field_map,
+            )
+            print(f"Direct MDF ({len(mdf_text)} chars).")
 
             if stage2_base:
                 stage2_base.parent.mkdir(parents=True, exist_ok=True)
-                raw_ext = "txt" if self.stage2_mode == "direct_mdf" else "json"
-                raw2_path = stage2_base.with_name(
-                    stage2_base.stem + f"_stage2_raw.{raw_ext}"
-                )
+                raw2_path = stage2_base.with_name(stage2_base.stem + "_stage2_raw.txt")
                 raw2_path.write_text(stage2_raw, encoding="utf-8")
                 input2_path = stage2_base.with_name(stage2_base.stem + "_stage2_input.json")
                 input2_path.write_text(
@@ -404,7 +380,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
 
         if self.stage1_mode == "flat":
             messages = [
-                {"role": "system", "content": STAGE_1_FLAT_SYSTEM},
+                {"role": "system", "content": stage_1_flat_system_prompt()},
                 {"role": "user", "content": content},
             ]
             result, raw, usage = llm.complete_structured(
@@ -419,7 +395,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             return flat_text, raw, usage, _sanitize_messages(messages)
 
         messages = [
-            {"role": "system", "content": STAGE_1_SYSTEM},
+            {"role": "system", "content": stage_1_system_prompt()},
             {"role": "user", "content": content},
         ]
 
@@ -430,59 +406,6 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             reasoning_effort=self.stage1_reasoning_effort,
         )
         return _transcription_to_tsv(result), raw, usage, _sanitize_messages(messages)
-
-    def _stage2_structure(
-        self,
-        transcribed_text: str,
-        image_path: str,
-        intro_text: str,
-        intro_image_paths: Optional[List[str]] = None,
-    ) -> tuple[List[DictionaryEntry], str, dict, list]:
-        """
-        Call the structuring LLM (Stage 2) with structured output.
-        Returns (entries, raw_json_str, usage_dict, sanitized_messages).
-        """
-        mime = resolve_mime_type(image_path)
-        page_data_url = image_data_url(image_path, mime)
-
-        lang_block = (
-            self.dictionary_languages.format_prompt_block()
-            if self.dictionary_languages
-            else ""
-        )
-        user_text = stage_2_user(
-            transcribed_text=transcribed_text,
-            intro_text=intro_text,
-            discover_extra_fields=self.discover_extra_fields,
-            guides=self.stage2_guides,
-            dictionary_languages=lang_block,
-        )
-
-        content: list = [
-            {"type": "text", "text": user_text},
-            {"type": "image_url", "image_url": {"url": page_data_url}},
-        ]
-        for intro_img in intro_image_paths or []:
-            intro_mime = resolve_mime_type(intro_img)
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": image_data_url(intro_img, intro_mime)},
-                }
-            )
-
-        messages = [
-            {"role": "system", "content": STAGE_2_SYSTEM},
-            {"role": "user", "content": content},
-        ]
-
-        result, raw, usage = llm.complete_structured(
-            model=self.structure_model,
-            messages=messages,
-            response_schema=EntriesResponse,
-            reasoning_effort=self.stage2_reasoning_effort,
-        )
-        return result.entries, raw, usage, _sanitize_messages(messages)
 
     def _ensure_field_map(
         self,
@@ -495,7 +418,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
 
         if not self.stage2_experiment_dir:
             raise ValueError(
-                "direct_mdf stage2_mode requires stage2_experiment_dir for field map cache."
+                "Stage 2 requires stage2_experiment_dir for field map cache."
             )
 
         cache_path = self.stage2_experiment_dir / "field_cheatsheet.json"

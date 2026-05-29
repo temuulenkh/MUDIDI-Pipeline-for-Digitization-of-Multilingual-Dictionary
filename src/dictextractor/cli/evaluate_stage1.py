@@ -1,5 +1,5 @@
 """
-CLI: evaluate Stage 1 flat transcription (eval-flat).
+CLI: evaluate Stage 1 flat transcription (``evaluate_stage1`` / ``dictextractor-eval-flat``).
 
 Usage:
   uv run dictextractor-eval-flat \\
