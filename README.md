@@ -255,7 +255,7 @@ All artifacts land under `--output-dir`:
 
 ```
 output/
-├── parse-rules.json               # Stage 2 Pass 1: MDF markers + entry rules (once per dictionary)
+├── parse-rules.json               # Stage 2 Pass 1: MDF markers + entry rules (once per dictionary; review before large Pass 2 runs)
 ├── stage-1/
 │   └── page_1/
 │       ├── page_1_stage1_flat.txt     # Stage 1 transcript (one line per visible row)
@@ -348,7 +348,7 @@ Pass these on the same command line (forwarded to the extraction engine):
 | `--stage1-mode {column,flat}` | `column` | Stage 1 output format; use **`flat`** for new dictionaries |
 | `--stage1-reasoning {none,low,medium,high}` | `low` | Stage 1 reasoning effort |
 | `--stage2-reasoning {low,medium,high}` | `low` | Stage 2 reasoning effort |
-| `--toolbox-pdf PATH` | — | Attach SIL Toolbox MDF manual in Pass 2 |
+| `--toolbox-pdf PATH` | — | Optional: attach a SIL Toolbox MDF reference PDF during **Stage 2 Pass 2 only**. Full manual: [`assets/Pages from ToolboxReferenceManual.pdf`](assets/Pages%20from%20ToolboxReferenceManual.pdf) (~65 pages). Expensive at scale — see [Parse rules vs toolbox PDF](#parse-rules-vs-toolbox-pdf). |
 | `--stage-1-guides PATH` | — | Extra rules appended to Stage 1 prompt |
 | `--stage-2-guides PATH` | — | Extra rules appended to Stage 2 prompt |
 | `--overwrite` | off | Re-process pages even if output exists |
@@ -389,6 +389,38 @@ snippets/ + alphabet
 **Stage 2 Pass 1** runs once: reads the introduction + one sample page (+ `dictionary_languages.yaml` hint) and writes `parse-rules.json` (which MDF markers and entry-structure rules this dictionary uses).
 
 **Stage 2 Pass 2** runs per page: copies characters verbatim from the Stage 1 transcript and assigns MDF markers using `parse-rules.json` (introduction is not re-attached).
+
+### Parse rules vs toolbox PDF
+
+Stage 2 Pass 1 writes **`parse-rules.json`** once per dictionary run — a compact cheat sheet of which MDF markers this dictionary uses, one-line descriptions, and entry-structure rules (homographs, senses, subentries, gloss lines). Pass 2 injects that file into every page prompt as the `{field_block}`; it is **not** re-discovered per page.
+
+The repository includes the full SIL Toolbox MDF reference excerpt at [`assets/Pages from ToolboxReferenceManual.pdf`](assets/Pages%20from%20ToolboxReferenceManual.pdf) (~65 pages). Pass it with `--toolbox-pdf` during **Pass 2 only**. That can help when marker conventions are ambiguous, but on Gemini the PDF is included in **every Pass 2 API call**, so cost scales with dictionary size × manual size.
+
+**Best practice for full-dictionary inference:**
+
+1. Run Stage 2 Pass 1 once (with a representative `--parse-rules-page` and good introduction input).
+2. Open `{output_dir}/parse-rules.json` and **review it** — fix marker descriptions, add missing markers, tighten structure rules for this script and language pair.
+3. Re-run Pass 2 (`--stage 2`) **without** `--toolbox-pdf`, relying on your curated `parse-rules.json`. Pass 1 is skipped on resume when the file already exists (unless you pass `--overwrite`).
+4. Spot-check a few `stage-2/{page}/{page}.mdf.txt` outputs; edit `parse-rules.json` again if needed, then re-run failed pages with `--overwrite`.
+
+For most production runs, a well-edited `parse-rules.json` is the cost-effective substitute for attaching the toolbox manual on every page.
+
+**If you still want `--toolbox-pdf`, trim the manual first.** After Pass 1, note which markers appear in `parse-rules.json` (e.g. `\lx`, `\gn`, `\sn`, `\ps`), then extract only the relevant pages from the full PDF into a smaller file and point `--toolbox-pdf` at that subset. Any PDF path works — you do not need the full 65 pages on every call.
+
+```bash
+# Example: keep manual pages 1–12 (adjust to the sections you need)
+pdftk "assets/Pages from ToolboxReferenceManual.pdf" cat 1-12 output my-dictionary/toolbox-subset.pdf
+
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --output-dir my-dictionary/output \
+  --stage 2 \
+  --toolbox-pdf my-dictionary/toolbox-subset.pdf \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview
+```
+
+Reserve the full manual for small pilots or when Pass 2 quality still gaps after parse-rules curation and a trimmed PDF.
 
 Further detail: [`docs/stage_1_methodology.md`](docs/stage_1_methodology.md), [`docs/stage_2_methodology.md`](docs/stage_2_methodology.md).
 
@@ -673,7 +705,7 @@ The **`MDF markers for …`** block is not in `PROMPT.json` — it is built at r
 1. `[image]` previous page — inference only  
 2. `[image]` next page — inference only  
 3. `[image]` **current page**  
-4. `[image]` Toolbox PDF — only when `--toolbox-pdf` is set and the model reads PDFs; otherwise the manual text is inlined via `stage_2_toolbox_text_section` inside the text block above  
+4. `[image]` Toolbox PDF — only when `--toolbox-pdf` is set and the model reads PDFs (expensive at scale; see [Parse rules vs toolbox PDF](#parse-rules-vs-toolbox-pdf)); otherwise the manual text is inlined via `stage_2_toolbox_text_section` inside the text block above  
 
 Introduction images are **not** sent in Pass 2; conventions are captured in the Pass 1 `parse-rules.json` rendered as `{field_block}` above.
 
