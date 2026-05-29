@@ -9,7 +9,7 @@
 #
 # Evaluate preds: examples/evaluation/run_stage1_eval_flat.sh
 #
-# Extra args ("$@") go to dictextractor-extract only, e.g. --overwrite
+# Extra args ("$@") go to mudidi run (legacy extract flags), e.g. --overwrite
 
 set -euo pipefail
 
@@ -60,7 +60,7 @@ run_llm_flat() {
     local model="$1"
     local reasoning="$2"
     shift 2
-    if ! uv run dictextractor-extract \
+    if ! uv run mudidi run --benchmark \
         --strategy two_stage \
         --stage 1 \
         --stage1-mode flat \
@@ -127,7 +127,7 @@ run_openrouter_flat "${CLAUDE_OPUS47_MODEL}" \
 
 QWEN3_VL_MODEL="openrouter/qwen/qwen3-vl-235b-a22b-instruct"
 run_qwen3vl_flat() {
-    if ! uv run dictextractor-extract \
+    if ! uv run mudidi run --benchmark \
         --strategy two_stage \
         --stage 1 \
         --stage1-mode flat \
@@ -240,7 +240,7 @@ run_vlm() {
     for arg in "${experiments[@]}"; do
         experiment_args+=(--experiment-name "${arg}")
     done
-    if ! "${python}" -m dictextractor.cli.extract \
+    if ! "${python}" -m mudidi.cli.extract \
         --strategy vlm_ocr \
         --vlm-model "${key}" \
         --samples-dir "${SAMPLES_DIR}" \

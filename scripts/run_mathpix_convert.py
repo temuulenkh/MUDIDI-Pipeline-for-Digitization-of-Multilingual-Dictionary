@@ -2,7 +2,7 @@
 
 For each ``{source}-{target...}`` entry folder under the samples root, writes
 ``.md`` and ``.lines.json`` files under ``mathpix/``. Use those artifacts as
-Stage 1 OCR hints with ``dictextractor-extract --strategy two_stage`` and
+Stage 1 OCR hints with ``mudidi-extract --strategy two_stage`` and
 ``--ocr-text <entry>/mathpix`` (auto-wired in ``--samples-dir`` mode).
 
 Usage:
@@ -22,11 +22,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from dictextractor.ocr.mathpix_convert import (
+from mudidi.ocr.mathpix_convert import (
     MathpixConvertClient,
     MathpixConvertError,
 )
-from dictextractor.ocr.vlm.page_inputs import list_snippet_pages
+from mudidi.ocr.vlm.page_inputs import list_snippet_pages
 
 logger = logging.getLogger(__name__)
 

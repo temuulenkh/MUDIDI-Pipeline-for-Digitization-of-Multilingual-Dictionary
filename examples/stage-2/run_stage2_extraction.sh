@@ -47,7 +47,7 @@ LANGUAGES=(
 TOOLBOX_PDF="Pages from ToolboxReferenceManual.pdf"
 
 run_stage2() {
-    if ! uv run dictextractor-extract "$@"; then
+    if ! uv run mudidi run --benchmark "$@"; then
         echo "WARNING: stage-2 experiment failed or was skipped; continuing." >&2
     fi
 }

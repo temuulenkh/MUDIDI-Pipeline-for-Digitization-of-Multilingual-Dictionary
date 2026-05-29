@@ -68,7 +68,7 @@ QWEN3_VL_MODEL="openrouter/qwen/qwen3-vl-235b-a22b-instruct"
 OPENROUTER_STAGE1_REASONING="${OPENROUTER_STAGE1_REASONING:-low}"
 
 run_stage1() {
-    if ! uv run dictextractor-extract "$@"; then
+    if ! uv run mudidi run --benchmark "$@"; then
         echo "WARNING: stage-1 run failed or was skipped; continuing." >&2
     fi
 }

@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dictextractor"
+name = "mudidi"
 version = "0.1.0"
-description = "Experimental pipeline for extracting structured entries from scanned dictionary pages using OCR and LLMs."
+description = "Dictionary OCR and MDF extraction pipeline with benchmark and inference modes."
 requires-python = ">=3.10"
 
 dependencies = [
@@ -31,17 +31,17 @@ paddle = [
     "paddlepaddle",
     "paddleocr",
 ]
-# VLM OCR deps (torch, transformers, mineru, paddle doc-parser) are installed manually
-# into per-model venvs — see examples/helper/install_models_venv.sh and models/requirements-models.txt.
-# Not listed here: MinerU and GLM-OCR need incompatible transformers versions.
 
 [project.scripts]
-dictextractor-extract   = "dictextractor.cli.extract:main"
-dictextractor-eval-flat = "dictextractor.cli.evaluate_stage1:main"
-dictextractor-eval-stage2-mdf = "dictextractor.cli.evaluate_stage2_mdf:main"
+mudidi = "mudidi.cli.main:main"
+mudidi-eval-flat = "mudidi.cli.evaluate_stage1:main"
+mudidi-eval-stage2-mdf = "mudidi.cli.evaluate_stage2_mdf:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dictextractor"]
+packages = ["src/mudidi"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/mudidi/assets/PROMPT.json" = "mudidi/assets/PROMPT.json"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -49,7 +49,3 @@ testpaths = ["tests"]
 
 [tool.uv]
 package = true
-
-[tool.uv.sources]
-# Uncomment to pin to a local editable install during development:
-# dictextractor = { path = ".", editable = true }

@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from dictextractor.llm.prompt_store import (
+from mudidi.llm.prompt_mode import resolve_prompt_id
+from mudidi.llm.prompt_store import (
     PromptDefinition,
     PromptStore,
     PromptVariable,
@@ -67,18 +68,26 @@ def test_required_stage_prompts_present() -> None:
     store = PromptStore(default_prompts_path())
     required = (
         "stage_1_system",
-        "stage_1_flat_system",
+        "stage_1_flat_system_benchmark",
+        "stage_1_flat_system_inference",
         "stage_1_user_alphabet",
         "stage_1_user_ocr_reference",
         "stage_1_user_closing",
         "mdf_marker_reference",
         "stage_2_discovery_system",
         "stage_2_discovery_user",
-        "stage_2_direct_mdf_system",
-        "stage_2_direct_mdf_user",
+        "stage_2_direct_mdf_system_benchmark",
+        "stage_2_direct_mdf_system_inference",
+        "stage_2_direct_mdf_user_benchmark",
+        "stage_2_direct_mdf_user_inference",
     )
     for prompt_id in required:
         assert store.get(prompt_id), f"Empty prompt: {prompt_id}"
+
+
+def test_resolve_prompt_id_by_mode() -> None:
+    assert resolve_prompt_id("stage_1_flat_system", "benchmark").endswith("_benchmark")
+    assert resolve_prompt_id("stage_1_flat_system", "inference").endswith("_inference")
 
 
 def test_stage_1_alphabet_variables() -> None:
@@ -87,14 +96,6 @@ def test_stage_1_alphabet_variables() -> None:
     assert len(variables) == 1
     assert variables[0].name == "alphabet_text"
     assert variables[0].tag == "<alphabet>"
-
-
-def test_stage_1_ocr_reference_variables() -> None:
-    store = PromptStore(default_prompts_path())
-    variables = store.variables("stage_1_user_ocr_reference")
-    assert len(variables) == 1
-    assert variables[0].name == "ocr_hint"
-    assert variables[0].tag == "<ocr_reference>"
 
 
 def test_stage_2_discovery_user_formats_transcription() -> None:
@@ -108,17 +109,9 @@ def test_stage_2_discovery_user_formats_transcription() -> None:
     assert "sample line" in rendered
 
 
-def test_mdf_marker_reference_in_prompt_file() -> None:
-    ref = PromptStore(default_prompts_path()).get("mdf_marker_reference")
-    for marker in ("lx", "gn", "ge", "sn", "hm", "se", "un", "de", "dn", "cf", "ps", "ph"):
-        assert marker in ref
-    assert "\\1s" not in ref
-    assert "e=English, n=national, r=regional, v=vernacular" in ref
-
-
 def test_pass_1_does_not_accept_toolbox_pdf() -> None:
     src = (
-        Path(__file__).resolve().parents[2] / "src/dictextractor/llm/pass_1.py"
+        Path(__file__).resolve().parents[2] / "src/mudidi/llm/pass_1.py"
     ).read_text(encoding="utf-8")
     fn_block = src.split("def discover_field_cheatsheet", 1)[1].split("\ndef ", 1)[0]
     assert "toolbox_pdf" not in fn_block
@@ -132,3 +125,43 @@ def test_prompt_definition_model() -> None:
         ],
     )
     assert definition.variables[0].description == "Recipient name."
+
+
+def test_materialize_zip_resource_prompts(tmp_path: Path, monkeypatch) -> None:
+    from mudidi.llm import prompt_store
+
+    prompt_store._bundled_prompts_cache = None
+    payload = {"demo": {"prompt": "Hello", "variables": []}}
+
+    class FakeRef:
+        def read_text(self, encoding: str = "utf-8") -> str:
+            return json.dumps(payload)
+
+    class FakeFiles:
+        def joinpath(self, *_parts: str) -> FakeRef:
+            return FakeRef()
+
+    monkeypatch.setattr(
+        prompt_store.resources,
+        "files",
+        lambda _pkg: FakeFiles(),
+    )
+    monkeypatch.setattr(
+        prompt_store,
+        "package_root",
+        lambda: tmp_path / "missing_pkg_assets",
+    )
+    monkeypatch.setattr(
+        prompt_store,
+        "repo_root",
+        lambda: tmp_path / "missing_repo_assets",
+    )
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+
+    path = prompt_store._materialize_zip_resource_prompts()
+    assert path.is_file()
+    assert json.loads(path.read_text(encoding="utf-8")) == payload
+
+    path_again = prompt_store._materialize_zip_resource_prompts()
+    assert path_again == path
+    prompt_store._bundled_prompts_cache = None

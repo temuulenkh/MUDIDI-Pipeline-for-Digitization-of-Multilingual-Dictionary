@@ -1,8 +1,8 @@
-# TransLex
+# MUDIDI
 
 A two-stage framework for multilingual bilingual-dictionary digitization with vision-language models (VLMs) and large language models (LLMs).
 
-This repository accompanies the paper **"TransLex: A Two-Stage Framework for Multilingual Dictionary Digitization with Language Models"**. It contains the full benchmark pipeline, evaluation code, example shell scripts, and aggregate results used to compare specialized document VLMs (MinerU 2.5 Pro, PaddleOCR-VL 1.5, GLM-OCR), commercial OCR (Mathpix), and general-purpose LLMs (Gemini 3 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7, Qwen3-VL-235B) on **30 public-domain dictionaries** spanning **diverse writing systems** (Cuneiform, Bengali, Devanagari, Cyrillic, Arabic-based, Han, Khmer, Hebrew, Syriac, Latin, …).
+This repository implements **MUDIDI** — the benchmark pipeline, evaluation code, example shell scripts, and aggregate results from our work on multilingual dictionary digitization with language models. It compares specialized document VLMs (MinerU 2.5 Pro, PaddleOCR-VL 1.5, GLM-OCR), commercial OCR (Mathpix), and general-purpose LLMs (Gemini 3 Flash, Gemini 3.1 Pro, GPT-5.5, Claude Opus 4.7, Qwen3-VL-235B) on **30 public-domain dictionaries** spanning **diverse writing systems** (Cuneiform, Bengali, Devanagari, Cyrillic, Arabic-based, Han, Khmer, Hebrew, Syriac, Latin, …).
 
 - Stage 1 — **page transcription**: faithful Unicode + markup OCR of dictionary pages.
 - Stage 2 — **lexicographic parsing**: transcript → SIL Toolbox MDF (Multi-Dictionary Formatter) records.
@@ -59,14 +59,14 @@ bash examples/evaluation/run_stage1_eval_flat.sh         # Stage 1 evaluation
 bash examples/evaluation/run_stage2_eval_mdf.sh          # Stage 2 evaluation
 ```
 
-Both stage scripts are the canonical entry points used to produce all numbers in the paper. They drive the registered CLI `dictextractor-extract` and write per-page outputs into the samples tree under `{lang}/outputs/`.
+Both stage scripts are the canonical entry points used to produce all numbers in the paper. They drive `mudidi run --benchmark` and write per-page outputs into the samples tree under `{lang}/outputs/`.
 
 ---
 
 ## Repository layout
 
 ```
-src/dictextractor/
+src/mudidi/
     cli/                # argparse entry points (registered as console scripts)
     extraction/         # Extraction strategies — two_stage, vlm_ocr
     llm/                # litellm client, prompts, Pass 1 discovery, Pass 2 direct-MDF
@@ -96,17 +96,37 @@ assets/                 # Sample dictionaries, gold annotations (gitignored — 
 
 ## CLI reference
 
-All entry points are registered as console scripts (run with `uv run <name>`):
+Install the package (`uv sync`), then use:
 
-| Console script                  | Module                                     | Purpose                                                 |
-|---------------------------------|--------------------------------------------|---------------------------------------------------------|
-| `dictextractor-extract`         | `dictextractor.cli.extract`                | Run extraction (Stage 1, Stage 2, or both) — batch or single page |
-| `dictextractor-eval-flat`       | `dictextractor.cli.evaluate_stage1`        | Stage 1 flat transcription evaluation                   |
-| `dictextractor-eval-stage2-mdf` | `dictextractor.cli.evaluate_stage2_mdf`    | Stage 2 MDF evaluation                                  |
+```bash
+# Inference (default): explicit inputs, neighbor-page context, stage-1 → stage-2 chain
+uv run mudidi run \
+  --pages /path/to/snippets \
+  --intro /path/to/introduction \
+  --alphabet /path/to/alphabet.txt \
+  --output-dir /path/to/out \
+  --stage all \
+  --model gemini/gemini-3-flash-preview
+
+# Benchmark (paper workflow): samples tree, gold defaults, independent pages
+uv run mudidi run --benchmark \
+  --samples-dir assets/dictionaries/samples \
+  --languages Evenki-Russian \
+  --experiment-name gemini31pro_flat_alpha \
+  --stage 1 \
+  --strategy two_stage \
+  --model gemini/gemini-3-flash-preview
+```
+
+| Console script           | Purpose                                      |
+|--------------------------|----------------------------------------------|
+| `mudidi`                 | Main CLI (`run`, `eval stage1`, `eval stage2`) |
+| `mudidi-eval-flat`       | Stage 1 flat transcription evaluation        |
+| `mudidi-eval-stage2-mdf` | Stage 2 MDF evaluation                       |
 
 Standalone scripts under `scripts/` include `run_mathpix_convert.py` (Mathpix Convert API batch driver; feeds Stage 1 OCR hints).
 
-Pass `--help` to any of them for full options.
+Pass `--help` to any command for full options.
 
 ---
 
@@ -124,7 +144,7 @@ Stage 1 produces a faithful, markup-preserving transcription of each page. Three
 
 Entry point: [`examples/stage-1/run_stage1_extraction.sh`](examples/stage-1/run_stage1_extraction.sh).
 
-Key flags exposed by `dictextractor-extract`:
+Key flags exposed by `mudidi-extract`:
 
 - `--strategy two_stage --stage 1 --stage1-mode flat` — flat transcription pass.
 - `--strategy vlm_ocr --vlm-model {mineru2.5-pro|paddleocr-vl-1.5|glm-ocr}` — specialised VLM run (uses isolated venvs from `examples/helper/install_models_venv.sh`).
@@ -242,7 +262,7 @@ Human post-editing of silver-standard transcripts was driven by Label Studio; se
 ## Tooling notes
 
 - The project uses [`uv`](https://docs.astral.sh/uv/). Never invoke `pip` or run `python` directly — always go through `uv run` (registered console scripts only resolve when launched by uv).
-- LLM calls are routed through `litellm`. Provider keys are resolved by substring of the model string (`gemini` → `GEMINI_API_KEY`, `claude` → `ANTHROPIC_API_KEY` or OpenRouter, etc.). Model-family quirks are centralised in [`src/dictextractor/llm/client.py`](src/dictextractor/llm/client.py).
+- LLM calls are routed through `litellm`. Provider keys are resolved by substring of the model string (`gemini` → `GEMINI_API_KEY`, `claude` → `ANTHROPIC_API_KEY` or OpenRouter, etc.). Model-family quirks are centralised in [`src/mudidi/llm/client.py`](src/mudidi/llm/client.py).
 - Specialised VLMs run in isolated venvs (`.venv-mineru-vllm`, `.venv-paddleocr`, `.venv-glmocr`) provisioned by [`examples/helper/install_models_venv.sh`](examples/helper/install_models_venv.sh).
 - `assets/` is gitignored — sample dictionaries, gold labels, and runtime outputs are local-only.
 - Generated LaTeX tables under `examples/evaluation/*.tex` are gitignored; regenerate via the Python generators in the same folder.
@@ -254,8 +274,8 @@ Human post-editing of silver-standard transcripts was driven by Label Studio; se
 If you use this benchmark or code, please cite the paper. The citation block below is a placeholder and will be updated once the paper is published.
 
 ```bibtex
-@inproceedings{translex2026,
-  title  = {TransLex: A Two-Stage Framework for Multilingual Dictionary Digitization with Language Models},
+@inproceedings{mudidi2026,
+  title  = {MUDIDI: A Two-Stage Framework for Multilingual Dictionary Digitization with Language Models},
   author = {Anonymous},
   year   = {2026},
   note   = {Under review}

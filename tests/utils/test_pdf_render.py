@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pymupdf
 
-from dictextractor.utils.pdf_render import needs_pdf_rasterization, render_pdf_pages
+from mudidi.utils.pdf_render import needs_pdf_rasterization, render_pdf_pages
 
 
 def test_needs_pdf_rasterization_by_model() -> None:

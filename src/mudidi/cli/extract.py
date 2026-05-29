@@ -1,6 +1,6 @@
 """
 CLI: extract dictionary entries from a directory of page images.
-Usage: python -m dictextractor.cli.extract [options]
+Usage: python -m mudidi.cli.extract [options]
 """
 
 import argparse
@@ -11,25 +11,25 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from dictextractor.ocr.mathpix import MathpixBackend
-from dictextractor.ocr.vlm.prompts import find_ocr_hint_file
-from dictextractor.schemas.ocr_result import OCRPageResult
-from dictextractor.extraction.llm_two_stage import TwoStageLLMExtraction
-from dictextractor.extraction.sample_entry import (
+from mudidi.ocr.mathpix import MathpixBackend
+from mudidi.ocr.vlm.prompts import find_ocr_hint_file
+from mudidi.schemas.ocr_result import OCRPageResult
+from mudidi.extraction.llm_two_stage import TwoStageLLMExtraction
+from mudidi.extraction.sample_entry import (
     configure_sample_entry_args,
     report_entry_input_failures,
     stage1_context_inputs_apply,
     validate_configured_sample_entry,
 )
-from dictextractor.extraction.vlm_ocr import run_vlm_ocr_batch, run_vlm_ocr_entry
-from dictextractor.ocr.vlm.registry import get_vlm_spec, list_vlm_keys
-from dictextractor.ocr.vlm.runner import create_vlm_runner
-from dictextractor.utils.dictionary_languages import (
+from mudidi.extraction.vlm_ocr import run_vlm_ocr_batch, run_vlm_ocr_entry
+from mudidi.ocr.vlm.registry import get_vlm_spec, list_vlm_keys
+from mudidi.ocr.vlm.runner import create_vlm_runner
+from mudidi.utils.dictionary_languages import (
     config_to_yaml_dict,
     load_dictionary_languages,
 )
-from dictextractor.utils.stage2_direct_mdf_io import save_direct_mdf_outputs
-from dictextractor.utils.stage1_input import (
+from mudidi.utils.stage2_direct_mdf_io import save_direct_mdf_outputs
+from mudidi.utils.stage1_input import (
     resolve_stage1_transcript_for_stage2,
     stage1_experiment_dir,
     stage1_flat_path,
@@ -39,8 +39,12 @@ from dictextractor.utils.stage1_input import (
     stage1_tsv_path,
     stage1_transcript_kind,
 )
-from dictextractor.utils.stage2_page_selection import select_one_stage2_page
-from dictextractor.llm.prompt_store import configure_prompts, default_prompts_path
+from mudidi.utils.stage2_page_selection import select_one_stage2_page, sort_snippet_pages
+from mudidi.config.output_paths import resolve_output_layout
+from mudidi.config.run_config import RunConfig
+from mudidi.utils.page_context import resolve_page_context
+from mudidi.utils.stage1_input import read_stage1_transcript_text
+from mudidi.llm.prompt_store import configure_prompts, default_prompts_path
 
 _DEFAULT_METADATA_CSV = (
     Path(__file__).resolve().parents[3]
@@ -97,7 +101,7 @@ _TEXT_EXTS = {".txt", ".md", ".docx"}
 # Helpers
 # ---------------------------------------------------------------------------
 
-from dictextractor.utils.pdf_render import needs_pdf_rasterization, render_pdf_pages
+from mudidi.utils.pdf_render import needs_pdf_rasterization, render_pdf_pages
 
 
 def _needs_pdf_rasterization(model: str) -> bool:
@@ -132,7 +136,7 @@ def _materialize_page_inputs(
                 collected.extend(_render_pdf_pages(f, cache_dir))
             else:
                 collected.append(f)
-    return sorted(collected)
+    return sort_snippet_pages(collected)
 
 
 def _collect_intro(
@@ -177,7 +181,7 @@ def _collect_intro(
 
 def _read_text_file(path: Path) -> str:
     if path.suffix.lower() == ".docx":
-        from dictextractor.utils.io import read_docx_text
+        from mudidi.utils.io import read_docx_text
 
         return read_docx_text(str(path))
     return path.read_text(encoding="utf-8")
@@ -334,7 +338,7 @@ def _build_stage1_manifest(
     ocr_dir: Optional[Path],
 ) -> Dict[str, Any]:
     """Assemble the stage-1 manifest dict (no I/O)."""
-    from dictextractor.evaluation.stage1.flatten import FLAT_SPEC_VERSION
+    from mudidi.evaluation.stage1.flatten import FLAT_SPEC_VERSION
 
     return {
         "stage": "1",
@@ -466,6 +470,7 @@ def _build_strategy(
                 str(args.toolbox_pdf) if getattr(args, "toolbox_pdf", None) else None
             ),
             field_cheatsheet_gold=bool(getattr(args, "field_cheatsheet_gold", False)),
+            prompt_mode=getattr(args, "prompt_mode", "benchmark"),
         )
     raise ValueError(f"Unknown strategy: {args.strategy}")
 
@@ -482,7 +487,7 @@ def main():
         epilog="""
 Examples:
   # Two-stage on a directory of pages
-  python -m dictextractor.cli.extract \\
+  python -m mudidi.cli.extract \\
     --strategy two_stage \\
     --model gemini/gemini-3-flash-preview \\
     --input-image assets/pages/ \\
@@ -850,7 +855,27 @@ Examples:
         default=None,
         dest="prompts_file",
         help="Path to PROMPT.json containing Stage 1 and Stage 2 LLM prompts "
-        "(default: assets/PROMPT.json). Edits reload on the next LLM call.",
+        "(default: bundled assets/PROMPT.json). Edits reload on the next LLM call.",
+    )
+    parser.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="Benchmark mode: independent pages, gold-oriented defaults, samples layout.",
+    )
+    parser.add_argument(
+        "--pages",
+        dest="pages",
+        help="Directory of page snippets (alias for --input-image).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        dest="output_dir",
+        help="Output directory (alias for --output).",
+    )
+    parser.add_argument(
+        "--cheatsheet-page",
+        dest="cheatsheet_page",
+        help="Page stem used for Pass 1 field discovery (default: first page).",
     )
     parser.add_argument(
         "--compare-gold",
@@ -895,6 +920,16 @@ Examples:
     )
 
     args = parser.parse_args()
+
+    if getattr(args, "pages", None):
+        args.input_image = args.pages
+    if getattr(args, "output_dir", None):
+        args.output = args.output_dir
+
+    is_benchmark = bool(getattr(args, "benchmark", False) or args.samples_dir)
+    args.prompt_mode = "benchmark" if is_benchmark else "inference"
+    if not is_benchmark and args.stage in ("2", "both") and args.stage1_source == "gold":
+        args.stage1_source = "predictions"
 
     # ── VLM OCR strategy validation ───────────────────────────────────────────
     if args.strategy == "vlm_ocr":
@@ -1078,8 +1113,8 @@ def _run_single_entry_vlm(args, parser) -> int:
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    from dictextractor.ocr.vlm.paddle_genai_server import ensure_paddle_vllm_server_args
-    from dictextractor.ocr.vlm.glm_vllm_server import ensure_glm_vllm_server_args
+    from mudidi.ocr.vlm.paddle_genai_server import ensure_paddle_vllm_server_args
+    from mudidi.ocr.vlm.glm_vllm_server import ensure_glm_vllm_server_args
 
     paddle_server = None
     glm_server = None
@@ -1167,19 +1202,15 @@ def _run_single_entry(args, parser) -> int:
             return 1
 
     # ── Output dir (set up early so we can cache rendered PDF pages) ──────────
-    # Stage 1 artifacts (transcription TSV + raw/input JSONs) live under
-    # <output>/stage-1/<page>/.  Stage 2 artifacts (final TSV + JSON +
-    # raw/input/usage JSONs) live under <output>/stage-2/<page>/.
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
-    # Both stages are namespaced by experiment name so multiple ablation runs
-    # coexist without overwriting each other. Stage 2 defaults to the same
-    # slot as stage 1 but can be overridden via --stage2-experiment-name to
-    # sweep stage-2 configurations against a fixed stage-1 baseline.
-    stage1_dir = stage1_experiment_dir(
-        output_dir, args.experiment_name, subdir=args.stage1_output_subdir
+    run_config = RunConfig.from_namespace(args)
+    layout = resolve_output_layout(run_config)
+    stage1_dir = layout.stage1_root
+    stage2_dir = layout.stage2_root
+    cheatsheet_root = (
+        layout.output_dir if layout.inference else layout.stage2_root
     )
-    stage2_dir = output_dir / "stage-2" / args.stage2_experiment_name
     snippets_cache_dir = output_dir / ".rendered_snippets"
     intro_cache_dir = output_dir / ".rendered_intro"
 
@@ -1250,8 +1281,18 @@ def _run_single_entry(args, parser) -> int:
         intro_text,
         intro_image_paths,
         dictionary_languages,
-        stage2_experiment_dir=stage2_dir if args.stage in ("2", "both") else None,
+        stage2_experiment_dir=cheatsheet_root if args.stage in ("2", "both") else None,
     )
+
+    transcript_cache: dict[str, str] = {}
+
+    def _transcript_loader(stem: str) -> str:
+        if stem in transcript_cache:
+            return transcript_cache[stem]
+        flat_path = stage1_flat_path(stage1_dir / stem, stem)
+        if flat_path.is_file():
+            return read_stage1_transcript_text(flat_path)
+        return ""
 
     # ── Batch loop ─────────────────────────────────────────────────────────────
     total = len(images)
@@ -1341,6 +1382,7 @@ def _run_single_entry(args, parser) -> int:
                 source=getattr(args, "stage1_source", "gold"),
                 experiment_name=args.experiment_name,
                 stage1_output_subdir=args.stage1_output_subdir,
+                inference_layout=layout.inference,
             )
         if args.stage in ("1", "both"):
             stage1_done = (
@@ -1423,6 +1465,13 @@ def _run_single_entry(args, parser) -> int:
             # Extract
             extract_kwargs = {}
             if args.strategy == "two_stage":
+                page_context = None
+                if args.prompt_mode == "inference":
+                    page_context = resolve_page_context(
+                        images,
+                        idx,
+                        transcript_loader=_transcript_loader,
+                    )
                 if args.stage == "2":
                     extract_kwargs["stage1_output_path"] = str(stage1_transcript)
                 else:
@@ -1430,6 +1479,8 @@ def _run_single_entry(args, parser) -> int:
                 if args.stage in ("2", "both"):
                     extract_kwargs["stage2_output_path"] = str(out_tsv)
                 extract_kwargs["run_stage"] = args.stage
+                if page_context is not None:
+                    extract_kwargs["page_context"] = page_context
 
             page = strategy.extract(
                 ocr_result,
@@ -1460,6 +1511,10 @@ def _run_single_entry(args, parser) -> int:
                         print(f"  → MDF saved to stage-2/{stem}/{stem}.mdf.txt")
 
             processed += 1
+            if args.stage in ("1", "both") and args.strategy == "two_stage":
+                flat_out = stage1_flat_path(stage1_page_dir, stem)
+                if flat_out.is_file():
+                    transcript_cache[stem] = read_stage1_transcript_text(flat_out)
 
         except Exception as exc:
             print(f"  ERROR processing {image_file.name}: {exc}")

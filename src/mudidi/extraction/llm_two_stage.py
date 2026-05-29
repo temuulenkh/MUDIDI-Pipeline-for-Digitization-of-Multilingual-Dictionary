@@ -34,28 +34,30 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 import json
 
-from dictextractor.evaluation.stage1.flatten import flat_transcription_to_text
-from dictextractor.extraction.base import ExtractionStrategy
-from dictextractor.llm.pass_1 import load_gold_cheatsheet, load_or_discover_cheatsheet
-from dictextractor.llm.pass_2 import extract_direct_mdf
-from dictextractor.schemas.field_map import FieldMapPrompt
-from dictextractor.utils.stage1_input import read_stage1_transcript_text
-from dictextractor.schemas.dictionary_languages import DictionaryLanguagesConfig
-from dictextractor.schemas.entry import (
+from mudidi.evaluation.stage1.flatten import flat_transcription_to_text
+from mudidi.extraction.base import ExtractionStrategy
+from mudidi.llm.pass_1 import load_gold_cheatsheet, load_or_discover_cheatsheet
+from mudidi.llm.pass_2 import extract_direct_mdf
+from mudidi.schemas.field_map import FieldMapPrompt
+from mudidi.utils.stage1_input import read_stage1_transcript_text
+from mudidi.schemas.dictionary_languages import DictionaryLanguagesConfig
+from mudidi.schemas.entry import (
     DictionaryEntry,
     DictionaryPage,
     FlatTranscriptionResponse,
     TranscriptionResponse,
 )
-from dictextractor.schemas.ocr_result import OCRPageResult
-from dictextractor.llm import client as llm
-from dictextractor.llm.prompts import (
+from mudidi.schemas.ocr_result import OCRPageResult
+from mudidi.llm import client as llm
+from mudidi.config.run_config import PromptMode
+from mudidi.llm.prompts import (
     stage_1_flat_system_prompt,
+    stage_1_neighbor_image_urls,
     stage_1_system_prompt,
     stage_1_user,
 )
-from dictextractor.utils.image import image_data_url, resolve_mime_type
-from dictextractor.utils.io import read_docx_text
+from mudidi.utils.image import image_data_url, resolve_mime_type
+from mudidi.utils.io import read_docx_text
 
 
 def _sum_costs(c1, c2) -> Optional[float]:
@@ -169,6 +171,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         overwrite: bool = False,
         stage2_toolbox_pdf: Optional[str] = None,
         field_cheatsheet_gold: bool = False,
+        prompt_mode: PromptMode = "benchmark",
     ):
         if stage1_mode not in ("column", "flat"):
             raise ValueError(f"stage1_mode must be 'column' or 'flat', got {stage1_mode!r}")
@@ -192,6 +195,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             Path(stage2_toolbox_pdf) if stage2_toolbox_pdf else None
         )
         self.field_cheatsheet_gold = field_cheatsheet_gold
+        self.prompt_mode: PromptMode = prompt_mode
         self._field_map: Optional[FieldMapPrompt] = None
 
     @property
@@ -211,6 +215,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         stage1_output_path: Optional[str] = None,
         stage2_output_path: Optional[str] = None,
         run_stage: str = "both",
+        page_context: PageContext | None = None,
         **kwargs,
     ) -> DictionaryPage:
         """
@@ -246,7 +251,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             print("=" * 60)
             print("Stage 1: Transcribing page image …")
             transcribed_text, stage1_raw, stage1_usage, stage1_msgs = (
-                self._stage1_transcribe(ocr_result, image_path)
+                self._stage1_transcribe(ocr_result, image_path, page_context=page_context)
             )
             print(
                 f"Transcription ({len(transcribed_text)} chars):\n{transcribed_text[:500]}…\n"
@@ -299,6 +304,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                 effective_intro,
                 self.intro_image_paths,
                 field_map,
+                page_context=page_context,
             )
             print(f"Direct MDF ({len(mdf_text)} chars).")
 
@@ -353,7 +359,11 @@ class TwoStageLLMExtraction(ExtractionStrategy):
     # ------------------------------------------------------------------
 
     def _stage1_transcribe(
-        self, ocr_result: OCRPageResult, image_path: str
+        self,
+        ocr_result: OCRPageResult,
+        image_path: str,
+        *,
+        page_context: PageContext | None = None,
     ) -> tuple[str, str, dict, list]:
         """
         Call the transcription LLM (Stage 1) with structured output.
@@ -372,6 +382,9 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         )
 
         content: list = [{"type": "text", "text": user_text}]
+        if self.prompt_mode == "inference" and page_context is not None:
+            for url in stage_1_neighbor_image_urls(page_context):
+                content.append({"type": "image_url", "image_url": {"url": url}})
         if alphabet_image_url:
             content.append(
                 {"type": "image_url", "image_url": {"url": alphabet_image_url}}
@@ -380,7 +393,13 @@ class TwoStageLLMExtraction(ExtractionStrategy):
 
         if self.stage1_mode == "flat":
             messages = [
-                {"role": "system", "content": stage_1_flat_system_prompt()},
+                {
+                    "role": "system",
+                    "content": stage_1_flat_system_prompt(
+                        mode=self.prompt_mode,
+                        page_context=page_context,
+                    ),
+                },
                 {"role": "user", "content": content},
             ]
             result, raw, usage = llm.complete_structured(
@@ -395,7 +414,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             return flat_text, raw, usage, _sanitize_messages(messages)
 
         messages = [
-            {"role": "system", "content": stage_1_system_prompt()},
+            {"role": "system", "content": stage_1_system_prompt(mode=self.prompt_mode)},
             {"role": "user", "content": content},
         ]
 
@@ -464,6 +483,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         intro_text: str,
         intro_image_paths: Optional[List[str]],
         field_map: FieldMapPrompt,
+        page_context: PageContext | None = None,
     ) -> tuple[str, str, dict, list]:
         """Pass 2: direct MDF extraction using a field map."""
         del intro_text  # intro images carry layout context; text unused here
@@ -476,6 +496,8 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             reasoning_effort=self.stage2_reasoning_effort,
             guides=self.stage2_guides,
             toolbox_pdf=self.stage2_toolbox_pdf,
+            mode=self.prompt_mode,
+            page_context=page_context,
         )
         return mdf_text, raw, usage, _sanitize_messages(messages)
 

@@ -31,7 +31,7 @@ LANGUAGES=(
 )
 
 run_stage2() {
-    if ! uv run dictextractor-extract "$@"; then
+    if ! uv run mudidi run --benchmark "$@"; then
         echo "WARNING: stage-2 gold-cheat run failed or was skipped; continuing." >&2
     fi
 }
