@@ -11,7 +11,79 @@ This README focuses on **running the pipeline on a new dictionary**. Benchmark a
 
 ---
 
+## Prerequisites
+
+Install the tools below **before** cloning the repo. MUDIDI uses [uv](https://docs.astral.sh/uv/) to create a project virtualenv (`.venv/`) and install locked Python dependencies — you do not need to run `pip install` yourself.
+
+### Supported platforms
+
+| Platform | Support |
+|----------|---------|
+| **Linux** | Fully supported — primary development and HPC target. |
+| **macOS** | Fully supported — same workflow as Linux. |
+| **Windows** | Use **[WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)** (Ubuntu recommended), then follow the **Linux** steps below. Native Windows (PowerShell / cmd) is not supported. |
+
+**Windows users:** install WSL2, open an Ubuntu terminal, and treat your machine as Linux for everything in this README — prerequisites, install, `uv sync`, bash scripts under `examples/`, and `pdftk`. No separate Windows commands are required.
+
+Minimal WSL setup (run once in **PowerShell as Administrator** on Windows):
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Restart if prompted, launch **Ubuntu** from the Start menu, then continue with the Linux instructions below. Clone the repo inside your WSL home directory (e.g. `~/MUDIDI`) or under `/mnt/c/...` if you prefer files on the Windows drive — both work; WSL home is usually faster for Python tooling.
+
+### Git
+
+Required to clone the repository.
+
+| Platform | Install |
+|----------|---------|
+| **Linux / WSL** | `sudo apt install git` (Debian/Ubuntu), `sudo dnf install git` (Fedora/RHEL), or your distro’s package manager |
+| **macOS** | [Xcode Command Line Tools](https://developer.apple.com/xcode/resources/) (`xcode-select --install`) or `brew install git` |
+
+### uv
+
+Required. uv manages Python and project dependencies.
+
+| Platform | Install |
+|----------|---------|
+| **Linux / WSL** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| **macOS** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` — or `brew install uv` |
+
+After installing, open a **new** terminal and confirm:
+
+```bash
+uv --version
+```
+
+**Python 3.10+** is required (`pyproject.toml`). You usually do not need to install Python separately — on first `uv sync`, uv uses a suitable interpreter on your `PATH` or downloads one automatically.
+
+You also need **network access** for the first `uv sync` (packages are downloaded into uv’s cache, then installed into `.venv/`).
+
+### pdftk (conditional)
+
+**Only required when `--pages` points to a PDF file** — MUDIDI uses pdftk to split multi-page PDFs into single-page inputs. If you use a **snippets directory** of per-page images (`.png`, `.jpg`, …), you can skip pdftk.
+
+Install pdftk and ensure `pdftk` is on your `PATH`:
+
+| Platform | Install |
+|----------|---------|
+| **Linux / WSL** (Debian/Ubuntu) | `sudo apt install pdftk-java` |
+| **Linux** (Fedora/RHEL) | `sudo dnf install pdftk-java` |
+| **macOS** | `brew install pdftk-java` |
+
+Verify:
+
+```bash
+pdftk --version
+```
+
+---
+
 ## Install
+
+Same steps on **Linux, WSL, and macOS**:
 
 ```bash
 git clone <repo-url> && cd MUDIDI
@@ -133,7 +205,7 @@ Do **not** pass `--intro` when using a PDF — introduction pages are selected w
 
 Split pages are cached under `{output_dir}/.rendered_snippets/split/` (dictionary) and `{output_dir}/.rendered_intro/split/` (introduction) as `page_{N}.pdf`. Re-runs reuse cached splits unless you pass `--overwrite`.
 
-**pdftk install:** `apt install pdftk-java`, `brew install pdftk-java`, or your distro’s equivalent.
+**pdftk:** required for this workflow — see [pdftk (conditional)](#pdftk-conditional) under Prerequisites.
 
 ---
 
