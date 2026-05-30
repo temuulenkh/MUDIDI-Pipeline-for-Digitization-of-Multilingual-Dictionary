@@ -44,6 +44,10 @@ from mudidi.utils.stage2_page_selection import select_one_stage2_page, sort_snip
 from mudidi.config.output_paths import resolve_output_layout
 from mudidi.config.run_config import RunConfig
 from mudidi.utils.page_context import resolve_page_context
+from mudidi.utils.parse_rules_pages import (
+    normalize_parse_rules_page_stems,
+    resolve_parse_rules_sample_images,
+)
 from mudidi.utils.pdf_split import extract_pdf_pages, parse_page_spec
 from mudidi.utils.stage1_input import read_stage1_transcript_text
 from mudidi.llm.prompt_store import configure_prompts, default_prompts_path
@@ -528,6 +532,7 @@ def _build_strategy(
     intro_image_paths: List[str],
     dictionary_languages=None,
     stage2_experiment_dir: Optional[Path] = None,
+    parse_rules_samples: Optional[List[tuple[str, str, str]]] = None,
 ):
     """Instantiate the extraction strategy."""
     if args.strategy == "two_stage":
@@ -555,9 +560,87 @@ def _build_strategy(
                 getattr(args, "parse_rules_gold", False)
                 or getattr(args, "field_cheatsheet_gold", False)
             ),
+            parse_rules_file=(
+                str(args.parse_rules_file)
+                if getattr(args, "parse_rules_file", None)
+                else None
+            ),
+            parse_rules_samples=parse_rules_samples,
             prompt_mode=getattr(args, "prompt_mode", "benchmark"),
         )
     raise ValueError(f"Unknown strategy: {args.strategy}")
+
+
+def _stage1_transcript_path_for_stem(
+    stage1_dir: Path,
+    stem: str,
+    *,
+    stage1_mode: str,
+) -> Path:
+    page_dir = stage1_dir / stem
+    if stage1_mode == "flat":
+        return stage1_flat_path(page_dir, stem)
+    return stage1_tsv_path(page_dir, stem)
+
+
+def _prepare_parse_rules_samples(
+    args,
+    images: List[Path],
+    stage1_dir: Path,
+    output_dir: Path,
+    *,
+    layout,
+    strategy: TwoStageLLMExtraction,
+    ocr_dir: Optional[Path],
+) -> List[tuple[str, str, str]]:
+    """Ensure Stage 1 transcripts exist for Pass 1 sample page(s)."""
+    stems = normalize_parse_rules_page_stems(getattr(args, "parse_rules_pages", None))
+    sample_images = resolve_parse_rules_sample_images(images, stems)
+    samples: List[tuple[str, str, str]] = []
+    stage1_mode = getattr(args, "stage1_mode", "column")
+
+    for page_index, image_file in enumerate(sample_images):
+        stem = image_file.stem
+        stage1_out = _stage1_transcript_path_for_stem(
+            stage1_dir, stem, stage1_mode=stage1_mode
+        )
+
+        if args.stage == "both" and (args.overwrite or not stage1_out.is_file()):
+            print(f"Pass 1 prep: Stage 1 transcription for sample page {stem} …")
+            stage1_page_dir = stage1_dir / stem
+            stage1_page_dir.mkdir(parents=True, exist_ok=True)
+            ocr_file = _find_ocr_file(ocr_dir, stem) if ocr_dir else None
+            ocr_result = _build_ocr_result(str(image_file), ocr_file)
+            strategy.extract(
+                ocr_result,
+                str(image_file),
+                page_number=page_index,
+                stage1_output_path=str(stage1_out),
+                run_stage="1",
+            )
+
+        transcript_path = resolve_stage1_transcript_for_stage2(
+            output_dir,
+            stem,
+            getattr(args, "stage1_input", "auto"),
+            source=getattr(args, "stage1_source", "gold"),
+            experiment_name=args.experiment_name,
+            stage1_output_subdir=args.stage1_output_subdir,
+            inference_layout=layout.inference,
+        )
+        if transcript_path is None or not transcript_path.is_file():
+            raise FileNotFoundError(
+                f"Pass 1 sample page {stem!r} has no Stage 1 transcript. "
+                f"Run Stage 1 for that page first or use --stage all."
+            )
+        samples.append(
+            (
+                stem,
+                read_stage1_transcript_text(transcript_path),
+                str(image_file),
+            )
+        )
+    return samples
 
 
 # ---------------------------------------------------------------------------
@@ -971,13 +1054,24 @@ Examples:
     )
     parser.add_argument(
         "--parse-rules-page",
-        dest="parse_rules_page",
-        help="Page stem used for Stage 2 Pass 1 parse-rules discovery (default: first page).",
+        action="append",
+        dest="parse_rules_pages",
+        help="Page stem(s) for Stage 2 Pass 1 parse-rules discovery. Repeat the flag "
+        "or use commas (e.g. page_50,page_200). Default: first page in --pages. "
+        "Two or more stems use the multi-sample Pass 1 prompt.",
     )
     parser.add_argument(
         "--cheatsheet-page",
-        dest="parse_rules_page",
+        action="append",
+        dest="parse_rules_pages",
         help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--parse-rules-file",
+        type=Path,
+        dest="parse_rules_file",
+        help="Load parse-rules.json from PATH and skip Pass 1 LLM discovery. "
+        "Always reads PATH and refreshes {output_dir}/parse-rules.json.",
     )
     parser.add_argument(
         "--compare-gold",
@@ -1060,6 +1154,14 @@ Examples:
             parser.error(f"--toolbox-pdf path not found: {args.toolbox_pdf}")
 
     _validate_pdf_page_args(args, parser)
+
+    if getattr(args, "parse_rules_file", None) and not args.parse_rules_file.is_file():
+        parser.error(f"--parse-rules-file path not found: {args.parse_rules_file}")
+    if getattr(args, "parse_rules_file", None) and (
+        getattr(args, "parse_rules_gold", False)
+        or getattr(args, "field_cheatsheet_gold", False)
+    ):
+        parser.error("--parse-rules-file cannot be combined with --parse-rules-gold")
 
     if (
         args.stage == "2"
@@ -1481,6 +1583,7 @@ def _run_single_entry(args, parser) -> int:
         )
 
     # ── Strategy (instantiated once, shared across pages) ─────────────────────
+    parse_rules_samples: Optional[List[tuple[str, str, str]]] = None
     strategy = _build_strategy(
         args,
         intro_text,
@@ -1488,6 +1591,29 @@ def _run_single_entry(args, parser) -> int:
         dictionary_languages,
         stage2_experiment_dir=cheatsheet_root if args.stage in ("2", "both") else None,
     )
+    if (
+        args.strategy == "two_stage"
+        and args.stage in ("2", "both")
+        and not getattr(args, "parse_rules_file", None)
+        and not (
+            getattr(args, "parse_rules_gold", False)
+            or getattr(args, "field_cheatsheet_gold", False)
+        )
+    ):
+        parse_rules_samples = _prepare_parse_rules_samples(
+            args,
+            images,
+            stage1_dir,
+            output_dir,
+            layout=layout,
+            strategy=strategy,
+            ocr_dir=ocr_dir,
+        )
+        strategy.parse_rules_samples = parse_rules_samples
+        sample_label = ", ".join(stem for stem, _, _ in parse_rules_samples)
+        print(f"Pass 1 sample page(s): {sample_label}")
+    elif getattr(args, "parse_rules_file", None):
+        print(f"Pass 1: using parse rules file {args.parse_rules_file}")
 
     transcript_cache: dict[str, str] = {}
 

@@ -36,7 +36,11 @@ import json
 
 from mudidi.evaluation.stage1.flatten import flat_transcription_to_text
 from mudidi.extraction.base import ExtractionStrategy
-from mudidi.llm.pass_1 import load_gold_parse_rules, load_or_discover_parse_rules
+from mudidi.llm.pass_1 import (
+    load_gold_parse_rules,
+    load_or_discover_parse_rules,
+    load_parse_rules_file,
+)
 from mudidi.paths import PARSE_RULES_FILENAME
 from mudidi.llm.pass_2 import extract_direct_mdf
 from mudidi.schemas.field_map import FieldMapPrompt
@@ -172,6 +176,8 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         overwrite: bool = False,
         stage2_toolbox_pdf: Optional[str] = None,
         parse_rules_gold: bool = False,
+        parse_rules_file: Optional[str] = None,
+        parse_rules_samples: Optional[List[tuple[str, str, str]]] = None,
         prompt_mode: PromptMode = "benchmark",
     ):
         if stage1_mode not in ("column", "flat"):
@@ -196,6 +202,8 @@ class TwoStageLLMExtraction(ExtractionStrategy):
             Path(stage2_toolbox_pdf) if stage2_toolbox_pdf else None
         )
         self.parse_rules_gold = parse_rules_gold
+        self.parse_rules_file = Path(parse_rules_file) if parse_rules_file else None
+        self.parse_rules_samples = parse_rules_samples or []
         self.prompt_mode: PromptMode = prompt_mode
         self._field_map: Optional[FieldMapPrompt] = None
 
@@ -428,6 +436,7 @@ class TwoStageLLMExtraction(ExtractionStrategy):
         image_path: str,
     ) -> FieldMapPrompt:
         """Pass 1: load or discover field map once per dictionary."""
+        del transcribed_text, image_path  # discovery uses configured sample page(s)
         if self._field_map is not None:
             return self._field_map
 
@@ -453,21 +462,62 @@ class TwoStageLLMExtraction(ExtractionStrategy):
                     json.dumps(self._field_map.model_dump(), ensure_ascii=False, indent=2),
                     encoding="utf-8",
                 )
+        elif self.parse_rules_file:
+            print(f"Pass 1: loading parse rules file → {self.parse_rules_file}")
+            self._field_map = load_parse_rules_file(self.parse_rules_file)
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_text(
+                json.dumps(self._field_map.model_dump(), ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
         else:
             intro_paths = [Path(p) for p in self.intro_image_paths]
             dictionary_name = self.entry_dir.name if self.entry_dir else ""
-            discover_kwargs = dict(
+            if not self.parse_rules_samples:
+                raise ValueError(
+                    "Pass 1 parse-rules discovery requires configured sample page(s)."
+                )
+
+            if len(self.parse_rules_samples) == 1:
+                stem, sample_text, sample_image = self.parse_rules_samples[0]
+                discover_kwargs = dict(
+                    transcription=sample_text,
+                    sample_image=Path(sample_image),
+                    intro_images=intro_paths,
+                    model=self.structure_model,
+                    reasoning_effort=self.stage2_reasoning_effort,
+                    languages_config=self.dictionary_languages,
+                    dictionary_name=dictionary_name,
+                )
+                multi_samples = None
+                print(
+                    f"Pass 1: parse rules discovery from sample {stem} (cache → {cache_path}) …"
+                )
+            else:
+                discover_kwargs = dict(
+                    intro_images=intro_paths,
+                    model=self.structure_model,
+                    reasoning_effort=self.stage2_reasoning_effort,
+                    languages_config=self.dictionary_languages,
+                    dictionary_name=dictionary_name,
+                )
+                multi_samples = [
+                    (stem, sample_text, Path(sample_image))
+                    for stem, sample_text, sample_image in self.parse_rules_samples
+                ]
+                sample_list = ", ".join(stem for stem, _, _ in multi_samples)
+                print(
+                    "Pass 1: multi-sample parse rules discovery "
+                    f"from [{sample_list}] (cache → {cache_path}) …"
+                )
+
+            self._field_map = load_or_discover_parse_rules(
+                cache_path,
                 force_refresh=self.overwrite,
-                transcription=transcribed_text,
-                sample_image=Path(image_path),
-                intro_images=intro_paths,
-                model=self.structure_model,
-                reasoning_effort=self.stage2_reasoning_effort,
-                languages_config=self.dictionary_languages,
-                dictionary_name=dictionary_name,
+                parse_rules_file=None,
+                multi_samples=multi_samples,
+                **discover_kwargs,
             )
-            print(f"Pass 1: parse rules discovery (cache → {cache_path}) …")
-            self._field_map = load_or_discover_parse_rules(cache_path, **discover_kwargs)
 
         print(self._field_map.format_prompt_block())
         return self._field_map

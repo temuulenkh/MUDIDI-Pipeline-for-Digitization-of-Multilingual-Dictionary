@@ -220,6 +220,7 @@ uv run mudidi run \
   --pages my-dictionary/snippets \
   --intro my-dictionary/introduction \
   --alphabet my-dictionary/alphabet.txt \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --stage all \
   --strategy two_stage \
@@ -230,6 +231,8 @@ uv run mudidi run \
 
 Place `dictionary_languages.yaml` in `my-dictionary/` (parent of `snippets/`). MUDIDI loads it automatically when you run the command above.
 
+`--parse-rules-page` selects which snippet(s) Stage 2 **Pass 1** uses for parse-rules discovery (default: first page in `--pages`). Stems must match files in `snippets/` (e.g. `page_97.png` → `page_97`). Pass 1 runs **once** per `--output-dir`; the result is cached as `parse-rules.json` and **reused on the next run** unless you pass `--overwrite` or delete that file.
+
 **Option B — `--pages` points to a single PDF** (same file for dict + intro; requires `pdftk`):
 
 ```bash
@@ -238,6 +241,7 @@ uv run mudidi run \
   --dict-pages 97-123 \
   --intro-pages 1-5 \
   --alphabet my-dictionary/alphabet.txt \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --stage all \
   --strategy two_stage \
@@ -245,6 +249,8 @@ uv run mudidi run \
   --model gemini/gemini-3-flash-preview \
   --stage2-reasoning high
 ```
+
+After PDF split, stems are `page_{N}` where `N` is the **PDF page number** from `--dict-pages` (e.g. `--parse-rules-page page_97` for PDF page 97).
 
 Non-contiguous PDF pages (Option B only):
 
@@ -257,6 +263,47 @@ uv run mudidi run \
   --stage1-mode flat \
   --model gemini/gemini-3-flash-preview
 ```
+
+### Parse rules discovery (`--parse-rules-page`, `--parse-rules-file`)
+
+Stage 2 **Pass 1** discovers MDF markers and entry-structure rules, then writes `{output_dir}/parse-rules.json`. Pass 2 reuses that file on every page — it is **not** re-run per page.
+
+**Resume (discovery runs):** If `{output_dir}/parse-rules.json` already exists from a prior run, the next command **loads that cache** and skips Pass 1 LLM — even if you change `--parse-rules-page` or `--intro`. To re-discover from new samples, pass **`--overwrite`** or delete `{output_dir}/parse-rules.json` first.
+
+| Flag | When to use |
+|------|-------------|
+| `--parse-rules-page STEM` | Pick sample page(s) from the **same `--pages` input** (directory or PDF-split stems). Default: first page. |
+| `--parse-rules-page A,B` or repeat the flag | **Two or more** samples → one Pass 1 call with the multi-sample prompt (`stage_2_pass_2_multi`). Use when sections differ (main body vs appendix). |
+| `--parse-rules-file PATH` | Skip Pass 1 LLM entirely — load your hand-edited `parse-rules.json`. Always reads **your** file, even if `{output_dir}/parse-rules.json` already exists from a prior run. |
+
+Works in **both** snippets-directory mode and PDF mode — stems always refer to files produced from `--pages`, not arbitrary paths.
+
+**Multi-sample (heterogeneous dictionary):**
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --intro my-dictionary/introduction \
+  --parse-rules-page page_50,page_200 \
+  --output-dir my-dictionary/output \
+  --stage all \
+  --stage1-mode flat \
+  --model gemini/gemini-3-flash-preview
+```
+
+**Curated rules (skip Pass 1 LLM):**
+
+```bash
+uv run mudidi run \
+  --pages my-dictionary/snippets \
+  --parse-rules-file my-dictionary/parse-rules.json \
+  --output-dir my-dictionary/output \
+  --stage 2 \
+  --stage1-source predictions \
+  --model gemini/gemini-3-flash-preview
+```
+
+With `--stage all`, MUDIDI transcribes sample page(s) first if their Stage 1 output is not already present, then runs Pass 1 discovery before bulk Pass 2.
 
 ### Stage 1 only
 
@@ -296,6 +343,7 @@ Use the **same `--pages` path** as the Stage 1 run so output stems line up.
 uv run mudidi run \
   --pages my-dictionary/snippets \
   --intro my-dictionary/introduction \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --stage 2 \
   --strategy two_stage \
@@ -310,6 +358,7 @@ uv run mudidi run \
   --pages my-dictionary/evenki-russian.pdf \
   --dict-pages 97-123 \
   --intro-pages 1-5 \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --stage 2 \
   --strategy two_stage \
@@ -367,6 +416,7 @@ Model, strategy, and tuning flags (e.g. `--model`, `--stage1-mode`, `--overwrite
 # directory input
 uv run mudidi run \
   --pages my-dictionary/snippets \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --model openrouter/openai/gpt-5.5 \
   --stage1-mode flat \
@@ -376,6 +426,7 @@ uv run mudidi run \
 uv run mudidi run \
   --pages my-dictionary/evenki-russian.pdf \
   --dict-pages 97-123 \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --model openrouter/openai/gpt-5.5 \
   --stage1-mode flat \
@@ -404,7 +455,8 @@ uv run mudidi run \
 | `--alphabet PATH` | — | Alphabet file (`.txt`/`.md`) or image |
 | `--ocr-text PATH` | — | Optional OCR hint directory (`.md`/`.docx`/`.txt` per page). Benchmark ablation showed limited benefit — omit unless experimenting |
 | `--prompts-file PATH` | bundled `PROMPT.json` | Custom prompts; edits reload on next LLM call |
-| `--parse-rules-page STEM` | first page | Which page Stage 2 Pass 1 uses for parse-rules discovery |
+| `--parse-rules-page STEM` | first page in `--pages` | Pass 1 sample page stem(s). Must exist under `--pages` (snippets dir or PDF split). Repeat the flag or comma-separate (`page_50,page_200`). **Two or more** → multi-sample Pass 1 prompt. |
+| `--parse-rules-file PATH` | — | Load curated `parse-rules.json`; skip Pass 1 LLM discovery. **Always** reads your file (overrides any existing `{output_dir}/parse-rules.json`) and refreshes the output copy. |
 | `--parse-rules-gold` | off | Benchmark: load gold `parse-rules.json` from `outputs/stage-2-gold/` (skips Pass 1 LLM) |
 | `--stage1-source {gold,predictions}` | `predictions` | Stage 2 input source (inference uses predictions) |
 
@@ -423,7 +475,7 @@ Pass these on the same command line (forwarded to the extraction engine):
 | `--toolbox-pdf PATH` | — | Optional: attach a SIL Toolbox MDF reference PDF during **Stage 2 Pass 2 only**. Full manual: [`assets/Pages from ToolboxReferenceManual.pdf`](assets/Pages%20from%20ToolboxReferenceManual.pdf) (~65 pages). Expensive at scale — see [Parse rules vs toolbox PDF](#parse-rules-vs-toolbox-pdf). |
 | `--stage-1-guides PATH` | — | Extra rules appended to Stage 1 prompt |
 | `--stage-2-guides PATH` | — | Extra rules appended to Stage 2 prompt |
-| `--overwrite` | off | Re-process pages even if output exists |
+| `--overwrite` | off | Re-process pages even if output exists; also **re-runs Pass 1 LLM discovery** when `{output_dir}/parse-rules.json` already exists |
 | `--limit N` | — | Process at most N pages |
 | `--no-alphabet` | off | Skip alphabet hint |
 | `--no-ocr-hint` | off | Skip OCR hint |
@@ -458,7 +510,7 @@ snippets/ + alphabet
 
 **Stage 1** transcribes every visible line on the page image. Use `--stage1-mode flat` for the standard one-line-per-row format.
 
-**Stage 2 Pass 1** runs once: reads the introduction + one sample page (+ `dictionary_languages.yaml` hint) and writes `parse-rules.json` (which MDF markers and entry-structure rules this dictionary uses).
+**Stage 2 Pass 1** runs **once** per `--output-dir`: reads the introduction + one or more sample pages selected by `--parse-rules-page` (+ optional `dictionary_languages.yaml` hint) and writes `parse-rules.json`. With a single sample, the user prompt is `stage_2_pass_2`; with two or more samples, `stage_2_pass_2_multi`. Alternatively, pass `--parse-rules-file` to load rules you edited by hand.
 
 **Stage 2 Pass 2** runs per page: copies characters verbatim from the Stage 1 transcript and assigns MDF markers using `parse-rules.json` (introduction is not re-attached).
 
@@ -466,12 +518,14 @@ snippets/ + alphabet
 
 Stage 2 Pass 1 writes **`parse-rules.json`** once per dictionary run — a compact cheat sheet of which MDF markers this dictionary uses, one-line descriptions, and entry-structure rules (homographs, senses, subentries, gloss lines). Pass 2 injects that file into every page prompt as the `{field_block}`; it is **not** re-discovered per page.
 
+**Choosing Pass 1 samples:** Pick a `--parse-rules-page` stem that represents typical body entries (not front matter). For dictionaries whose layout changes mid-book (appendix, reverse index, botanical names), pass **multiple** samples so Pass 1 can merge conventions in one shot, then review `{output_dir}/parse-rules.json` before a large Pass 2 run.
+
 The repository includes the full SIL Toolbox MDF reference excerpt at [`assets/Pages from ToolboxReferenceManual.pdf`](assets/Pages%20from%20ToolboxReferenceManual.pdf) (~65 pages). Pass it with `--toolbox-pdf` during **Pass 2 only**. That can help when marker conventions are ambiguous, but on Gemini the PDF is included in **every Pass 2 API call**, so cost scales with dictionary size × manual size.
 
 **Best practice for full-dictionary inference:**
 
-1. Run Stage 2 Pass 1 once (with a representative `--parse-rules-page` and good introduction input).
-2. Open `{output_dir}/parse-rules.json` and **review it** — fix marker descriptions, add missing markers, tighten structure rules for this script and language pair.
+1. Run Stage 2 Pass 1 once (with representative `--parse-rules-page` sample(s) and good introduction input). Use multiple samples when sections differ, e.g. `--parse-rules-page page_50 --parse-rules-page page_200`.
+2. Open `{output_dir}/parse-rules.json` and **review it** — fix marker descriptions, add missing markers, tighten structure rules for this script and language pair. Or supply a hand-edited file with `--parse-rules-file`.
 3. Re-run Pass 2 (`--stage 2`) **without** `--toolbox-pdf`, relying on your curated `parse-rules.json`. Pass 1 is skipped on resume when the file already exists (unless you pass `--overwrite`).
 4. Spot-check a few `stage-2/{page}/{page}.mdf.txt` outputs; edit `parse-rules.json` again if needed, then re-run failed pages with `--overwrite`.
 
@@ -485,6 +539,7 @@ pdftk "assets/Pages from ToolboxReferenceManual.pdf" cat 1-12 output my-dictiona
 
 uv run mudidi run \
   --pages my-dictionary/snippets \
+  --parse-rules-file my-dictionary/parse-rules.json \
   --output-dir my-dictionary/output \
   --stage 2 \
   --toolbox-pdf my-dictionary/toolbox-subset.pdf \
@@ -614,6 +669,11 @@ The model must return structured JSON (`header` / `lines` / `footer`), which is 
 #### Stage 2 Pass 1 — one call per dictionary (field map)
 
 Two messages. Output is JSON → `parse-rules.json` → rendered as `{field_block}` in Pass 2.
+
+- **One sample** (`--parse-rules-page page_97` or default first page): user text from `stage_2_pass_2` + intro images + one sample image.
+- **Multiple samples** (`--parse-rules-page page_50,page_200`): user text from `stage_2_pass_2_multi` with several `<sample_transcription page="…">` blocks + intro images + one image per sample (same order).
+
+Pass 1 always uses the sample stem(s) you name via `--parse-rules-page` from the current `--pages` input — not whichever page happens to be processed first in the Pass 2 loop.
 
 **`role: system`** — `stage_2_pass_1` with `{mdf_marker_reference}` replaced by the entire `mdf_marker_reference` prompt (~thousands of words; abbreviated here):
 
@@ -789,7 +849,8 @@ Introduction images are **not** sent in Pass 2; conventions are captured in the 
 |------|------------------|----------------------|
 | Stage 1 flat | `stage_1_flat_system_{benchmark\|inference}` | `stage_1_user_alphabet`? + `stage_1_user_ocr_reference`? + `stage_1_user_closing` + guides |
 | Stage 1 column | `stage_1_system` | same user blocks |
-| Stage 2 Pass 1 | `stage_2_pass_1` (+ nested `mdf_marker_reference`) | `stage_2_pass_2` |
+| Stage 2 Pass 1 (single sample) | `stage_2_pass_1` (+ nested `mdf_marker_reference`) | `stage_2_pass_2` |
+| Stage 2 Pass 1 (multi sample) | `stage_2_pass_1` (+ nested `mdf_marker_reference`) | `stage_2_pass_2_multi` |
 | Stage 2 Pass 2 | `stage_2_direct_mdf_system_{benchmark\|inference}` | `stage_2_direct_mdf_user_{benchmark\|inference}` + `{field_block}` + `{toolbox_section}` + neighbors |
 
 ### Benchmark vs inference variants
@@ -802,7 +863,7 @@ Some steps use a **base id** plus a mode suffix. [`resolve_prompt_id()`](src/mud
 | `stage_2_direct_mdf_system` | `_benchmark`, `_inference` |
 | `stage_2_direct_mdf_user` | `_benchmark`, `_inference` |
 
-Pass 1 prompts (`stage_2_pass_1`, `stage_2_pass_2`) and Stage 1 user blocks (alphabet, OCR, closing) are **shared** across modes.
+Pass 1 prompts (`stage_2_pass_1`, `stage_2_pass_2`, `stage_2_pass_2_multi`) and Stage 1 user blocks (alphabet, OCR, closing) are **shared** across modes.
 
 ### Using a custom prompts file
 
@@ -811,6 +872,7 @@ cp assets/PROMPT.json my-prompts.json
 # edit my-prompts.json — keep prompt ids the code expects, or update Python callers
 uv run mudidi run \
   --pages my-dictionary/snippets \
+  --parse-rules-page page_97 \
   --output-dir my-dictionary/output \
   --prompts-file my-prompts.json \
   --strategy two_stage \

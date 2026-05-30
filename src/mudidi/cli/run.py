@@ -95,8 +95,17 @@ def register_run_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--parse-rules-page",
-        dest="parse_rules_page",
-        help="Page stem for Stage 2 Pass 1 parse-rules discovery (default: first page).",
+        action="append",
+        dest="parse_rules_pages",
+        help="Page stem(s) for Stage 2 Pass 1 (repeat or comma-separated). "
+        "Default: first page. Two+ stems use multi-sample Pass 1.",
+    )
+    parser.add_argument(
+        "--parse-rules-file",
+        type=str,
+        dest="parse_rules_file",
+        help="Load parse-rules.json from PATH; skip Pass 1 LLM discovery. "
+        "Always reads PATH (overrides any cached parse-rules.json in --output-dir).",
     )
     parser.add_argument(
         "--prompts-file",
@@ -200,8 +209,11 @@ def run_from_args(run_args: argparse.Namespace, remaining: Sequence[str]) -> int
     argv.extend(["--stage", internal_stage])
     if run_args.stage1_source:
         argv.extend(["--stage1-source", run_args.stage1_source])
-    if run_args.parse_rules_page:
-        argv.extend(["--parse-rules-page", run_args.parse_rules_page])
+    if run_args.parse_rules_pages:
+        for stem in run_args.parse_rules_pages:
+            argv.extend(["--parse-rules-page", stem])
+    if run_args.parse_rules_file:
+        argv.extend(["--parse-rules-file", run_args.parse_rules_file])
     if run_args.prompts_file:
         argv.extend(["--prompts-file", run_args.prompts_file])
     argv.extend(_merge_extract_args(run_args, remaining))
