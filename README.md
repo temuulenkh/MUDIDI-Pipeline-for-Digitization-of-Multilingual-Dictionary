@@ -373,7 +373,7 @@ uv run mudidi run \
   --stage2-reasoning medium
 ```
 
-Stage 2 reads `{output_dir}/stage-1/{page}/{page}_stage1_flat.txt` by default in inference mode.
+Stage 2 reads Stage 1 predictions from `{output_dir}/stage-1/{page}/` — column TSV if present, otherwise flat text (`--stage1-input auto`, default).
 
 ---
 
@@ -386,7 +386,8 @@ output/
 ├── parse-rules.json               # Stage 2 Pass 1: MDF markers + entry rules (once per dictionary; review before large Pass 2 runs)
 ├── stage-1/
 │   └── page_1/
-│       ├── page_1_stage1_flat.txt     # Stage 1 transcript (one line per visible row)
+│       ├── page_1_stage1_flat.txt     # flat mode (one line per visible row)
+│       ├── page_1_stage1.tsv          # column mode (column_id × line_number × text)
 │       ├── page_1_stage1_raw.json     # raw LLM structured response
 │       └── page_1_stage1_input.json   # request snapshot (for debugging)
 └── stage-2/
@@ -523,7 +524,7 @@ uv run mudidi run \
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--strategy` | `two_stage` | `two_stage` (LLM) or `vlm_ocr` (specialised VLM backends) |
-| `--stage1-mode {column,flat}` | `column` | Stage 1 output format; use **`flat`** for new dictionaries |
+| `--stage1-mode {column,flat}` | `column` | Stage 1 output format — see [Stage 1 output formats](#stage-1-output-formats-flat-vs-column); use **`flat`** for new dictionaries |
 | `--stage1-reasoning {none,low,medium,high}` | `low` | Stage 1 reasoning effort |
 | `--stage2-reasoning {low,medium,high}` | `low` | Stage 2 reasoning effort |
 | `--toolbox-pdf PATH` | — | Optional: attach a SIL Toolbox MDF reference PDF during **Stage 2 Pass 2 only**. Full manual: [`assets/Pages from ToolboxReferenceManual.pdf`](assets/Pages%20from%20ToolboxReferenceManual.pdf) (~65 pages). Expensive at scale — see [Parse rules vs toolbox PDF](#parse-rules-vs-toolbox-pdf). |
@@ -534,6 +535,43 @@ uv run mudidi run \
 | `--no-alphabet` | off | Skip alphabet hint |
 | `--no-ocr-hint` | off | Skip OCR hint |
 | `--no-intro` | off | Skip introduction for Stage 2 Pass 1 (field discovery) |
+
+### Stage 1 output formats: flat vs column
+
+Both modes run the same Stage 1 OCR job (faithful transcription, no entry parsing). They differ only in **how the model serialises** the page and **which file Stage 2 reads**.
+
+| | **Column** (`--stage1-mode column`) | **Flat** (`--stage1-mode flat`) |
+|---|-------------------------------------|----------------------------------|
+| **Output file** | `{page}_stage1.tsv` | `{page}_stage1_flat.txt` |
+| **Structure** | Tab-separated table: `column_id`, `line_number`, `text` | Plain text: one physical printed line per row |
+| **Multi-column pages** | Preserves which column each line came from (`left`, `center`, `right`, `single`) | Collapses to a single ordered line list (left→right reading order) |
+| **Header / footer** | Rows with `column_id` = `header` or `footer` | Same lines, but without column metadata |
+| **Typical use** | Benchmark gold, Label Studio pre-annotation, trilingual layouts | **Default for new inference runs** — simpler for Stage 2 and human review |
+
+**Column TSV** — each visible line is one row; body lines are tagged by column:
+
+```tsv
+column_id	line_number	text
+header		Carolinian-English Dictionary
+single	1	<b>akkáyi</b> A-¹, KKÁYI, -A³ (or akkayú) <i>vt caus.</i> To hurry someone…
+single	2	go faster. Related <b>kkáy</b>.
+footer		51
+```
+
+On a **trilingual** page, `column_id` distinguishes gloss columns (e.g. English `left`, headword `center`, Turkish `right`). Stage 2 can use that layout hint when assigning fields.
+
+**Flat text** — the same content without the table wrapper; header lines first, then body lines in reading order, then footer:
+
+```text
+Carolinian-English Dictionary
+<b>akkáyi</b> A-¹, KKÁYI, -A³ (or akkayú) <i>vt caus.</i> To hurry someone…
+go faster. Related <b>kkáy</b>.
+51
+```
+
+Flat mode asks the model for structured JSON (`header` / `lines` / `footer` lists) internally, then writes the joined plain-text file above.
+
+**Stage 2 input:** `--stage1-input auto` (default) prefers column TSV when both exist, otherwise flat. For a flat-only pipeline, pass `--stage1-mode flat` on Stage 1 and optionally `--stage1-input flat` on Stage 2.
 
 ### Inference-specific behaviour
 
@@ -562,7 +600,7 @@ snippets/ + alphabet
 └─────────────────────────┘
 ```
 
-**Stage 1** transcribes every visible line on the page image. Use `--stage1-mode flat` for the standard one-line-per-row format.
+**Stage 1** transcribes every visible line on the page image. Use `--stage1-mode flat` for the standard plain-text transcript; use `column` when you need per-column layout preserved (see [Stage 1 output formats](#stage-1-output-formats-flat-vs-column)).
 
 **Stage 2 Pass 1** runs **once** per `--output-dir`: reads the introduction + one or more sample pages selected by `--parse-rules-page` (+ optional `dictionary_languages.yaml` hint) and writes `parse-rules.json`. With a single sample, the user prompt is `stage_2_pass_2`; with two or more samples, `stage_2_pass_2_multi`. Alternatively, pass `--parse-rules-file` to load rules you edited by hand.
 
