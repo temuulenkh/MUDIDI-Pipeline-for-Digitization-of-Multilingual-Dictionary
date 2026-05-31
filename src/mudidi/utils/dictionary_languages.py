@@ -182,7 +182,7 @@ def infer_layout(folder_name: str, num_targets: int) -> str:
         return _LAYOUT_OVERRIDES[folder_name]
     if num_targets >= 2:
         return "inline_trilingual"
-    return "bilingual"
+    return "inline_bilingual"
 
 
 # SIL Toolbox gloss markers (Appendix A): ge=English, gn=national, gr=regional, gv=vernacular.
@@ -257,7 +257,7 @@ def build_config_from_folder(
                 )
 
     return DictionaryLanguagesConfig(
-        layout=layout,  # type: ignore[arg-type]
+        layout=layout,
         source=SourceLanguageConfig(
             language=source_display,
             column_id=source_col,
@@ -309,6 +309,8 @@ def config_to_yaml_dict(config: DictionaryLanguagesConfig) -> Dict[str, Any]:
         "source": _src(config.source),
         "targets": [_tgt(t) for t in config.targets],
     }
+    if config.layout_description:
+        out["layout-description"] = config.layout_description
     if config.writing_system:
         out["writing_system"] = config.writing_system
     if config.metadata_archive:
@@ -333,6 +335,48 @@ def write_dictionary_languages_yaml(
     return path
 
 
+def load_dictionary_languages_file(path: Path) -> DictionaryLanguagesConfig:
+    """Load ``dictionary_languages.yaml`` from an explicit file path."""
+    if not path.is_file():
+        raise FileNotFoundError(f"dictionary_languages file not found: {path}")
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return DictionaryLanguagesConfig.model_validate(data)
+
+
+def resolve_pass1_dictionary_languages(
+    *,
+    dictionary_languages_path: Path | None,
+    entry_dir: Path | None,
+    metadata_csv_path: Path | None,
+    benchmark: bool,
+) -> DictionaryLanguagesConfig | None:
+    """
+    Resolve language config for Stage 2 Pass 1 discovery.
+
+    Inference requires an explicit ``--dictionary-languages`` path. Benchmark mode
+    falls back to ``{entry_dir}/dictionary_languages.yaml`` when the flag is omitted.
+
+    Args:
+        dictionary_languages_path: CLI ``--dictionary-languages`` value, if any.
+        entry_dir: Sample or dictionary entry directory for benchmark auto-load.
+        metadata_csv_path: Metadata CSV used when auto-generating benchmark YAML.
+        benchmark: Whether benchmark / samples-dir mode is active.
+
+    Returns:
+        Loaded config, or ``None`` when Pass 1 should omit the language hint.
+    """
+    if dictionary_languages_path is not None:
+        return load_dictionary_languages_file(dictionary_languages_path)
+
+    if benchmark and entry_dir is not None:
+        return load_dictionary_languages(
+            entry_dir,
+            metadata_csv_path=metadata_csv_path,
+        )
+
+    return None
+
+
 def load_dictionary_languages(
     entry_dir: Path,
     *,
@@ -346,8 +390,7 @@ def load_dictionary_languages(
     """
     path = entry_dir / CONFIG_FILENAME
     if path.is_file():
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        return DictionaryLanguagesConfig.model_validate(data)
+        return load_dictionary_languages_file(path)
 
     if not regenerate_if_missing:
         raise FileNotFoundError(f"No {CONFIG_FILENAME} in {entry_dir}")

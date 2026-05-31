@@ -7,6 +7,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mudidi.llm.pass_1 import discover_field_cheatsheet_multi, load_parse_rules_file
+from mudidi.schemas.dictionary_languages import (
+    DictionaryLanguagesConfig,
+    SourceLanguageConfig,
+    TargetLanguageConfig,
+)
 from mudidi.schemas.field_cheatsheet import DictionaryMarkerCheatsheet, MarkerLine
 
 
@@ -59,3 +64,46 @@ def test_discover_field_cheatsheet_multi_uses_multi_prompt(mock_complete) -> Non
     assert '<sample_transcription page="page_1">' in text_part
     assert '<sample_transcription page="page_2">' in text_part
     assert len(user_content) == 3  # text + two sample images
+
+
+@patch("mudidi.llm.pass_1.complete")
+def test_discover_field_cheatsheet_multi_includes_config_hint_when_set(mock_complete) -> None:
+    mock_complete.return_value = (
+        '{"dictionary_name": "Test", "markers": [{"marker": "lx", "description": "hw"}], '
+        '"rules": [], "abbreviations": {}}'
+    )
+    languages = DictionaryLanguagesConfig(
+        layout="column_trilingual",
+        source=SourceLanguageConfig(language="Circassian"),
+        targets=[
+            TargetLanguageConfig(language="English"),
+            TargetLanguageConfig(language="Turkish"),
+        ],
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        png1 = tmp_path / "page_1.png"
+        png2 = tmp_path / "page_2.png"
+        png_bytes = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+            b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
+            b"\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05"
+            b"\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+        png1.write_bytes(png_bytes)
+        png2.write_bytes(png_bytes)
+
+        discover_field_cheatsheet_multi(
+            samples=[
+                ("page_1", "line one", png1),
+                ("page_2", "line two", png2),
+            ],
+            intro_images=[],
+            model="gemini/gemini-3-flash-preview",
+            languages_config=languages,
+        )
+
+    user_content = mock_complete.call_args.kwargs["messages"][1]["content"]
+    text_part = user_content[0]["text"]
+    assert "layout=column_trilingual" in text_part
+    assert "Circassian" in text_part

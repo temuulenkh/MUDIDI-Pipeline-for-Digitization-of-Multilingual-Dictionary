@@ -27,7 +27,7 @@ from mudidi.ocr.vlm.registry import get_vlm_spec, list_vlm_keys
 from mudidi.ocr.vlm.runner import create_vlm_runner
 from mudidi.utils.dictionary_languages import (
     config_to_yaml_dict,
-    load_dictionary_languages,
+    resolve_pass1_dictionary_languages,
 )
 from mudidi.utils.stage2_direct_mdf_io import save_direct_mdf_outputs
 from mudidi.utils.stage1_input import (
@@ -1068,6 +1068,16 @@ Examples:
         "Always reads PATH and refreshes {output_dir}/parse-rules.json.",
     )
     parser.add_argument(
+        "--dictionary-languages",
+        type=Path,
+        dest="dictionary_languages",
+        default=None,
+        help="Optional path to dictionary_languages.yaml for Stage 2 Pass 1 "
+        "(layout and source/target language hint). Omitted in inference mode: "
+        "Pass 1 runs without this hint unless this flag is set. Benchmark mode "
+        "auto-loads {entry}/dictionary_languages.yaml when omitted.",
+    )
+    parser.add_argument(
         "--compare-gold",
         dest="compare_gold",
         default=None,
@@ -1566,16 +1576,20 @@ def _run_single_entry(args, parser) -> int:
     entry_path = _resolve_entry_dir(args, output_dir, input_dir if input_path.is_dir() else input_path.parent)
     if entry_path:
         args.entry_dir = str(entry_path)
-    if entry_path and args.strategy == "two_stage":
-        dictionary_languages = load_dictionary_languages(
-            entry_path,
+    if args.strategy == "two_stage":
+        is_benchmark = bool(getattr(args, "benchmark", False) or args.samples_dir)
+        dictionary_languages = resolve_pass1_dictionary_languages(
+            dictionary_languages_path=args.dictionary_languages,
+            entry_dir=entry_path,
             metadata_csv_path=_DEFAULT_METADATA_CSV,
+            benchmark=is_benchmark,
         )
-        print(
-            f"Languages: {dictionary_languages.layout} | "
-            f"source={dictionary_languages.source.language} | "
-            f"targets={[t.language for t in dictionary_languages.targets]}"
-        )
+        if dictionary_languages is not None:
+            print(
+                f"Pass 1 language hint: {dictionary_languages.layout} | "
+                f"source={dictionary_languages.source.language} | "
+                f"targets={[t.language for t in dictionary_languages.targets]}"
+            )
 
     # ── Strategy (instantiated once, shared across pages) ─────────────────────
     parse_rules_samples: Optional[List[tuple[str, str, str]]] = None

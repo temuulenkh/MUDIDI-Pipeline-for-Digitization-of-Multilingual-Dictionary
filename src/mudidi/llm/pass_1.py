@@ -59,11 +59,7 @@ def _extract_json_object(text: str) -> dict:
 def _config_hint(config: Optional[DictionaryLanguagesConfig]) -> str:
     if config is None:
         return ""
-    target_names = ", ".join(t.language for t in config.targets)
-    return (
-        f"\n3. Language roles: layout={config.layout}, "
-        f"source={config.source.language}, targets=[{target_names}].\n"
-    )
+    return config.pass1_config_hint()
 
 
 def discover_field_cheatsheet(

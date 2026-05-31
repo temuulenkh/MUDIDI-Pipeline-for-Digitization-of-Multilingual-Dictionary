@@ -109,6 +109,15 @@ def register_run_arguments(parser: argparse.ArgumentParser) -> None:
         "Always reads PATH (overrides any cached parse-rules.json in --output-dir).",
     )
     parser.add_argument(
+        "--dictionary-languages",
+        type=str,
+        dest="dictionary_languages",
+        default=None,
+        help="Optional path to dictionary_languages.yaml for Stage 2 Pass 1 "
+        "(layout and source/target language hint). Inference: opt-in only. "
+        "Benchmark: auto-loads per-entry YAML when omitted.",
+    )
+    parser.add_argument(
         "--prompts-file",
         type=str,
         default=None,
@@ -216,6 +225,8 @@ def run_from_args(run_args: argparse.Namespace, remaining: Sequence[str]) -> int
             argv.extend(["--parse-rules-page", stem])
     if run_args.parse_rules_file:
         argv.extend(["--parse-rules-file", run_args.parse_rules_file])
+    if run_args.dictionary_languages:
+        argv.extend(["--dictionary-languages", run_args.dictionary_languages])
     if run_args.prompts_file:
         argv.extend(["--prompts-file", run_args.prompts_file])
     forward_model_argv(argv, run_args)

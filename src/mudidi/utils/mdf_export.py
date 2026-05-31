@@ -373,7 +373,7 @@ def validate_stage2_entries(
             )
 
         if has_second_target and entry.gloss.strip() and not entry.gloss_secondary.strip():
-            if config and config.layout != "bilingual":
+            if config and config.layout not in ("bilingual", "inline_bilingual"):
                 report.issues.append(
                     ValidationIssue(
                         "warning",

@@ -1,10 +1,16 @@
 """Per-dictionary language roles for Stage 2 and MDF export."""
 
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-LayoutType = Literal["bilingual", "inline_trilingual", "column_trilingual"]
+# Recommended layout labels (not enforced — any string is accepted).
+RECOMMENDED_LAYOUTS = (
+    "inline_bilingual",
+    "column_bilingual",
+    "inline_trilingual",
+    "column_trilingual",
+)
 
 
 class SourceLanguageConfig(BaseModel):
@@ -34,14 +40,23 @@ class TargetLanguageConfig(BaseModel):
 class DictionaryLanguagesConfig(BaseModel):
     """Loaded from dictionary_languages.yaml in each sample folder."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    layout: LayoutType = Field(
+    layout: str = Field(
         description=(
-            "bilingual: one target mixed or single column; "
-            "inline_trilingual: multiple targets in one entry block; "
-            "column_trilingual: each target in its own column."
-        )
+            "Free-form layout label for Pass 1 (recommended values: "
+            + ", ".join(RECOMMENDED_LAYOUTS)
+            + ")."
+        ),
+    )
+    layout_description: Optional[str] = Field(
+        default=None,
+        validation_alias="layout-description",
+        serialization_alias="layout-description",
+        description=(
+            "Optional prose explaining what this layout means for this dictionary; "
+            "included in the Stage 2 Pass 1 hint when set."
+        ),
     )
     source: SourceLanguageConfig
     targets: List[TargetLanguageConfig] = Field(min_length=1)
@@ -60,56 +75,16 @@ class DictionaryLanguagesConfig(BaseModel):
 
         return [language_key(t.language) for t in self.targets]
 
-    def format_prompt_block(self) -> str:
-        """Hint for Pass 1 field discovery (language roles and gloss tiers)."""
-        primary = self.targets[0]
-        lines = [
-            "<dictionary_languages>",
-            f"Layout: {self.layout}",
-            f"Source language: {self.source.language} → headword field",
-        ]
-        if self.source.column_id:
-            lines.append(
-                f"  Read headwords from column_id={self.source.column_id!r} in the transcription."
-            )
-        lines.append(
-            f"Primary target ({primary.language}) → gloss field — short translation text."
+    def pass1_config_hint(self) -> str:
+        """Short inline hint for Stage 2 Pass 1 prompts."""
+        target_names = ", ".join(t.language for t in self.targets)
+        hint = (
+            f"\n3. Language roles: layout={self.layout}, "
+            f"source={self.source.language}, targets=[{target_names}]."
         )
-        if primary.column_id:
-            lines.append(f"  Read from column_id={primary.column_id!r} when column layout applies.")
-        if len(self.targets) > 1:
-            secondary = self.targets[1]
-            lines.append(
-                f"Second target ({secondary.language}) → gloss_secondary field."
-            )
-            if secondary.column_id:
-                lines.append(
-                    f"  Read from column_id={secondary.column_id!r} when column layout applies."
-                )
-        if self.layout == "inline_trilingual":
-            lines.append(
-                "  Split targets by typography and intro order within each entry block; "
-                "do not merge languages into one string."
-            )
-        elif self.layout == "column_trilingual":
-            lines.append(
-                "  Align each target gloss with its column line; headword from the "
-                "source column only."
-            )
+        desc = (self.layout_description or "").strip()
+        if desc:
+            hint += f"\n   Layout note: {desc}\n"
         else:
-            lines.append(
-                "  Bilingual: non-bold translation text beside each bold headword "
-                "belongs in gloss. Never leave gloss empty when translation text appears "
-                "in the transcription. Use usage_note only for italic parenthetical "
-                "usage or domain notes."
-            )
-        lines.append(
-            "usage_note: parenthetical or italic usage/domain expansions only — "
-            "not numbered inline senses, not the primary translation."
-        )
-        lines.append(
-            "Example (bilingual): <b>lemma</b> translate (usage note) → "
-            "gloss='translate', usage_note='usage note'."
-        )
-        lines.append("</dictionary_languages>")
-        return "\n".join(lines)
+            hint += "\n"
+        return hint
