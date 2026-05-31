@@ -183,26 +183,26 @@ uv run mudidi run \
 
 **What to put inside** — required fields:
 
-| Field | Meaning |
-| ----- | ------- |
-| `layout` | Short label for how entries are arranged on the page. **Any string is accepted** — the list below is only a set of **recommended** names, not a closed vocabulary. Use your own term if it fits your dictionary better. |
-| `source` | Headword / vernacular language (`language` only — e.g. `Evenki`, `Circassian`). |
-| `targets` | Gloss / translation languages (`language` per target). One or more entries. |
+| Field     | Meaning                                                                                                                                                                                                                 |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `layout`  | Short label for how entries are arranged on the page. **Any string is accepted** — the list below is only a set of **recommended** names, not a closed vocabulary. Use your own term if it fits your dictionary better. |
+| `source`  | Headword / vernacular language (`language` only — e.g. `Evenki`, `Circassian`).                                                                                                                                         |
+| `targets` | Gloss / translation languages (`language` per target). One or more entries.                                                                                                                                             |
 
 Optional:
 
-| Field | Meaning |
-| ----- | ------- |
+| Field                | Meaning                                                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `layout-description` | Free-text explanation of what your `layout` means for **this** dictionary. Included in the Pass 1 hint when set; especially useful with a custom `layout` label. |
 
 **Recommended `layout` labels** (pick the closest match, or invent your own and explain it in `layout-description`):
 
-| Value | Typical dictionary shape | Example `layout-description` |
-| ----- | -------------------------- | ------------------------------ |
-| `inline_bilingual` | One vernacular headword with one gloss language in the same entry block. | Headword in bold on the left; Russian gloss continues on the same line after the lemma. |
-| `column_bilingual` | Headword and gloss in **separate columns** (two-language column layout). | Vernacular lemmas in the center column; English glosses in the right column only. |
+| Value               | Typical dictionary shape                                                                             | Example `layout-description`                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `inline_bilingual`  | One vernacular headword with one gloss language in the same entry block.                             | Headword in bold on the left; Russian gloss continues on the same line after the lemma.            |
+| `column_bilingual`  | Headword and gloss in **separate columns** (two-language column layout).                             | Vernacular lemmas in the center column; English glosses in the right column only.                  |
 | `inline_trilingual` | Several target languages **mixed inside one entry block** (multiple glosses or scripts on one line). | Each sense line lists English, then Chinese, then French glosses in that order after the headword. |
-| `column_trilingual` | Headwords and glosses in **separate columns** (three or more language tiers). | Circassian headwords in the center column; English left, Turkish right. |
+| `column_trilingual` | Headwords and glosses in **separate columns** (three or more language tiers).                        | Circassian headwords in the center column; English left, Turkish right.                            |
 
 Pass 1 still sees introduction images and the sample page; the YAML hint only steers marker and rule discovery. Pass 2 uses `parse-rules.json`, not the YAML directly.
 
@@ -563,7 +563,7 @@ uv run mudidi run \
 | Flag                                        | Default     | Description                                                                                                                                                                                                                                                                                       |
 | ------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--strategy`                                | `two_stage` | `two_stage` (LLM) or `vlm_ocr` (specialised VLM backends)                                                                                                                                                                                                                                         |
-| `--stage1-mode {column,flat}`               | `column`    | Stage 1 output format — see [Stage 1 output formats](#stage-1-output-formats-flat-vs-column); use **`flat`** for new dictionaries                                                                                                                                                                 |
+| `--stage1-mode {column,flat}`               | `column`    | Stage 1 output format — see [Stage 1 output formats](#stage-1-output-formats-flat-vs-column); use **`flat`** for benchmarking and **`column`** for production ready inference.                                                                                                                    |
 | `--stage1-reasoning {none,low,medium,high}` | `low`       | Stage 1 reasoning effort                                                                                                                                                                                                                                                                          |
 | `--stage2-reasoning {low,medium,high}`      | `low`       | Stage 2 reasoning effort                                                                                                                                                                                                                                                                          |
 | `--toolbox-pdf PATH`                        | —           | Optional: attach a SIL Toolbox MDF reference PDF during **Stage 2 Pass 2 only**. Full manual: [`assets/Pages from ToolboxReferenceManual.pdf`](assets/Pages%20from%20ToolboxReferenceManual.pdf) (~65 pages). Expensive at scale — see [Parse rules vs toolbox PDF](#parse-rules-vs-toolbox-pdf). |
