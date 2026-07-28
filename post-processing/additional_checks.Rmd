@@ -1,0 +1,213 @@
+---
+title: "Carolinian Dictionary Additional Checks"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+
+df <- read_tsv("../outputs/carolinian_combined.tsv", col_types = cols(.default = "c")) |>
+  mutate(across(everything(), \(x) replace_na(x, "")))
+
+cat("Loaded", nrow(df), "rows from combined TSV\n")
+
+stage1_dir <- "../outputs/stage-1"
+tsv_files <- tibble(path = list.files(stage1_dir, pattern = "page_.*_stage1\\.tsv$",
+                                       recursive = TRUE, full.names = TRUE)) |>
+  mutate(page = str_extract(path, "page_\\d+"),
+         page_num = as.integer(str_extract(page, "\\d+"))) |>
+  arrange(page_num)
+
+cat("Found", nrow(tsv_files), "Stage 1 TSV files\n")
+```
+
+## Check 1: Variant forms — extract from Stage 1 and cross-reference against TSV
+
+```{r check1_extract}
+extract_headword <- function(text) {
+  m <- str_match(str_trim(text), "^<b>([^<]+)</b>")
+  if (!is.na(m[1, 2])) str_trim(m[1, 2]) else NA_character_
+}
+
+extract_variants <- function(text) {
+  m <- str_match(text, "\\(or <i>([^<]+)</i>\\)")
+  if (is.na(m[1, 2])) return(character(0))
+  str_trim(str_split(m[1, 2], ",")[[1]]) |> str_remove("\\.$")
+}
+
+ground_truth <- list()
+
+for (i in seq_len(nrow(tsv_files))) {
+  page <- tsv_files$page[i]
+  stage1_df <- read_tsv(tsv_files$path[i], col_types = cols(.default = "c"),
+                        na = character()) |>
+    mutate(across(everything(), \(x) replace_na(x, "")))
+  current_hw <- NA_character_
+  for (j in seq_len(nrow(stage1_df))) {
+    text <- str_trim(stage1_df$text[j])
+    if (text == "") next
+    hw <- extract_headword(text)
+    if (!is.na(hw)) current_hw <- hw
+    if (!is.na(current_hw)) {
+      variants <- extract_variants(text)
+      if (length(variants) > 0) {
+        if (!is.null(ground_truth[[current_hw]])) {
+          ground_truth[[current_hw]]$variants <- c(ground_truth[[current_hw]]$variants, variants)
+        } else {
+          ground_truth[[current_hw]] <- list(variants = variants, page = page)
+        }
+      }
+    }
+  }
+}
+
+cat("Found", length(ground_truth), "headwords with variant forms in Stage 1\n")
+```
+
+```{r check1_compare}
+tsv_variants <- df |> select(Headword, Variant_Form) |> deframe()
+
+issues <- map_dfr(names(ground_truth), function(headword) {
+  stage1_variants <- ground_truth[[headword]]$variants
+  tsv_str <- tsv_variants[[headword]] %||% ""
+  tsv_set <- str_trim(str_split(tsv_str, ",")[[1]])
+  missing <- setdiff(stage1_variants, tsv_set)
+  if (length(missing) > 0) {
+    tibble(
+      Page = ground_truth[[headword]]$page,
+      Headword = headword,
+      Stage1_Variants = paste(sort(stage1_variants), collapse = ", "),
+      TSV_Variant_Form = tsv_str,
+      Missing_in_TSV = paste(sort(missing), collapse = ", ")
+    )
+  }
+})
+
+cat("Flagged:", nrow(issues), "headwords with variant forms not fully captured in TSV\n")
+if (nrow(issues) > 0) print(issues)
+```
+
+## Check 2: Dialect-marked headwords — extract from Stage 1 and cross-reference against TSV
+
+```{r check2_extract}
+DIALECT_PATTERN <- "^<b>([^<]+)</b>\\s*\\((TAN|EL|LN|S)\\)"
+
+dialect_headwords <- list()
+
+for (i in seq_len(nrow(tsv_files))) {
+  page <- tsv_files$page[i]
+  stage1_df <- read_tsv(tsv_files$path[i], col_types = cols(.default = "c"),
+                        na = character()) |>
+    mutate(across(everything(), \(x) replace_na(x, "")))
+  for (j in seq_len(nrow(stage1_df))) {
+    text <- str_trim(stage1_df$text[j])
+    if (text == "") next
+    m <- str_match(text, regex(DIALECT_PATTERN, ignore_case = TRUE))
+    if (!is.na(m[1, 1])) {
+      hw <- str_trim(m[1, 2])
+      dialect <- str_to_upper(m[1, 3])
+      dialect_headwords[[hw]] <- list(dialect = dialect, page = page)
+    }
+  }
+}
+
+cat("Found", length(dialect_headwords), "dialect-marked headwords in Stage 1\n")
+by_dialect <- map_chr(dialect_headwords, "dialect") |> table()
+for (d in names(by_dialect)) cat(" ", d, ":", by_dialect[[d]], "headwords\n")
+```
+
+```{r check2_compare}
+tsv_dialect <- df |> select(Headword, Dialect) |> deframe()
+
+issues <- map_dfr(names(dialect_headwords), function(headword) {
+  expected <- dialect_headwords[[headword]]$dialect
+  actual <- tsv_dialect[[headword]] %||% ""
+  if (!str_detect(actual, fixed(expected))) {
+    tibble(
+      Page = dialect_headwords[[headword]]$page,
+      Headword = headword,
+      Expected_Dialect = expected,
+      TSV_Dialect = if (actual == "") "(empty)" else actual
+    )
+  }
+})
+
+cat("Flagged:", nrow(issues), "dialect-marked headwords not correctly captured in Dialect column\n")
+if (nrow(issues) > 0) print(issues) else cat("All dialect-marked headwords correctly captured.\n")
+```
+
+## Check 3: Hallucination check — headwords vs English-Carolinian finderlist
+
+```{r check3_load}
+finderlist <- read_tsv("finderlist.tsv", col_types = cols(.default = "c"),
+                       na = character()) |>
+  mutate(across(everything(), \(x) replace_na(x, "")))
+valid_headwords <- str_to_lower(str_trim(finderlist$carolinian_headword)) |> unique()
+cat("Loaded", length(valid_headwords), "unique Carolinian headwords from finderlist\n")
+```
+
+```{r check3_check}
+MATCH_THRESHOLD <- 0.70
+
+is_variant <- str_starts(str_trim(df$Gloss), "Variant of") |
+              (str_trim(df$Variant_Form) != "" & str_trim(df$Gloss) == "")
+df_check <- df[!is_variant, ]
+
+results <- df_check |>
+  group_by(Source_Page) |>
+  summarise(
+    Total_Headwords = n(),
+    Matched = sum(str_to_lower(str_trim(Headword)) %in% valid_headwords),
+    Unmatched = Total_Headwords - Matched,
+    Match_Rate = round(Matched / Total_Headwords, 2),
+    Unmatched_Headwords = paste(Headword[!str_to_lower(str_trim(Headword)) %in% valid_headwords],
+                                collapse = ", "),
+    .groups = "drop"
+  ) |>
+  mutate(Flagged = Match_Rate < MATCH_THRESHOLD) |>
+  arrange(Match_Rate)
+
+flagged <- results |> filter(Flagged)
+cat("Flagged:", nrow(flagged), "pages with match rate below",
+    scales::percent(MATCH_THRESHOLD), "\n")
+if (nrow(flagged) > 0) {
+  print(flagged |> select(Source_Page, Total_Headwords, Matched, Unmatched, Match_Rate, Unmatched_Headwords))
+}
+```
+
+## Check 4: Finderlist headwords containing non-Carolinian characters
+
+```{r check4}
+ALLOWED_CHARS <- c("a", "á", "b", "c", "d", "e", "é", "f", "g", "h",
+                   "i", "k", "l", "m", "n", "o", "ó", "p", "r", "s",
+                   "t", "u", "ú", "w", "y", "z",
+                   "-", " ", "1", "2", "3", "–", "—", "¹", "²", "³")  # allow hyphen, space, superscript digits
+
+finderlist2 <- read_tsv("finderlist.tsv", col_types = cols(.default = "c"),
+                        na = character()) |>
+  mutate(across(everything(), \(x) replace_na(x, "")))
+
+flagged <- finderlist2 |>
+  mutate(
+    chars = str_extract_all(str_to_lower(carolinian_headword), "."),
+    unexpected = map_chr(chars, \(ch) paste(unique(ch[!ch %in% ALLOWED_CHARS]), collapse = " "))
+  ) |>
+  filter(unexpected != "") |>
+  select(page_number, carolinian_headword, unexpected, english_word, dialect)
+
+cat("Flagged:", nrow(flagged), "headwords with non-Carolinian characters\n")
+if (nrow(flagged) > 0) print(flagged)
+
+# Also show all unique unexpected characters across the full finderlist
+all_chars <- str_extract_all(str_to_lower(finderlist2$carolinian_headword), ".") |>
+  unlist() |>
+  unique() |>
+  sort()
+unexpected_chars <- all_chars[!all_chars %in% ALLOWED_CHARS]
+cat("\nAll unexpected characters found:", paste(unexpected_chars, collapse = " "), "\n")
+```
+
+```{r}
+
+
+```

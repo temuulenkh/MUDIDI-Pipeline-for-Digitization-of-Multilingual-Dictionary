@@ -28,6 +28,7 @@ logs/
 # Local IDE / agent files
 CLAUDE.md
 .claude
+.claude/
 .cursor/
 **/.cursor/
 
@@ -70,3 +71,4 @@ evaluations/*prototype*
 evaluations/audit_*.csv
 inputs/
 outputs/
+.Rproj.user

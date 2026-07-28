@@ -101,10 +101,16 @@ def format_current_page_block(page_context: PageContext, *, ocr: bool = False) -
     return (
         f"<current_page>\n"
         f"page: {page_context.current_stem}\n"
-        f"Emit MDF for lexicon records whose main headword (\\lx) starts on this page.\n"
+        f"Emit MDF for:\n"
+        f"  1. All entries whose main headword (\\lx) starts on this page.\n"
+        f"  2. Subentries (\\se) whose subentry heading appears on this page, even if the "
+        f"parent \\lx started on a previous page.\n"
         f"Include all sub-fields (\\se, \\va, senses, examples) for those entries even when "
         f"they print on the next page — copy characters from <next_page> transcript.\n"
-        f"Do not emit continuation lines from entries whose \\lx started on a previous page.\n"
+        f"Do not re-emit the parent \\lx record or any \\se subentries already captured on a previous page.\n"
+        f"IMPORTANT: Only emit content that is visibly present in the page images or transcripts "
+        f"provided. Do NOT infer, recall, or complete senses or sub-fields from prior knowledge "
+        f"or earlier entries seen in this conversation.\n"
         f"</current_page>"
     )
 

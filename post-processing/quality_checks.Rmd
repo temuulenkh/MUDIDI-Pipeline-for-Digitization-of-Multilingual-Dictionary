@@ -1,0 +1,212 @@
+---
+title: "Carolinian Dictionary Quality Checks"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+
+df <- read_tsv("../outputs/carolinian_combined.tsv", col_types = cols(.default = "c")) |>
+  mutate(across(everything(), \(x) replace_na(x, "")))
+
+cat("Loaded", nrow(df), "rows\n")
+head(df, 3)
+```
+
+## Check 1: Headword is not empty
+
+```{r check1}
+flagged <- df |> filter(str_trim(Headword) == "")
+cat("Flagged:", nrow(flagged), "rows with empty headword\n")
+if (nrow(flagged) > 0) print(flagged |> select(Source_Page, Entry_Type, Headword, Gloss))
+```
+
+## Check 2: Gloss is not empty (allow if Variant_Form is set)
+
+```{r check2}
+flagged <- df |>
+  filter(str_trim(Gloss) == "", str_trim(Variant_Form) == "")
+cat("Flagged:", nrow(flagged), "rows with empty gloss and no variant form\n")
+if (nrow(flagged) > 0) print(flagged |> select(Source_Page, Entry_Type, Headword, Gloss, Variant_Form, Cross_References))
+```
+Headword: filooris --> Gloss: flower POS: n
+Headword: túlungasch --> Gloss: Lips
+Others are variants, so OK --> maybe we should exclude them because they should be already captured in Variant_Form
+
+## Check 3: Subentry must have a non-empty Parent_Lexeme
+
+```{r check3}
+flagged <- df |>
+  filter(Entry_Type == "subentry", str_trim(Parent_Lexeme) == "")
+cat("Flagged:", nrow(flagged), "subentries with empty Parent_Lexeme\n")
+if (nrow(flagged) > 0) print(flagged |> select(Source_Page, Headword, Parent_Lexeme, Gloss))
+```
+
+## Check 4: Duplicate headwords (within same Entry_Type) must have Sense_Number or Homonym_Number
+
+```{r check4}
+flagged <- df |>
+  group_by(Headword, Entry_Type) |>
+  filter(n() > 1) |>
+  ungroup() |>
+  filter(str_trim(Sense_Number) == "", str_trim(Homonym_Number) == "")
+cat("Flagged:", nrow(flagged), "duplicate headwords (within same Entry_Type) missing both Sense_Number and Homonym_Number\n")
+if (nrow(flagged) > 0) print(flagged |> select(Source_Page, Entry_Type, Headword, Sense_Number, Homonym_Number, Gloss))
+```
+Page 136 -- complete hallucination at Stage 2
+Index 3993 --> Headword: limal (not mal)
+Some are genuine -- the dictionary indeed has these duplicate headwords, but no homonyms indicated
+Some are just duplicates from cross-page contintuation (I guess)
+falafal --> subentry homonym index not picked up
+
+## Check 5: POS is not empty and uses only known tags
+
+```{r check5}
+VALID_POS <- c(
+  "adv", "asp", "caus", "cl", "conj", "dem", "dir suf", "idiom", "intj",
+  "n", "neg", "num", "num cl", "obj suf", "ord pref", "poss cl", "poss suf",
+  "pref", "pron", "ques", "redup", "rel n", "subj", "suf", "tns-asp",
+  "v", "vi", "vt",
+  "vi caus", "vt caus", "n caus", "poss pron", "n pref",
+  "vi (pass)", "vi (redup)", "vi phr", "adv suf", "caus pref", "conj, comp", "dem pron", "dem pron ques", 
+  "dem ques", "foc", "intj neg", "loc", "loc vt",
+  "n (idiom)", "n (idiom?)", "n (pass)", "n (redup)", "n phr", "n ques", 
+  # need to check these cases 
+  "n, vi", "n, vi caus", "vi, n", "n caus, vi caus", "n, v","v, n","vi caus, n","vi n","vi, n caus",
+  "neg asp", "neg tnsasp", "numcl", 
+  "ordinal pref", # this has to be ord pref
+  "poss","poss cl, n","Poss suf","prep","pron + asp","pron + neg","pron + tns-asp","prt","ques n","ques pron","v phr","v pref","v suf",
+  "vi (idiom)", "vi (prog)", "vi caus (redup)", "vi caus (pass)", "vi caus, redup", "vi, vt", "vt (idiom)", "vt (redup)", "vt (reflex)"
+)
+
+# Exclude variant/redirect entries
+df_pos <- df |>
+  filter(
+    !str_starts(str_trim(Gloss), "Variant of"),
+    !(str_trim(Variant_Form) != "" & str_trim(Gloss) == "")
+  )
+
+# Empty POS
+empty_pos <- df_pos |> filter(str_trim(POS) == "")
+cat("Flagged:", nrow(empty_pos), "rows with empty POS (excluding variant/redirect entries)\n")
+if (nrow(empty_pos) > 0) print(head(empty_pos |> select(Source_Page, Entry_Type, Headword, POS, Gloss), 20))
+
+# Unknown POS
+unknown_pos <- df_pos |>
+  filter(str_trim(POS) != "", !str_trim(POS) %in% VALID_POS)
+cat("\nFlagged:", nrow(unknown_pos), "rows with unrecognised POS\n")
+if (nrow(unknown_pos) > 0) {
+  print(unknown_pos |> select(Source_Page, Entry_Type, Headword, POS) |> distinct(POS, .keep_all = TRUE))
+  cat("Unique unrecognised POS values:", paste(sort(unique(str_trim(unknown_pos$POS))), collapse = ", "), "\n")
+}
+```
+Some POS tags can be incorrectly written (not according to the guideline page)
+Need to take care of these dialectal variants as in (TAN), (S) in POS columns
+Need to take care of these variants --> maybe just exclude them
+
+```{r}
+empty_pos_gloss <- empty_pos %>%
+  filter(Gloss != "")
+```
+
+Headword: lighitaal36 --> lighitaaló (maybe we can quickly check if headwords have any numbers or other unrelated characters)
+Fix subentry headwords with — 
+Some POS tags were actually missing from the dictionary
+Some haven't picked up because of multiple senses
+
+## Check 6: If Examples is not empty, Example_Glosses must not be empty
+
+```{r check6}
+flagged <- df |>
+  filter(str_trim(Examples) != "", str_trim(Example_Glosses) == "")
+cat("Flagged:", nrow(flagged), "rows with examples but no example gloss\n")
+if (nrow(flagged) > 0) print(flagged |> select(Source_Page, Headword, Examples, Example_Glosses))
+```
+
+## Polishing
+
+### Deduplication: remove cross-page duplicate entries
+
+```{r dedup_preview}
+KEY_COLS <- c("Headword", "Entry_Type", "Parent_Lexeme", "Sense_Number", "Homonym_Number")
+
+df_sorted <- df |>
+  mutate(.page_num = as.integer(str_extract(Source_Page, "\\d+"))) |>
+  arrange(.page_num)
+
+to_remove <- df_sorted |>
+  group_by(across(all_of(KEY_COLS))) |>
+  filter(n() > 1) |>
+  slice(-1) |>
+  ungroup()
+
+cat("Found", nrow(to_remove), "cross-page duplicate rows to remove:\n")
+if (nrow(to_remove) > 0) print(to_remove |> select(Source_Page, Entry_Type, Headword, Sense_Number, Homonym_Number, Gloss))
+```
+
+```{r dedup_apply}
+df_clean <- df_sorted |>
+  group_by(across(all_of(KEY_COLS))) |>
+  slice(1) |>
+  ungroup() |>
+  select(-.page_num)
+
+cat("Rows before:", nrow(df), "→ after:", nrow(df_clean), "\n")
+```
+
+### Resolve variant entries
+
+```{r variant_preview}
+COPY_COLS <- c("Gloss", "Gloss_Secondary", "POS", "Usage_Note", "Phonetic",
+               "Cross_References", "Examples", "Example_Glosses",
+               "Morphemic_Representation", "Etymology", "Inflection", "Dialect")
+
+is_variant <- str_starts(str_trim(df_clean$Gloss), "Variant of") |
+              (str_trim(df_clean$Variant_Form) != "" & str_trim(df_clean$Gloss) == "")
+
+df_variants <- df_clean[is_variant, ] |>
+  mutate(.target = coalesce(
+    str_trim(str_extract(Gloss, "(?<=Variant of ).+")),
+    if_else(str_trim(Variant_Form) != "" & str_trim(Gloss) == "", str_trim(Variant_Form), NA_character_)
+  ))
+
+# Build lookup from main entries
+lookup <- df_clean |>
+  filter(Entry_Type == "main") |>
+  distinct(Headword, .keep_all = TRUE)
+
+resolvable <- df_variants |> filter(.target %in% lookup$Headword)
+not_found  <- df_variants |> filter(!.target %in% lookup$Headword, !is.na(.target))
+
+cat("Resolvable:", nrow(resolvable), "| Target not found:", nrow(not_found), "\n")
+if (nrow(not_found) > 0) {
+  cat("Could not resolve (target not yet processed):\n")
+  not_found |> select(Headword, .target, Source_Page) |> print()
+}
+```
+
+```{r variant_apply}
+df_resolved <- df_clean
+
+for (i in seq_len(nrow(resolvable))) {
+  idx <- which(
+    df_resolved$Headword    == resolvable$Headword[i] &
+    df_resolved$Entry_Type  == resolvable$Entry_Type[i] &
+    df_resolved$Source_Page == resolvable$Source_Page[i]
+  )
+  if (length(idx) == 0) next
+  target_row <- lookup |> filter(Headword == resolvable$.target[i])
+  if (nrow(target_row) == 0) next
+  for (col in COPY_COLS) {
+    if (str_trim(df_resolved[[col]][idx]) == "") {
+      df_resolved[[col]][idx] <- target_row[[col]][1]
+    }
+  }
+}
+
+df_resolved <- df_resolved |> select(-.target, -any_of(".target"))
+cat("Resolved", nrow(resolvable), "variant entries\n")
+
+write_tsv(df_resolved, "../outputs/carolinian_polished.tsv")
+cat("Saved → outputs/carolinian_polished.tsv\n")
+```

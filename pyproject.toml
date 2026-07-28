@@ -24,6 +24,9 @@ dependencies = [
     "scipy>=1.15.3",
     "label-studio>=1.23.0",
     "pyyaml>=6.0",
+    "pypdf>=6.12.2",
+    "ipykernel>=7.2.0",
+    "langchain-google-vertexai>=3.2.3",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +39,7 @@ paddle = [
 mudidi = "mudidi.cli.main:main"
 mudidi-eval-flat = "mudidi.cli.evaluate_stage1:main"
 mudidi-eval-stage2-mdf = "mudidi.cli.evaluate_stage2_mdf:main"
+dictextractor-mdf-to-tsv = "mudidi.cli.mdf_to_tsv:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mudidi"]
