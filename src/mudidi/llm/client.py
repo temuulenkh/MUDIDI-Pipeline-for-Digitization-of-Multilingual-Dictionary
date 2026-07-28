@@ -35,6 +35,8 @@ import time
 from typing import Any, Dict, List, Literal, Optional, Type, TypeVar
 
 import litellm
+
+litellm.drop_params = True
 from dotenv import load_dotenv
 from litellm.exceptions import APIError, RateLimitError
 from pydantic import BaseModel, ValidationError
